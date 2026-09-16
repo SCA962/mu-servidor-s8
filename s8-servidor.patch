@@ -22,6 +22,113 @@ index 6263e551..546ed00f 100644
  }
  
  /// <summary>
+diff --git a/src/DataModel/InventoryConstants.cs b/src/DataModel/InventoryConstants.cs
+index 75908b19..443fc4c4 100644
+--- a/src/DataModel/InventoryConstants.cs
++++ b/src/DataModel/InventoryConstants.cs
+@@ -132,6 +132,39 @@ public static class InventoryConstants
+         (InventoryRows * RowSize) + // 64
+         (AllInventoryExtensionRows * RowSize)); // 128
+ 
++    /// <summary>
++    /// The inventory slot of the pentagram, the elemental item of Season 8.
++    /// </summary>
++    /// <remarks>
++    /// Va fuera del rango contiguo de equipo a proposito. Meterlo como hueco 12 obligaria a
++    /// renumerar TODO lo que hay del 12 en adelante, o sea cada item guardado de cada jugador, y
++    /// ademas crece el paquete de apariencia, que tiene tamano fijo. El 236 es el primer numero
++    /// libre detras de la tienda personal (12 de equipo + 64 de inventario + 128 de las cuatro
++    /// extensiones + 32 de tienda = 236) y `ItemSlot` es un byte, asi que cabe de sobra.
++    ///
++    /// No es capacidad nueva: la tienda personal ya funciona asi, como una vista con desplazamiento
++    /// sobre el mismo <see cref="Character.Inventory"/> (ver ShopStorage). El pentagrama es lo mismo
++    /// con un hueco en vez de 32.
++    /// </remarks>
++    public static readonly byte PentagramSlot = 236;
++
++    /// <summary>
++    /// Determines whether the given slot holds an item which the character is wearing.
++    /// </summary>
++    /// <param name="itemSlot">The item slot.</param>
++    /// <returns><see langword="true"/> when the item in that slot counts as equipped.</returns>
++    /// <remarks>
++    /// Usar esto y no comparar contra <see cref="LastEquippableItemSlotIndex"/> a mano: el
++    /// pentagrama se lleva puesto pero no esta en el rango contiguo, y los sitios que comparan a
++    /// mano se lo dejan fuera sin avisar (le pasaba a ItemPowerUpFactory, que le quitaba todos sus
++    /// atributos, y a MoveItemAction, que no lo consideraba equipar).
++    /// </remarks>
++    public static bool IsEquippedSlot(byte itemSlot)
++    {
++        return (itemSlot >= FirstEquippableItemSlotIndex && itemSlot <= LastEquippableItemSlotIndex)
++               || itemSlot == PentagramSlot;
++    }
++
+     /// <summary>
+     /// The number of personal store rows.
+     /// </summary>
+diff --git a/src/GameLogic/InventoryStorage.cs b/src/GameLogic/InventoryStorage.cs
+index 9925b53f..8821943a 100644
+--- a/src/GameLogic/InventoryStorage.cs
++++ b/src/GameLogic/InventoryStorage.cs
+@@ -35,6 +35,14 @@ public class InventoryStorage : Storage, IInventoryStorage
+         this.EquippedItemsChanged += async eventArgs => await this.UpdateItemsOnChangeAsync(eventArgs.Item, eventArgs.IsEquipped).ConfigureAwait(false);
+         this._gameContext = context;
+ 
++        // El pentagrama vive en su propio almacen de un hueco (236) y NO esta en EquippedItems, a
++        // proposito: esa lista alimenta tambien el paquete de apariencia, que tiene tamano fijo.
++        // Aqui solo se escucha para rehacer sus atributos cuando se pone o se quita.
++        if (player.PentagramStorage is { } pentagramStorage)
++        {
++            pentagramStorage.PentagramChanged += this.OnPentagramChangedAsync;
++        }
++
+         if (player.SelectedCharacter.InventoryExtensions > 0)
+         {
+             var extensions = new List<Storage>(player.SelectedCharacter.InventoryExtensions);
+@@ -171,6 +179,31 @@ public class InventoryStorage : Storage, IInventoryStorage
+         }
+     }
+ 
++    private ValueTask OnPentagramChangedAsync(ItemEventArgs eventArgs)
++    {
++        if (this._player.Attributes is null)
++        {
++            return ValueTask.CompletedTask;
++        }
++
++        if (this._player.Attributes.ItemPowerUps.Remove(eventArgs.Item, out var itemPowerUps))
++        {
++            foreach (var powerUp in itemPowerUps)
++            {
++                powerUp.Dispose();
++            }
++        }
++
++        if (eventArgs.IsEquipped && this._gameContext?.ItemPowerUpFactory is { } factory)
++        {
++            this._player.Attributes.ItemPowerUps.Add(
++                eventArgs.Item,
++                factory.GetPowerUps(eventArgs.Item, this._player.Attributes).ToList());
++        }
++
++        return ValueTask.CompletedTask;
++    }
++
+     private void InitializePowerUps()
+     {
+         if (this._player.Attributes is null)
+@@ -191,6 +224,11 @@ public class InventoryStorage : Storage, IInventoryStorage
+                 this._player.Attributes.ItemPowerUps.Add(item, factory.GetPowerUps(item, this._player.Attributes).ToList());
+             }
+ 
++            if (this._player.PentagramStorage?.EquippedPentagram is { } pentagram)
++            {
++                this._player.Attributes.ItemPowerUps.Add(pentagram, factory.GetPowerUps(pentagram, this._player.Attributes).ToList());
++            }
++
+             this.UpdateSetPowerUps();
+         }
+         else
 diff --git a/src/GameLogic/ItemConstants.cs b/src/GameLogic/ItemConstants.cs
 index d872c077..959aec96 100644
 --- a/src/GameLogic/ItemConstants.cs
@@ -49,6 +156,21 @@ index d872c077..959aec96 100644
 +    /// </summary>
 +    public static ItemIdentifier PandoraPick => new(41, 0);
  }
+diff --git a/src/GameLogic/ItemPowerUpFactory.cs b/src/GameLogic/ItemPowerUpFactory.cs
+index 40560ea7..b6f7140d 100644
+--- a/src/GameLogic/ItemPowerUpFactory.cs
++++ b/src/GameLogic/ItemPowerUpFactory.cs
+@@ -40,7 +40,9 @@ public class ItemPowerUpFactory : IItemPowerUpFactory
+             yield break;
+         }
+ 
+-        if (item.ItemSlot < InventoryConstants.FirstEquippableItemSlotIndex || item.ItemSlot > InventoryConstants.LastEquippableItemSlotIndex)
++        // El pentagrama se lleva puesto pero vive en el hueco 236, fuera del rango contiguo, asi
++        // que comparar contra LastEquippableItemSlotIndex le quitaba TODOS sus atributos sin avisar.
++        if (!InventoryConstants.IsEquippedSlot(item.ItemSlot))
+         {
+             yield break;
+         }
 diff --git a/src/GameLogic/MapInitializer.cs b/src/GameLogic/MapInitializer.cs
 index 148b7a51..05b16691 100644
 --- a/src/GameLogic/MapInitializer.cs
@@ -644,8 +766,82 @@ index 00000000..c232563b
 +               || DateTime.UtcNow - this._reservedAt > ReservationTimeout;
 +    }
 +}
+diff --git a/src/GameLogic/PentagramStorage.cs b/src/GameLogic/PentagramStorage.cs
+new file mode 100644
+index 00000000..9b09ecb0
+--- /dev/null
++++ b/src/GameLogic/PentagramStorage.cs
+@@ -0,0 +1,68 @@
++﻿// <copyright file="PentagramStorage.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic;
++
++/// <summary>
++/// The one-slot storage which holds the pentagram the character is wearing.
++/// </summary>
++/// <remarks>
++/// Es exactamente el patron de <see cref="ShopStorage"/>, que lleva anos funcionando: una vista con
++/// desplazamiento sobre el mismo <c>Character.Inventory</c>, no un almacen aparte. Por eso el
++/// pentagrama no necesita ni tabla nueva, ni columna nueva, ni migracion: es una fila mas de
++/// <c>ItemStorage.Items</c> con <c>ItemSlot</c> 236.
++/// </remarks>
++public class PentagramStorage : Storage
++{
++    /// <summary>
++    /// Initializes a new instance of the <see cref="PentagramStorage"/> class.
++    /// </summary>
++    /// <param name="character">The character.</param>
++    public PentagramStorage(Character character)
++        : base(
++            1,
++            0,
++            InventoryConstants.PentagramSlot,
++            new ItemStorageAdapter(
++                character.Inventory ?? throw Error.NotInitializedProperty(character, nameof(Character.Inventory)),
++                InventoryConstants.PentagramSlot,
++                1))
++    {
++    }
++
++    /// <summary>
++    /// Occurs when the pentagram was put on or taken off.
++    /// </summary>
++    /// <remarks>
++    /// No se reusa <c>EquippedItemsChanged</c> del inventario a proposito: ese evento dispara
++    /// tambien el cambio de apariencia, y el paquete de apariencia tiene tamano fijo y no conoce
++    /// este hueco. El pentagrama no se ve puesto en el personaje, asi que solo hay que rehacer
++    /// atributos, no avisar a los demas jugadores.
++    /// </remarks>
++    public event AsyncEventHandler<ItemEventArgs>? PentagramChanged;
++
++    /// <summary>
++    /// Gets the pentagram which the character is wearing, if there is one.
++    /// </summary>
++    public Item? EquippedPentagram => this.GetItem(InventoryConstants.PentagramSlot);
++
++    /// <inheritdoc/>
++    public override async ValueTask<bool> AddItemAsync(byte slot, Item item)
++    {
++        var added = await base.AddItemAsync(slot, item).ConfigureAwait(false);
++        if (added)
++        {
++            await this.PentagramChanged.SafeInvokeAsync(new ItemEventArgs(item, true)).ConfigureAwait(false);
++        }
++
++        return added;
++    }
++
++    /// <inheritdoc/>
++    public override async ValueTask RemoveItemAsync(Item item)
++    {
++        await base.RemoveItemAsync(item).ConfigureAwait(false);
++        await this.PentagramChanged.SafeInvokeAsync(new ItemEventArgs(item, false)).ConfigureAwait(false);
++    }
++}
 diff --git a/src/GameLogic/Player.cs b/src/GameLogic/Player.cs
-index 10a442a0..2eae896c 100644
+index 10a442a0..d3b1bbcb 100644
 --- a/src/GameLogic/Player.cs
 +++ b/src/GameLogic/Player.cs
 @@ -364,6 +364,13 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
@@ -662,7 +858,19 @@ index 10a442a0..2eae896c 100644
      /// <summary>
      /// Gets the skill list.
      /// </summary>
-@@ -638,6 +645,11 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
+@@ -464,6 +471,11 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
+     /// </summary>
+     public IShopStorage? ShopStorage => this._storages.ShopStorage;
+ 
++    /// <summary>
++    /// Gets the one-slot storage which holds the pentagram the character is wearing.
++    /// </summary>
++    public PentagramStorage? PentagramStorage => this._storages.PentagramStorage;
++
+     /// <inheritdoc/>
+     public BackupItemStorage? BackupInventory
+     {
+@@ -638,6 +650,11 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
  
              this.DuelRoom = null;
  
@@ -831,6 +1039,59 @@ index 9d520d45..650da09b 100644
      private static bool IsMoneySufficient(Player player, Item item)
      {
          var priceCalculator = new ItemPriceCalculator();
+diff --git a/src/GameLogic/PlayerActions/Items/MoveItemAction.cs b/src/GameLogic/PlayerActions/Items/MoveItemAction.cs
+index a7b5b985..69ea5fc1 100644
+--- a/src/GameLogic/PlayerActions/Items/MoveItemAction.cs
++++ b/src/GameLogic/PlayerActions/Items/MoveItemAction.cs
+@@ -45,7 +45,7 @@ public class MoveItemAction
+             return;
+         }
+ 
+-        var fromStorageInfo = this.GetStorageInfo(player, fromStorage);
++        var fromStorageInfo = this.GetStorageInfo(player, fromStorage, fromSlot);
+         var fromItemStorage = fromStorageInfo?.Storage;
+         var item = fromItemStorage?.GetItem(fromSlot);
+ 
+@@ -56,7 +56,7 @@ public class MoveItemAction
+             return;
+         }
+ 
+-        var toStorageInfo = this.GetStorageInfo(player, toStorage);
++        var toStorageInfo = this.GetStorageInfo(player, toStorage, toSlot);
+         var toItemStorage = toStorageInfo?.Storage;
+ 
+         var movement = await this.CanMoveAsync(player, item, toSlot, fromSlot, toStorageInfo, fromStorageInfo).ConfigureAwait(false);
+@@ -174,8 +174,18 @@ public class MoveItemAction
+     /// The client would prevent storing an item across boundaries, the
+     /// server wouldn't.
+     /// </remarks>
+-    private StorageInfo? GetStorageInfo(Player player, Storages storageType)
++    private StorageInfo? GetStorageInfo(Player player, Storages storageType, byte slot)
+     {
++        // El pentagrama vive en el hueco 236, fuera del rango del inventario, en un almacen propio
++        // de un solo hueco (mismo patron que la tienda personal). El cliente lo manda como si fuera
++        // el inventario, asi que hay que desviarlo aqui por el numero de hueco.
++        if (storageType == Storages.Inventory
++            && slot == PentagramSlot
++            && player.PentagramStorage is { } pentagramStorage)
++        {
++            return new StorageInfo(pentagramStorage, 1, PentagramSlot, (byte)(PentagramSlot + 1));
++        }
++
+         StorageInfo? result;
+         switch (storageType)
+         {
+@@ -245,7 +255,9 @@ public class MoveItemAction
+         }
+ 
+         var storage = toStorage.Storage;
+-        if (toStorage.Storage == player.Inventory && toSlot <= LastEquippableItemSlotIndex)
++        // IsEquippedSlot y no "<= LastEquippableItemSlotIndex": el pentagrama (hueco 236) tambien
++        // cuenta como ponerse algo, y si no, no se le aplicaban los requisitos ni los atributos.
++        if (toStorage.Storage == player.Inventory && IsEquippedSlot(toSlot))
+         {
+             var itemDefinition = item.Definition;
+             if (storage.GetItem(toSlot) != null || itemDefinition?.ItemSlot is null)
 diff --git a/src/GameLogic/PlayerActions/Mining/MiningAction.cs b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
 new file mode 100644
 index 00000000..da646c43
@@ -1206,6 +1467,39 @@ index 00000000..da646c43
 +    private ValueTask SendHitResultAsync(Player player, ushort zoneId, ushort zoneClass, byte stage, int jewelCount, MiningResult result)
 +        => player.InvokeViewPlugInAsync<IMiningViewPlugIn>(p => p.ShowMiningHitResultAsync(zoneId, zoneClass, this.GetMapNumber(player), stage, jewelCount, result));
 +}
+diff --git a/src/GameLogic/PlayerStorages.cs b/src/GameLogic/PlayerStorages.cs
+index c89a8735..5b2de641 100644
+--- a/src/GameLogic/PlayerStorages.cs
++++ b/src/GameLogic/PlayerStorages.cs
+@@ -1,4 +1,4 @@
+-// <copyright file="PlayerStorages.cs" company="MUnique">
++﻿// <copyright file="PlayerStorages.cs" company="MUnique">
+ // Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ // </copyright>
+ 
+@@ -37,6 +37,11 @@ internal sealed class PlayerStorages
+     /// </summary>
+     public IShopStorage? ShopStorage { get; private set; }
+ 
++    /// <summary>
++    /// Gets the one-slot storage which holds the pentagram the character is wearing.
++    /// </summary>
++    public PentagramStorage? PentagramStorage { get; private set; }
++
+     /// <summary>
+     /// Gets or sets the vault. It's set when the vault NPC is opened.
+     /// </summary>
+@@ -53,6 +58,10 @@ internal sealed class PlayerStorages
+     /// <param name="character">The selected character.</param>
+     public void CreateForCharacter(Character character)
+     {
++        // El del pentagrama va PRIMERO: el inventario, al construirse, calcula los atributos de todo
++        // lo que lleva puesto, y el pentagrama es parte de eso. Si se creara despues, al entrar al
++        // juego no daria ninguno de sus atributos hasta que te lo quitaras y te lo volvieras a poner.
++        this.PentagramStorage = new PentagramStorage(character);
+         this.Inventory = new InventoryStorage(this._player, this._player.GameContext);
+         this.ShopStorage = new ShopStorage(character);
+         this.TemporaryStorage = new Storage(InventoryConstants.TemporaryStorageSize, new TemporaryItemStorage());
 diff --git a/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs b/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs
 new file mode 100644
 index 00000000..e5f0e1ad
