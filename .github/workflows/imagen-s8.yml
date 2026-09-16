@@ -94,6 +94,23 @@ jobs:
           test "$(grep -n 'this.BuildSets();' src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs | cut -d: -f1)" -gt "$(grep -n 'Season 8: armaduras nuevas' src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs | cut -d: -f1)" \
             || { echo "BuildSets sigue corriendo antes de las armaduras del S8" >&2; exit 1; }
 
+          # --- sistema elemental: pentagramas y errtels ---
+          grep -q "PentagramSlot = 236" src/DataModel/InventoryConstants.cs || { echo "falta el hueco 236 del pentagrama" >&2; exit 1; }
+          grep -q "IsEquippedSlot" src/GameLogic/ItemPowerUpFactory.cs || { echo "la fabrica de atributos sigue ignorando el hueco 236" >&2; exit 1; }
+          test -f src/GameLogic/PentagramStorage.cs || { echo "falta PentagramStorage" >&2; exit 1; }
+          test -f src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs || { echo "falta el inicializador de pentagramas" >&2; exit 1; }
+          grep -q "new Pentagrams(this.Context" src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs || { echo "los pentagramas no estan registrados" >&2; exit 1; }
+          grep -q "InventoryConstants.PentagramSlot" src/Persistence/Initialization/Version075/Items/SlotTypesInitializer.cs || { echo "falta el tipo de hueco del pentagrama" >&2; exit 1; }
+          grep -q "ItemOptionType PentagramElement" src/DataModel/Configuration/Items/ItemOptionTypes.cs || { echo "falta el tipo de opcion del elemento" >&2; exit 1; }
+          # los 15 pentagramas, los 5 errtels y las 60 filas de opcion, tal cual el paquete S8
+          test "$(grep -c "this.CreatePentagram(" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "15" || { echo "no son 15 pentagramas" >&2; exit 1; }
+          test "$(grep -c "this.CreateErrtel(" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "5" || { echo "no son 5 errtels" >&2; exit 1; }
+          test "$(grep -c "this.CreateErrtelOption(" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "60" || { echo "no son 60 filas de opcion de errtel" >&2; exit 1; }
+          # los atributos: 283 de OpenMU + 38 del sistema elemental, y ninguno con GUID repetido
+          test "$(grep -c "public static AttributeDefinition" src/GameLogic/Attributes/Stats.cs)" = "321" || { echo "el numero de atributos no es el esperado" >&2; exit 1; }
+          grep -q "AttributeDefinition DarkResistance" src/GameLogic/Attributes/Stats.cs || { echo "falta la resistencia a la oscuridad" >&2; exit 1; }
+          test -z "$(grep -oE 'new Guid\("[0-9A-Fa-f-]+"\)' src/GameLogic/Attributes/Stats.cs | sort | uniq -d)" || { echo "hay GUID repetidos en Stats.cs" >&2; exit 1; }
+
       - name: Construir la imagen
         working-directory: OpenMU/src
         run: docker build -f Startup/Dockerfile -t openmu:s8-lab .
