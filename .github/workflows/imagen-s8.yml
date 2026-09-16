@@ -54,6 +54,8 @@ jobs:
           grep -q "EmbeddedResource Include=\"Resources\\\\Terrain96.att\"" src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj || { echo "el terreno de Debenter no esta declarado como recurso" >&2; exit 1; }
           test "$(grep -c "maps\[9[15]\].EnterGates.Add" src/Persistence/Initialization/VersionSeasonSix/Gates.cs)" = "6" || { echo "faltan las puertas que se pisan de Acheron y Debenter" >&2; exit 1; }
           grep -q "CreateJinStore" src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs || { echo "falta la tienda de Jin" >&2; exit 1; }
+          # Sir Lesnar tiene que estar definido en NpcInitialization, que corre antes que los mapas
+          grep -q "def.Number = 584;" src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs || { echo "Sir Lesnar no esta definido antes que los mapas" >&2; exit 1; }
           test "$(grep -rc "NpcDictionary\[584\]" src/Persistence/Initialization/VersionSeasonSix/Maps/Lorencia.cs src/Persistence/Initialization/VersionSeasonSix/Maps/Devias.cs src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs | grep -c ":1")" = "3" || { echo "Sir Lesnar no esta en los tres pueblos" >&2; exit 1; }
 
       - name: Construir la imagen

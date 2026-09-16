@@ -1641,10 +1641,10 @@ index ca73adf7..914475cc 100644
          definition.SetGuid(ItemOptionDefinitionNumbers.Wing3rd);
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
 new file mode 100644
-index 00000000..c8087c87
+index 00000000..12b91493
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
-@@ -0,0 +1,693 @@
+@@ -0,0 +1,680 @@
 +﻿// <copyright file="Acheron.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1983,19 +1983,6 @@ index 00000000..c8087c87
 +            def.ObjectKind = NpcObjectKind.PassiveNpc;
 +            def.NpcWindow = NpcWindow.Merchant;
 +            def.MerchantStore = this.CreateJinStore();
-+            def.SetGuid(def.Number);
-+        }
-+        {
-+            // Sir Lesnar (584). Segun el minimapa del propio paquete no vive en Acheron sino en los
-+            // pueblos de siempre: Lorencia (114,132), Devias (240,53) y Noria (183,126), que es donde
-+            // se le habla para entrar al Protector of Acheron y canjear trofeos. Aqui solo se define;
-+            // los tres spawns estan en los ficheros de esos mapas.
-+            // De momento no tiene ventana: el evento no existe todavia.
-+            var def = this.Context.CreateNew<MonsterDefinition>();
-+            this.GameConfiguration.Monsters.Add(def);
-+            def.Number = 584;
-+            def.Designation = "Sir Lesnar";
-+            def.ObjectKind = NpcObjectKind.PassiveNpc;
 +            def.SetGuid(def.Number);
 +        }
 +        {
@@ -2837,6 +2824,35 @@ index 85f95903..2f42065f 100644
 +        this.GameConfiguration.DropItemGroups.Add(dropItemGroup);
 +    }
 +}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs b/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs
+index e1c16ac5..5a95e22f 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs
+@@ -1121,5 +1121,24 @@ internal partial class NpcInitialization : Version095d.NpcInitialization
+             def.SetGuid(def.Number);
+             this.GameConfiguration.Monsters.Add(def);
+         }
++
++        {
++            // Sir Lesnar (584), el NPC del Protector of Acheron. Segun el minimapa del propio
++            // paquete del S8 no vive en Acheron sino en los pueblos de siempre: Lorencia (114,132),
++            // Devias (240,53) y Noria (183,126); los tres spawns estan en esos mapas.
++            //
++            // Tiene que definirse AQUI y no en Acheron.cs: NpcInitialization corre antes que
++            // GameMapsInitializer (GameConfigurationInitializer.cs:79 y :81), y si la definicion
++            // vive en el mapa de Acheron, Lorencia revienta al arrancar con
++            // "KeyNotFoundException: The given key '584' was not present in the dictionary".
++            //
++            // Sin ventana todavia: el evento que abre no existe.
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            def.Number = 584;
++            def.Designation = "Sir Lesnar";
++            def.ObjectKind = NpcObjectKind.PassiveNpc;
++            def.SetGuid(def.Number);
++            this.GameConfiguration.Monsters.Add(def);
++        }
+     }
+ }
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs
 index 7ba9bcfb..d31eba68 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs
