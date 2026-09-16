@@ -43,6 +43,7 @@ jobs:
           test -f src/Persistence/Initialization/Resources/Terrain96.att || { echo "falta el terreno de Debenter" >&2; exit 1; }
           grep -q "typeof(Acheron)" src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs || { echo "los mapas no quedaron registrados" >&2; exit 1; }
           grep -q "MaximumMasterLevel = 330" src/Persistence/Initialization/GameConfigurationInitializerBase.cs || { echo "falta el tope de master" >&2; exit 1; }
+          grep -q "CreateExitGate(maps\[91\], 052, 190, 060, 194, 1, true)" src/Persistence/Initialization/VersionSeasonSix/Gates.cs || { echo "la puerta de llegada de Acheron no es la buena" >&2; exit 1; }
 
       - name: Construir la imagen
         working-directory: OpenMU/src
