@@ -768,15 +768,17 @@ index 00000000..c232563b
 +}
 diff --git a/src/GameLogic/PentagramStorage.cs b/src/GameLogic/PentagramStorage.cs
 new file mode 100644
-index 00000000..9b09ecb0
+index 00000000..1aae108f
 --- /dev/null
 +++ b/src/GameLogic/PentagramStorage.cs
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,70 @@
 +﻿// <copyright file="PentagramStorage.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
 +
 +namespace MUnique.OpenMU.GameLogic;
++
++using MUnique.OpenMU.PlugIns;
 +
 +/// <summary>
 +/// The one-slot storage which holds the pentagram the character is wearing.
