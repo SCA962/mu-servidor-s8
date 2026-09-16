@@ -118,12 +118,20 @@ jobs:
           grep -q "new ElementalSystem(this.Context" src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs || { echo "el sistema elemental no esta registrado" >&2; exit 1; }
           # 39 bichos con elemento propio (el 657 queda fuera: sus cifras del paquete estan toqueteadas)
           test "$(grep -cE "^        [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, //" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs)" = "39" || { echo "no son 39 bichos elementales" >&2; exit 1; }
-          # montar y sacar errtels en la Maquina del Caos, subirlos de nivel, y el comando del pentagrama
-          for f in ErrtelCraftingHelper MountErrtelCrafting RemoveErrtelCrafting ErrtelLevelUpCrafting; do
-            test -f "src/GameLogic/PlayerActions/Craftings/$f.cs" || { echo "falta $f" >&2; exit 1; }
-          done
-          grep -q "ItemCraftings.Add(this.MountErrtelCrafting())" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "las mezclas de errtel no estan en la Maquina del Caos" >&2; exit 1; }
+          # los dos comandos: el hueco 236 el cliente no lo dibuja, y las mezclas del errtel no se
+          # pueden hacer en la Maquina del Caos porque el cliente no manda nada si la receta no
+          # esta en su Data/Local/Mix.bmd
+          test -f src/GameLogic/ErrtelHelper.cs || { echo "falta ErrtelHelper" >&2; exit 1; }
           grep -q "/pentagrama" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "falta el comando del pentagrama" >&2; exit 1; }
+          grep -q "/errtel" src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs || { echo "falta el comando del errtel" >&2; exit 1; }
+          grep -q "CompliesRequirements" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "el pentagrama se equiparia sin cumplir el nivel" >&2; exit 1; }
+          # EL BLOQUEANTE de la revision: con boxOffset 0 la rejilla mide 0 filas y el pentagrama
+          # NO entra nunca, sin ningun error. Tiene que ser 1, como InventoryStorage con sus 12.
+          grep -qE "^            1,\s*$" src/GameLogic/PentagramStorage.cs || { echo "PentagramStorage no lleva boxOffset 1" >&2; exit 1; }
+          test "$(grep -cE "^            1,\s*$" src/GameLogic/PentagramStorage.cs)" = "2" || { echo "PentagramStorage: se esperan numberOfSlots=1 y boxOffset=1" >&2; exit 1; }
+          grep -q "RefreshAsync" src/GameLogic/PentagramStorage.cs || { echo "sin RefreshAsync los atributos no se rehacen al montar un errtel" >&2; exit 1; }
+          # la fila de Undine venia manipulada igual que la del 657
+          grep -q "592, 2, 2, 472, 496, 950, 315," src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "Undine sigue con los numeros manipulados del paquete" >&2; exit 1; }
           # sin AddsRandomly el generador de drops no le pone NADA al item: el pentagrama saldria sin
           # elemento y el errtel sin opciones, los dos inutiles y sin avisar
           test "$(grep -c "AddsRandomly = true" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "26" || { echo "faltan opciones que se repartan al caer (1 elemento + 25 rangos de errtel)" >&2; exit 1; }

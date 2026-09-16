@@ -367,10 +367,10 @@ index 7f0fa702..173cbc0d 100644
  }
 diff --git a/src/GameLogic/ElementalCombat.cs b/src/GameLogic/ElementalCombat.cs
 new file mode 100644
-index 00000000..f9246cd5
+index 00000000..9b9a3e77
 --- /dev/null
 +++ b/src/GameLogic/ElementalCombat.cs
-@@ -0,0 +1,239 @@
+@@ -0,0 +1,242 @@
 +﻿// <copyright file="ElementalCombat.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -494,7 +494,10 @@ index 00000000..f9246cd5
 +
 +        var defenderElement = GetElement(defender.Attributes, defender.Id);
 +
-+        float damage = Rand.NextInt((int)minimum, (int)maximum + 1);
++        // Rand.NextInt lanza si min > max. Hoy ninguna configuracion lo produce, pero basta una
++        // fila de la tabla con los dos numeros cambiados para tirar el hilo de combate del mapa.
++        var minimumDamage = (int)Math.Min(minimum, maximum);
++        float damage = Rand.NextInt(minimumDamage, (int)maximum + 1);
 +        damage += attacker.Attributes[Stats.ElementalDamageBonus];
 +        damage += isPvp ? attacker.Attributes[Stats.ElementalDamageBonusPvp] : attacker.Attributes[Stats.ElementalDamageBonusPvm];
 +        damage += isRanged ? attacker.Attributes[Stats.ElementalDamageBonusRanged] : attacker.Attributes[Stats.ElementalDamageBonusMelee];
@@ -608,6 +611,126 @@ index 00000000..f9246cd5
 +        }
 +
 +        return Rand.NextRandomBool(defenseRate / attackRate) ? 0f : 1f;
++    }
++}
+diff --git a/src/GameLogic/ErrtelHelper.cs b/src/GameLogic/ErrtelHelper.cs
+new file mode 100644
+index 00000000..c8155c11
+--- /dev/null
++++ b/src/GameLogic/ErrtelHelper.cs
+@@ -0,0 +1,114 @@
++﻿// <copyright file="ErrtelHelper.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic;
++
++using MUnique.OpenMU.DataModel.Configuration.Items;
++using MUnique.OpenMU.DataModel.Entities;
++
++/// <summary>
++/// Lo que comparten el pentagrama y los errtels.
++/// </summary>
++public static class ErrtelHelper
++{
++    /// <summary>
++    /// El grupo de los pentagramas y los errtels.
++    /// </summary>
++    public const byte Group = 12;
++
++    /// <summary>
++    /// El primer pentagrama (Muren's Book of Magic).
++    /// </summary>
++    public const short FirstPentagramNumber = 200;
++
++    /// <summary>
++    /// El ultimo pentagrama (Kundun's Seal Scroll).
++    /// </summary>
++    public const short LastPentagramNumber = 214;
++
++    /// <summary>
++    /// El primer errtel (Errtel of Anger).
++    /// </summary>
++    public const short FirstErrtelNumber = 221;
++
++    /// <summary>
++    /// Cuantos numeros de item hay entre un errtel y el siguiente.
++    /// </summary>
++    public const short ErrtelNumberStep = 10;
++
++    /// <summary>
++    /// Cuantos errtels distintos hay: uno por socket.
++    /// </summary>
++    public const int ErrtelCount = 5;
++
++    /// <summary>
++    /// Determines whether the item definition is a pentagram.
++    /// </summary>
++    /// <param name="definition">The item definition.</param>
++    /// <returns><c>true</c>, if it is a pentagram.</returns>
++    public static bool IsPentagram(ItemDefinition? definition)
++    {
++        return definition is { Group: Group } && definition.Number >= FirstPentagramNumber && definition.Number <= LastPentagramNumber;
++    }
++
++    /// <summary>
++    /// Determines whether the item definition is an errtel.
++    /// </summary>
++    /// <param name="definition">The item definition.</param>
++    /// <returns><c>true</c>, if it is an errtel.</returns>
++    public static bool IsErrtel(ItemDefinition? definition)
++    {
++        return GetSocketIndex(definition) >= 0;
++    }
++
++    /// <summary>
++    /// Devuelve el socket que le toca al errtel, o -1 si el item no es un errtel.
++    /// </summary>
++    /// <param name="definition">The item definition.</param>
++    /// <returns>The socket index, or -1.</returns>
++    /// <remarks>
++    /// El socket no lo elige el jugador: cada errtel tiene el suyo. Anger va al 0, Blessing al 1,
++    /// Integrity al 2, Divinity al 3 y Gale al 4, que es el orden en el que los numera el paquete
++    /// (221, 231, 241, 251 y 261) y tambien el orden de los slots del pentagrama.
++    /// </remarks>
++    public static int GetSocketIndex(ItemDefinition? definition)
++    {
++        if (definition is not { Group: Group })
++        {
++            return -1;
++        }
++
++        var offset = definition.Number - FirstErrtelNumber;
++        if (offset < 0 || offset % ErrtelNumberStep != 0)
++        {
++            return -1;
++        }
++
++        var index = offset / ErrtelNumberStep;
++        return index < ErrtelCount ? index : -1;
++    }
++
++    /// <summary>
++    /// Devuelve el numero de item del errtel que ocupa ese socket.
++    /// </summary>
++    /// <param name="socketIndex">The socket index.</param>
++    /// <returns>The item number.</returns>
++    public static short GetErrtelNumber(int socketIndex)
++    {
++        return (short)(FirstErrtelNumber + (socketIndex * ErrtelNumberStep));
++    }
++
++    /// <summary>
++    /// Devuelve las opciones de errtel que lleva el item en ese socket.
++    /// </summary>
++    /// <param name="item">The item.</param>
++    /// <param name="socketIndex">The socket index.</param>
++    /// <returns>The option links.</returns>
++    public static List<ItemOptionLink> GetErrtelOptions(Item item, int socketIndex)
++    {
++        return item.ItemOptions
++            .Where(link => link.ItemOption?.OptionType == ItemOptionTypes.Errtel && link.Index == socketIndex)
++            .ToList();
 +    }
 +}
 diff --git a/src/GameLogic/InventoryStorage.cs b/src/GameLogic/InventoryStorage.cs
@@ -1312,10 +1435,10 @@ index 00000000..c232563b
 +}
 diff --git a/src/GameLogic/PentagramStorage.cs b/src/GameLogic/PentagramStorage.cs
 new file mode 100644
-index 00000000..1aae108f
+index 00000000..bd593852
 --- /dev/null
 +++ b/src/GameLogic/PentagramStorage.cs
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,98 @@
 +﻿// <copyright file="PentagramStorage.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1339,10 +1462,21 @@ index 00000000..1aae108f
 +    /// Initializes a new instance of the <see cref="PentagramStorage"/> class.
 +    /// </summary>
 +    /// <param name="character">The character.</param>
++    /// <remarks>
++    /// El segundo parametro es <c>boxOffset = 1</c> y NO puede ser 0. <see cref="Storage"/> trata
++    /// los huecos por debajo del <c>boxOffset</c> como huecos de equipo (uno por item, sin
++    /// rejilla) y todo lo de arriba como una rejilla de 8 columnas. Con <c>boxOffset = 0</c> el
++    /// unico hueco cae en la rejilla, y la rejilla mide <c>(1 - 0) / 8 = 0</c> filas: el
++    /// pentagrama NO entra nunca y <c>AddItemAsync</c> devuelve false siempre, sin ningun error.
++    /// Peor todavia: si algun dia hay un item en el 236 en la base, el constructor de
++    /// <see cref="Storage"/> lanza «Some items do not fit into the storage» y el personaje no
++    /// puede entrar al juego. Es el mismo patron que usa <c>InventoryStorage</c>, que pasa
++    /// <c>EquippableSlotsCount</c> como <c>boxOffset</c> para sus doce huecos de equipo.
++    /// </remarks>
 +    public PentagramStorage(Character character)
 +        : base(
 +            1,
-+            0,
++            1,
 +            InventoryConstants.PentagramSlot,
 +            new ItemStorageAdapter(
 +                character.Inventory ?? throw Error.NotInitializedProperty(character, nameof(Character.Inventory)),
@@ -1366,6 +1500,23 @@ index 00000000..1aae108f
 +    /// Gets the pentagram which the character is wearing, if there is one.
 +    /// </summary>
 +    public Item? EquippedPentagram => this.GetItem(InventoryConstants.PentagramSlot);
++
++    /// <summary>
++    /// Vuelve a calcular los atributos del pentagrama que se lleva puesto.
++    /// </summary>
++    /// <remarks>
++    /// Hace falta cuando cambian las opciones del pentagrama sin que el item se mueva, que es lo
++    /// que pasa al montar o sacar un errtel.
++    /// </remarks>
++    public ValueTask RefreshAsync()
++    {
++        if (this.EquippedPentagram is not { } pentagram)
++        {
++            return ValueTask.CompletedTask;
++        }
++
++        return this.PentagramChanged.SafeInvokeAsync(new ItemEventArgs(pentagram, true));
++    }
 +
 +    /// <inheritdoc/>
 +    public override async ValueTask<bool> AddItemAsync(byte slot, Item item)
@@ -1428,471 +1579,6 @@ index 10a442a0..d3b1bbcb 100644
              this._selectedCharacter = null;
          }
          else
-diff --git a/src/GameLogic/PlayerActions/Craftings/ErrtelCraftingHelper.cs b/src/GameLogic/PlayerActions/Craftings/ErrtelCraftingHelper.cs
-new file mode 100644
-index 00000000..8458e4d1
---- /dev/null
-+++ b/src/GameLogic/PlayerActions/Craftings/ErrtelCraftingHelper.cs
-@@ -0,0 +1,114 @@
-+﻿// <copyright file="ErrtelCraftingHelper.cs" company="MUnique">
-+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-+// </copyright>
-+
-+namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
-+
-+using MUnique.OpenMU.DataModel.Configuration.Items;
-+using MUnique.OpenMU.DataModel.Entities;
-+
-+/// <summary>
-+/// Lo que comparten las mezclas de errtel.
-+/// </summary>
-+internal static class ErrtelCraftingHelper
-+{
-+    /// <summary>
-+    /// El grupo de los pentagramas y los errtels.
-+    /// </summary>
-+    public const byte Group = 12;
-+
-+    /// <summary>
-+    /// El primer pentagrama (Muren's Book of Magic).
-+    /// </summary>
-+    public const short FirstPentagramNumber = 200;
-+
-+    /// <summary>
-+    /// El ultimo pentagrama (Kundun's Seal Scroll).
-+    /// </summary>
-+    public const short LastPentagramNumber = 214;
-+
-+    /// <summary>
-+    /// El primer errtel (Errtel of Anger).
-+    /// </summary>
-+    public const short FirstErrtelNumber = 221;
-+
-+    /// <summary>
-+    /// Cuantos numeros de item hay entre un errtel y el siguiente.
-+    /// </summary>
-+    public const short ErrtelNumberStep = 10;
-+
-+    /// <summary>
-+    /// Cuantos errtels distintos hay: uno por socket.
-+    /// </summary>
-+    public const int ErrtelCount = 5;
-+
-+    /// <summary>
-+    /// Determines whether the item definition is a pentagram.
-+    /// </summary>
-+    /// <param name="definition">The item definition.</param>
-+    /// <returns><c>true</c>, if it is a pentagram.</returns>
-+    public static bool IsPentagram(ItemDefinition? definition)
-+    {
-+        return definition is { Group: Group } && definition.Number >= FirstPentagramNumber && definition.Number <= LastPentagramNumber;
-+    }
-+
-+    /// <summary>
-+    /// Determines whether the item definition is an errtel.
-+    /// </summary>
-+    /// <param name="definition">The item definition.</param>
-+    /// <returns><c>true</c>, if it is an errtel.</returns>
-+    public static bool IsErrtel(ItemDefinition? definition)
-+    {
-+        return GetSocketIndex(definition) >= 0;
-+    }
-+
-+    /// <summary>
-+    /// Devuelve el socket que le toca al errtel, o -1 si el item no es un errtel.
-+    /// </summary>
-+    /// <param name="definition">The item definition.</param>
-+    /// <returns>The socket index, or -1.</returns>
-+    /// <remarks>
-+    /// El socket no lo elige el jugador: cada errtel tiene el suyo. Anger va al 0, Blessing al 1,
-+    /// Integrity al 2, Divinity al 3 y Gale al 4, que es el orden en el que los numera el paquete
-+    /// (221, 231, 241, 251 y 261) y tambien el orden de los slots del pentagrama.
-+    /// </remarks>
-+    public static int GetSocketIndex(ItemDefinition? definition)
-+    {
-+        if (definition is not { Group: Group })
-+        {
-+            return -1;
-+        }
-+
-+        var offset = definition.Number - FirstErrtelNumber;
-+        if (offset < 0 || offset % ErrtelNumberStep != 0)
-+        {
-+            return -1;
-+        }
-+
-+        var index = offset / ErrtelNumberStep;
-+        return index < ErrtelCount ? index : -1;
-+    }
-+
-+    /// <summary>
-+    /// Devuelve el numero de item del errtel que ocupa ese socket.
-+    /// </summary>
-+    /// <param name="socketIndex">The socket index.</param>
-+    /// <returns>The item number.</returns>
-+    public static short GetErrtelNumber(int socketIndex)
-+    {
-+        return (short)(FirstErrtelNumber + (socketIndex * ErrtelNumberStep));
-+    }
-+
-+    /// <summary>
-+    /// Devuelve las opciones de errtel que lleva el item en ese socket.
-+    /// </summary>
-+    /// <param name="item">The item.</param>
-+    /// <param name="socketIndex">The socket index.</param>
-+    /// <returns>The option links.</returns>
-+    public static List<ItemOptionLink> GetErrtelOptions(Item item, int socketIndex)
-+    {
-+        return item.ItemOptions
-+            .Where(link => link.ItemOption?.OptionType == ItemOptionTypes.Errtel && link.Index == socketIndex)
-+            .ToList();
-+    }
-+}
-diff --git a/src/GameLogic/PlayerActions/Craftings/ErrtelLevelUpCrafting.cs b/src/GameLogic/PlayerActions/Craftings/ErrtelLevelUpCrafting.cs
-new file mode 100644
-index 00000000..effa65af
---- /dev/null
-+++ b/src/GameLogic/PlayerActions/Craftings/ErrtelLevelUpCrafting.cs
-@@ -0,0 +1,110 @@
-+﻿// <copyright file="ErrtelLevelUpCrafting.cs" company="MUnique">
-+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-+// </copyright>
-+
-+namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
-+
-+using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
-+using MUnique.OpenMU.DataModel.Entities;
-+using MUnique.OpenMU.GameLogic.PlayerActions.Items;
-+using MUnique.OpenMU.GameLogic.Views.NPC;
-+
-+/// <summary>
-+/// Sube un errtel un nivel, de 0 a 10, con una Jewel of Bless.
-+/// </summary>
-+/// <remarks>
-+/// La receta es la de la guia EX700 de Webzen: un errtel, una Jewel of Bless y el NPC. Falta el
-+/// Jewel Combination Frame, que es un drop de los bichos elementales y esa cadena no esta puesta.
-+/// <para>
-+/// Webzen nunca publico las probabilidades de esa epoca; las de aqui son las que publica
-+/// muonlinefanz para el sistema de hoy, que baja del 90% al 50% para Anger y Blessing, del 80% al
-+/// 40% para Integrity y Divinity y del 70% al 30% para Gale. Si falla, se pierde la joya y el
-+/// dinero, pero el errtel se queda como estaba: la version original lo destruia, y eso en un
-+/// servidor de amigos no aporta nada.
-+/// </para>
-+/// </remarks>
-+public class ErrtelLevelUpCrafting : SimpleItemCraftingHandler
-+{
-+    /// <summary>
-+    /// De nivel 0 a 1 hasta de nivel 9 a 10, para Anger (socket 0) y Blessing (socket 1).
-+    /// </summary>
-+    private static readonly byte[] RatesAngerBlessing = { 90, 80, 70, 70, 60, 60, 60, 50, 50, 50 };
-+
-+    /// <summary>
-+    /// Lo mismo para Integrity (socket 2) y Divinity (socket 3).
-+    /// </summary>
-+    private static readonly byte[] RatesIntegrityDivinity = { 80, 80, 70, 70, 60, 60, 50, 50, 40, 40 };
-+
-+    /// <summary>
-+    /// Lo mismo para Gale (socket 4).
-+    /// </summary>
-+    private static readonly byte[] RatesGale = { 70, 70, 60, 60, 50, 50, 40, 40, 30, 30 };
-+
-+    /// <summary>
-+    /// Initializes a new instance of the <see cref="ErrtelLevelUpCrafting"/> class.
-+    /// </summary>
-+    /// <param name="settings">The settings.</param>
-+    public ErrtelLevelUpCrafting(SimpleCraftingSettings settings)
-+        : base(settings)
-+    {
-+    }
-+
-+    /// <summary>
-+    /// Gets the reference of the errtel.
-+    /// </summary>
-+    public static byte ErrtelReference { get; } = 0x93;
-+
-+    /// <summary>
-+    /// El nivel maximo de un errtel.
-+    /// </summary>
-+    public static byte MaximumLevel { get; } = 10;
-+
-+    /// <inheritdoc />
-+    public override CraftingResult? TryGetRequiredItems(Player player, out IList<CraftingRequiredItemLink> items, out byte successRate)
-+    {
-+        var result = base.TryGetRequiredItems(player, out items, out successRate);
-+        if (result != default)
-+        {
-+            return result;
-+        }
-+
-+        var errtel = items.Single(i => i.ItemRequirement.Reference == ErrtelReference).Items.Single();
-+        var socketIndex = ErrtelCraftingHelper.GetSocketIndex(errtel.Definition);
-+        if (socketIndex < 0)
-+        {
-+            return CraftingResult.IncorrectMixItems;
-+        }
-+
-+        if (errtel.Level >= MaximumLevel)
-+        {
-+            return CraftingResult.IncorrectMixItems;
-+        }
-+
-+        var rates = socketIndex switch
-+        {
-+            0 or 1 => RatesAngerBlessing,
-+            2 or 3 => RatesIntegrityDivinity,
-+            _ => RatesGale,
-+        };
-+
-+        successRate = rates[errtel.Level];
-+        return null;
-+    }
-+
-+    /// <inheritdoc />
-+    protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketSlot, byte successRate)
-+    {
-+        var errtel = requiredItems.Single(i => i.ItemRequirement.Reference == ErrtelReference).Items.Single();
-+        if (errtel.Level < MaximumLevel)
-+        {
-+            errtel.Level++;
-+            foreach (var link in errtel.ItemOptions)
-+            {
-+                link.Level = errtel.Level;
-+            }
-+        }
-+
-+        await ValueTask.CompletedTask.ConfigureAwait(false);
-+        return new List<Item> { errtel };
-+    }
-+}
-diff --git a/src/GameLogic/PlayerActions/Craftings/MountErrtelCrafting.cs b/src/GameLogic/PlayerActions/Craftings/MountErrtelCrafting.cs
-new file mode 100644
-index 00000000..bb68de87
---- /dev/null
-+++ b/src/GameLogic/PlayerActions/Craftings/MountErrtelCrafting.cs
-@@ -0,0 +1,100 @@
-+﻿// <copyright file="MountErrtelCrafting.cs" company="MUnique">
-+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-+// </copyright>
-+
-+namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
-+
-+using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
-+using MUnique.OpenMU.DataModel.Entities;
-+using MUnique.OpenMU.GameLogic.PlayerActions.Items;
-+using MUnique.OpenMU.GameLogic.Views.NPC;
-+
-+/// <summary>
-+/// Monta un errtel en un pentagrama, en la Maquina del Caos.
-+/// </summary>
-+/// <remarks>
-+/// En el original esto se hace con ALT y clic derecho sobre el pentagrama, que abre una ventana
-+/// propia. El cliente de Season 6 no tiene esa ventana, asi que se hace en la Maquina del Caos.
-+/// El socket no se elige: cada errtel tiene el suyo, siempre el mismo.
-+/// <para>
-+/// Dos reglas del original que NO estan aqui, y conviene saberlo:
-+/// el pentagrama del original sale con entre 1 y 4 sockets abiertos y aqui admite los cinco, y en
-+/// la Season 7/8 el errtel tenia que ser del mismo elemento que el pentagrama, cosa que aqui no se
-+/// pide porque el elemento del errtel venia del Mithril y esa cadena de fabricacion no esta puesta.
-+/// </para>
-+/// </remarks>
-+public class MountErrtelCrafting : SimpleItemCraftingHandler
-+{
-+    /// <summary>
-+    /// Initializes a new instance of the <see cref="MountErrtelCrafting"/> class.
-+    /// </summary>
-+    /// <param name="settings">The settings.</param>
-+    public MountErrtelCrafting(SimpleCraftingSettings settings)
-+        : base(settings)
-+    {
-+    }
-+
-+    /// <summary>
-+    /// Gets the reference of the pentagram.
-+    /// </summary>
-+    public static byte PentagramReference { get; } = 0x91;
-+
-+    /// <summary>
-+    /// Gets the reference of the errtel.
-+    /// </summary>
-+    public static byte ErrtelReference { get; } = 0x92;
-+
-+    /// <inheritdoc />
-+    public override CraftingResult? TryGetRequiredItems(Player player, out IList<CraftingRequiredItemLink> items, out byte successRate)
-+    {
-+        var result = base.TryGetRequiredItems(player, out items, out successRate);
-+        if (result != default)
-+        {
-+            return result;
-+        }
-+
-+        var pentagram = items.Single(i => i.ItemRequirement.Reference == PentagramReference).Items.Single();
-+        var errtel = items.Single(i => i.ItemRequirement.Reference == ErrtelReference).Items.Single();
-+
-+        var socketIndex = ErrtelCraftingHelper.GetSocketIndex(errtel.Definition);
-+        if (socketIndex < 0)
-+        {
-+            return CraftingResult.IncorrectMixItems;
-+        }
-+
-+        if (ErrtelCraftingHelper.GetErrtelOptions(pentagram, socketIndex).Count > 0)
-+        {
-+            // Ese socket ya esta ocupado por un errtel del mismo tipo.
-+            return CraftingResult.IncorrectMixItems;
-+        }
-+
-+        return null;
-+    }
-+
-+    /// <inheritdoc />
-+    protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketSlot, byte successRate)
-+    {
-+        var pentagram = requiredItems.Single(i => i.ItemRequirement.Reference == PentagramReference).Items.Single();
-+        var errtel = requiredItems.Single(i => i.ItemRequirement.Reference == ErrtelReference).Items.Single();
-+
-+        var socketIndex = ErrtelCraftingHelper.GetSocketIndex(errtel.Definition);
-+        if (socketIndex < 0)
-+        {
-+            throw new ArgumentException("The mixed item is not an errtel.");
-+        }
-+
-+        // Se copian las opciones del errtel al pentagrama, una por rango, todas con el indice del
-+        // socket y el nivel del errtel. Con eso el errtel se puede reconstruir entero al sacarlo.
-+        foreach (var errtelOption in errtel.ItemOptions.Where(link => link.ItemOption is not null).ToList())
-+        {
-+            var mounted = player.PersistenceContext.CreateNew<ItemOptionLink>();
-+            mounted.ItemOption = errtelOption.ItemOption;
-+            mounted.Level = errtel.Level;
-+            mounted.Index = socketIndex;
-+            pentagram.ItemOptions.Add(mounted);
-+        }
-+
-+        await ValueTask.CompletedTask.ConfigureAwait(false);
-+        return new List<Item> { pentagram };
-+    }
-+}
-diff --git a/src/GameLogic/PlayerActions/Craftings/RemoveErrtelCrafting.cs b/src/GameLogic/PlayerActions/Craftings/RemoveErrtelCrafting.cs
-new file mode 100644
-index 00000000..6c7fc3c6
---- /dev/null
-+++ b/src/GameLogic/PlayerActions/Craftings/RemoveErrtelCrafting.cs
-@@ -0,0 +1,117 @@
-+﻿// <copyright file="RemoveErrtelCrafting.cs" company="MUnique">
-+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
-+// </copyright>
-+
-+namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
-+
-+using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
-+using MUnique.OpenMU.DataModel.Entities;
-+using MUnique.OpenMU.GameLogic.PlayerActions.Items;
-+using MUnique.OpenMU.GameLogic.Views.NPC;
-+
-+/// <summary>
-+/// Saca del pentagrama todos los errtels que lleve. Cada uno se salva a cara o cruz.
-+/// </summary>
-+/// <remarks>
-+/// La regla del 50% es del original: "Removing Errtel from Pentagram Sockets can fail with a 50%
-+/// chance. Failing to remove Errtel from Pentagram Sockets will destroy the Errtel". Lo que cambia
-+/// aqui es que salen TODOS de una, porque sin la ventana del pentagrama no hay donde elegir cual.
-+/// </remarks>
-+public class RemoveErrtelCrafting : SimpleItemCraftingHandler
-+{
-+    /// <summary>
-+    /// Initializes a new instance of the <see cref="RemoveErrtelCrafting"/> class.
-+    /// </summary>
-+    /// <param name="settings">The settings.</param>
-+    public RemoveErrtelCrafting(SimpleCraftingSettings settings)
-+        : base(settings)
-+    {
-+    }
-+
-+    /// <summary>
-+    /// Gets the reference of the pentagram.
-+    /// </summary>
-+    public static byte PentagramReference { get; } = 0x91;
-+
-+    /// <inheritdoc />
-+    public override CraftingResult? TryGetRequiredItems(Player player, out IList<CraftingRequiredItemLink> items, out byte successRate)
-+    {
-+        var result = base.TryGetRequiredItems(player, out items, out successRate);
-+        if (result != default)
-+        {
-+            return result;
-+        }
-+
-+        var pentagram = items.Single(i => i.ItemRequirement.Reference == PentagramReference).Items.Single();
-+        var hasAnyErrtel = Enumerable.Range(0, ErrtelCraftingHelper.ErrtelCount)
-+            .Any(socketIndex => ErrtelCraftingHelper.GetErrtelOptions(pentagram, socketIndex).Count > 0);
-+        if (!hasAnyErrtel)
-+        {
-+            return CraftingResult.IncorrectMixItems;
-+        }
-+
-+        return null;
-+    }
-+
-+    /// <inheritdoc />
-+    protected override async ValueTask<List<Item>> CreateOrModifyResultItemsAsync(IList<CraftingRequiredItemLink> requiredItems, Player player, byte socketSlot, byte successRate)
-+    {
-+        var pentagram = requiredItems.Single(i => i.ItemRequirement.Reference == PentagramReference).Items.Single();
-+        var result = new List<Item>();
-+
-+        for (var socketIndex = 0; socketIndex < ErrtelCraftingHelper.ErrtelCount; socketIndex++)
-+        {
-+            var mounted = ErrtelCraftingHelper.GetErrtelOptions(pentagram, socketIndex);
-+            if (mounted.Count == 0)
-+            {
-+                continue;
-+            }
-+
-+            var level = (byte)Math.Clamp(mounted[0].Level, 0, 10);
-+            var survives = Rand.NextRandomBool(50);
-+
-+            foreach (var link in mounted)
-+            {
-+                pentagram.ItemOptions.Remove(link);
-+                await player.PersistenceContext.DeleteAsync(link).ConfigureAwait(false);
-+            }
-+
-+            if (!survives)
-+            {
-+                continue;
-+            }
-+
-+            var definition = player.GameContext.Configuration.Items.FirstOrDefault(
-+                i => i.Group == ErrtelCraftingHelper.Group && i.Number == ErrtelCraftingHelper.GetErrtelNumber(socketIndex));
-+            if (definition is null)
-+            {
-+                continue;
-+            }
-+
-+            var errtel = player.PersistenceContext.CreateNew<Item>();
-+            errtel.Definition = definition;
-+            errtel.Level = level;
-+            errtel.Durability = definition.Durability;
-+            foreach (var link in mounted)
-+            {
-+                var restored = player.PersistenceContext.CreateNew<ItemOptionLink>();
-+                restored.ItemOption = link.ItemOption;
-+                restored.Level = level;
-+                errtel.ItemOptions.Add(restored);
-+            }
-+
-+            if (await player.TemporaryStorage!.AddItemAsync(errtel).ConfigureAwait(false))
-+            {
-+                result.Add(errtel);
-+            }
-+            else
-+            {
-+                // Si no cabe se borra en vez de quedar suelto sin dueno.
-+                await player.PersistenceContext.DeleteAsync(errtel).ConfigureAwait(false);
-+            }
-+        }
-+
-+        result.Add(pentagram);
-+        return result;
-+    }
-+}
 diff --git a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs b/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
 index 57af2828..621734ac 100644
 --- a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
@@ -2511,12 +2197,356 @@ index c89a8735..5b2de641 100644
          this.Inventory = new InventoryStorage(this._player, this._player.GameContext);
          this.ShopStorage = new ShopStorage(character);
          this.TemporaryStorage = new Storage(InventoryConstants.TemporaryStorageSize, new TemporaryItemStorage());
+diff --git a/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
+new file mode 100644
+index 00000000..1729861b
+--- /dev/null
++++ b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
+@@ -0,0 +1,338 @@
++﻿// <copyright file="ErrtelChatCommandPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.DataModel.Configuration.Items;
++using MUnique.OpenMU.DataModel.Entities;
++using MUnique.OpenMU.GameLogic.Views;
++using MUnique.OpenMU.GameLogic.Views.Inventory;
++using MUnique.OpenMU.Interfaces;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Monta, saca y sube de nivel los errtels del pentagrama.
++/// </summary>
++/// <remarks>
++/// <para>
++/// Esto iba a ir en la Maquina del Caos, y no puede. <b>El cliente decide solo si te deja mezclar</b>:
++/// <c>CMixRecipeMgr</c> carga las recetas de <c>Data/Local/Mix.bmd</c> y
++/// <c>NewUIMixInventory</c> no manda NADA al servidor si <c>IsReadyToMix()</c> dice que no. O sea
++/// que una mezcla que el servidor conoce pero el fichero del cliente no, es inalcanzable: el boton
++/// no llega ni a pulsarse. Meter las tres recetas en ese fichero significa descifrarlo, entender la
++/// estructura <c>MIX_RECIPE</c> y reescribirlo, y si la estructura no cuadra el cliente muestra
++/// «Version not matched» y <b>se cierra solo</b>.
++/// </para>
++/// <para>
++/// Asi que van por comando, igual que <c>/pentagrama</c>: cero riesgo de cliente y se puede cambiar
++/// a la Maquina del Caos el dia que alguien quiera pagar ese precio, sin tocar nada de esto.
++/// </para>
++/// </remarks>
++[Guid("5D8A3C17-6E42-4B90-A7F5-2C81D934EB06")]
++[PlugIn]
++[Display(Name = PlugInName, Description = PlugInDescription)]
++[ChatCommandHelp(Command, typeof(Arguments), MinimumStatus)]
++public class ErrtelChatCommandPlugIn : ChatCommandPlugInBase<ErrtelChatCommandPlugIn.Arguments>
++{
++    /// <summary>
++    /// The plug-in name.
++    /// </summary>
++    internal const string PlugInName = "Errtel chat command";
++
++    /// <summary>
++    /// The plug-in description.
++    /// </summary>
++    internal const string PlugInDescription = "Mounts, removes and levels up the errtels of the equipped pentagram.";
++
++    private const string Command = "/errtel";
++    private const CharacterStatus MinimumStatus = CharacterStatus.Normal;
++
++    private const byte JewelGroup = 14;
++    private const short JewelOfBlessNumber = 13;
++
++    private static readonly string[] ErrtelNames = { "Anger", "Blessing", "Integrity", "Divinity", "Gale" };
++
++    /// <summary>
++    /// De nivel 0 a 1 hasta de nivel 9 a 10, por tipo de errtel. De muonlinefanz; Webzen nunca
++    /// publico las de la epoca.
++    /// </summary>
++    private static readonly byte[][] LevelUpRates =
++    {
++        new byte[] { 90, 80, 70, 70, 60, 60, 60, 50, 50, 50 }, // Anger
++        new byte[] { 90, 80, 70, 70, 60, 60, 60, 50, 50, 50 }, // Blessing
++        new byte[] { 80, 80, 70, 70, 60, 60, 50, 50, 40, 40 }, // Integrity
++        new byte[] { 80, 80, 70, 70, 60, 60, 50, 50, 40, 40 }, // Divinity
++        new byte[] { 70, 70, 60, 60, 50, 50, 40, 40, 30, 30 }, // Gale
++    };
++
++    /// <inheritdoc />
++    public override string Key => Command;
++
++    /// <inheritdoc />
++    public override CharacterStatus MinCharacterStatusRequirement => MinimumStatus;
++
++    /// <inheritdoc />
++    protected override async ValueTask DoHandleCommandAsync(Player player, Arguments arguments)
++    {
++        if (player.Inventory is not { } inventory || player.PentagramStorage is not { } pentagramStorage)
++        {
++            return;
++        }
++
++        switch (arguments?.Accion?.ToLowerInvariant())
++        {
++            case "sacar":
++                await this.RemoveAsync(player, inventory, pentagramStorage).ConfigureAwait(false);
++                break;
++            case "subir":
++                await this.LevelUpAsync(player, inventory).ConfigureAwait(false);
++                break;
++            default:
++                await this.MountAsync(player, inventory, pentagramStorage).ConfigureAwait(false);
++                break;
++        }
++    }
++
++    private static ValueTask ShowAsync(Player player, string message)
++    {
++        return player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, MessageType.BlueNormal));
++    }
++
++    /// <summary>
++    /// El nivel de verdad del errtel.
++    /// </summary>
++    /// <remarks>
++    /// Un errtel recien caido trae <see cref="Item.Level"/> a 0 pero sus opciones pueden venir a
++    /// nivel 1, 2 o 3, porque el generador de drops le echa a suertes el nivel de cada enlace. Si
++    /// se tomara solo <see cref="Item.Level"/>, subirlo de nivel le BAJARIA las opciones. Se toma
++    /// el mayor de los dos, asi que nunca empeora.
++    /// </remarks>
++    private static byte GetErrtelLevel(Item errtel)
++    {
++        var level = (int)errtel.Level;
++        foreach (var link in errtel.ItemOptions)
++        {
++            if (link.ItemOption?.OptionType == ItemOptionTypes.Errtel && link.Level > level)
++            {
++                level = link.Level;
++            }
++        }
++
++        return (byte)Math.Clamp(level, 0, 10);
++    }
++
++    private static List<ItemOptionLink> GetErrtelOptions(Item errtel)
++    {
++        return errtel.ItemOptions.Where(link => link.ItemOption?.OptionType == ItemOptionTypes.Errtel).ToList();
++    }
++
++    private async ValueTask MountAsync(Player player, IStorage inventory, PentagramStorage pentagramStorage)
++    {
++        if (pentagramStorage.EquippedPentagram is not { } pentagram)
++        {
++            await ShowAsync(player, "Primero ponte un pentagrama con /pentagrama.").ConfigureAwait(false);
++            return;
++        }
++
++        var errtel = inventory.Items.FirstOrDefault(i => ErrtelHelper.IsErrtel(i.Definition));
++        if (errtel is null)
++        {
++            await ShowAsync(player, "No tienes ningun errtel en el inventario.").ConfigureAwait(false);
++            return;
++        }
++
++        var socketIndex = ErrtelHelper.GetSocketIndex(errtel.Definition);
++        if (ErrtelHelper.GetErrtelOptions(pentagram, socketIndex).Count > 0)
++        {
++            await ShowAsync(player, $"Ya llevas un Errtel of {ErrtelNames[socketIndex]} montado. Sacalo antes con /errtel sacar.").ConfigureAwait(false);
++            return;
++        }
++
++        var options = GetErrtelOptions(errtel);
++        if (options.Count == 0)
++        {
++            // Sin esta comprobacion el errtel se consumiria sin montar nada y el hueco seguiria
++            // viendose libre. Pasa con los errtels creados por comando, que no pasan por el
++            // generador de drops y salen sin opciones.
++            await ShowAsync(player, "Ese errtel no trae ninguna opcion; no sirve para montar.").ConfigureAwait(false);
++            return;
++        }
++
++        var level = GetErrtelLevel(errtel);
++        foreach (var option in options)
++        {
++            var mounted = player.PersistenceContext.CreateNew<ItemOptionLink>();
++            mounted.ItemOption = option.ItemOption;
++            mounted.Level = level;
++            mounted.Index = socketIndex;
++            pentagram.ItemOptions.Add(mounted);
++        }
++
++        var slot = errtel.ItemSlot;
++        await inventory.RemoveItemAsync(errtel).ConfigureAwait(false);
++        await player.PersistenceContext.DeleteAsync(errtel).ConfigureAwait(false);
++        await player.InvokeViewPlugInAsync<IItemRemovedPlugIn>(p => p.RemoveItemAsync(slot)).ConfigureAwait(false);
++
++        await pentagramStorage.RefreshAsync().ConfigureAwait(false);
++        await ShowAsync(player, $"Montado Errtel of {ErrtelNames[socketIndex]} +{level}. Mira el resultado con /pentagrama.").ConfigureAwait(false);
++    }
++
++    private async ValueTask RemoveAsync(Player player, IStorage inventory, PentagramStorage pentagramStorage)
++    {
++        if (pentagramStorage.EquippedPentagram is not { } pentagram)
++        {
++            await ShowAsync(player, "Primero ponte el pentagrama con /pentagrama.").ConfigureAwait(false);
++            return;
++        }
++
++        var recovered = new List<string>();
++        var lost = new List<string>();
++        var stayed = new List<string>();
++
++        for (var socketIndex = 0; socketIndex < ErrtelHelper.ErrtelCount; socketIndex++)
++        {
++            var mounted = ErrtelHelper.GetErrtelOptions(pentagram, socketIndex);
++            if (mounted.Count == 0)
++            {
++                continue;
++            }
++
++            var level = (byte)Math.Clamp(mounted[0].Level, 0, 10);
++            var definition = player.GameContext.Configuration.Items.FirstOrDefault(
++                i => i.Group == ErrtelHelper.Group && i.Number == ErrtelHelper.GetErrtelNumber(socketIndex));
++            if (definition is null)
++            {
++                continue;
++            }
++
++            if (!Rand.NextRandomBool(50))
++            {
++                await this.DetachAsync(player, pentagram, mounted).ConfigureAwait(false);
++                lost.Add($"{ErrtelNames[socketIndex]} +{level}");
++                continue;
++            }
++
++            var errtel = player.PersistenceContext.CreateNew<Item>();
++            errtel.Definition = definition;
++            errtel.Level = level;
++            errtel.Durability = definition.Durability;
++            foreach (var link in mounted)
++            {
++                var restored = player.PersistenceContext.CreateNew<ItemOptionLink>();
++                restored.ItemOption = link.ItemOption;
++                restored.Level = level;
++                errtel.ItemOptions.Add(restored);
++            }
++
++            if (inventory.CheckInvSpace(errtel) is not { } freeSlot
++                || !await inventory.AddItemAsync(freeSlot, errtel).ConfigureAwait(false))
++            {
++                // No cabe: se queda montado. Antes se borraba en silencio y el jugador solo veia
++                // que le faltaba uno.
++                await player.PersistenceContext.DeleteAsync(errtel).ConfigureAwait(false);
++                stayed.Add($"{ErrtelNames[socketIndex]} +{level}");
++                continue;
++            }
++
++            await this.DetachAsync(player, pentagram, mounted).ConfigureAwait(false);
++            await player.InvokeViewPlugInAsync<IItemAppearPlugIn>(p => p.ItemAppearAsync(errtel)).ConfigureAwait(false);
++            recovered.Add($"{ErrtelNames[socketIndex]} +{level}");
++        }
++
++        if (recovered.Count == 0 && lost.Count == 0 && stayed.Count == 0)
++        {
++            await ShowAsync(player, "El pentagrama no lleva ningun errtel.").ConfigureAwait(false);
++            return;
++        }
++
++        await pentagramStorage.RefreshAsync().ConfigureAwait(false);
++
++        var parts = new List<string>();
++        if (recovered.Count > 0)
++        {
++            parts.Add("recuperados: " + string.Join(", ", recovered));
++        }
++
++        if (lost.Count > 0)
++        {
++            parts.Add("se rompieron: " + string.Join(", ", lost));
++        }
++
++        if (stayed.Count > 0)
++        {
++            parts.Add("sin sitio, siguen montados: " + string.Join(", ", stayed));
++        }
++
++        await ShowAsync(player, string.Join(". ", parts) + ".").ConfigureAwait(false);
++    }
++
++    private async ValueTask DetachAsync(Player player, Item pentagram, List<ItemOptionLink> mounted)
++    {
++        foreach (var link in mounted)
++        {
++            pentagram.ItemOptions.Remove(link);
++            await player.PersistenceContext.DeleteAsync(link).ConfigureAwait(false);
++        }
++    }
++
++    private async ValueTask LevelUpAsync(Player player, IStorage inventory)
++    {
++        var errtel = inventory.Items.FirstOrDefault(i => ErrtelHelper.IsErrtel(i.Definition));
++        if (errtel is null)
++        {
++            await ShowAsync(player, "No tienes ningun errtel en el inventario.").ConfigureAwait(false);
++            return;
++        }
++
++        var socketIndex = ErrtelHelper.GetSocketIndex(errtel.Definition);
++        var level = GetErrtelLevel(errtel);
++        if (level >= 10)
++        {
++            await ShowAsync(player, $"El Errtel of {ErrtelNames[socketIndex]} ya esta a +10.").ConfigureAwait(false);
++            return;
++        }
++
++        var bless = inventory.Items.FirstOrDefault(i => i.Definition is { Group: JewelGroup, Number: JewelOfBlessNumber });
++        if (bless is null)
++        {
++            await ShowAsync(player, "Te falta una Jewel of Bless.").ConfigureAwait(false);
++            return;
++        }
++
++        var blessSlot = bless.ItemSlot;
++        await inventory.RemoveItemAsync(bless).ConfigureAwait(false);
++        await player.PersistenceContext.DeleteAsync(bless).ConfigureAwait(false);
++        await player.InvokeViewPlugInAsync<IItemRemovedPlugIn>(p => p.RemoveItemAsync(blessSlot)).ConfigureAwait(false);
++
++        var rate = LevelUpRates[socketIndex][level];
++        if (!Rand.NextRandomBool(rate))
++        {
++            await ShowAsync(player, $"Fallo ({rate}%). Se perdio la joya; el errtel se queda a +{level}.").ConfigureAwait(false);
++            return;
++        }
++
++        var newLevel = (byte)(level + 1);
++        errtel.Level = newLevel;
++        foreach (var link in GetErrtelOptions(errtel))
++        {
++            link.Level = newLevel;
++        }
++
++        await player.InvokeViewPlugInAsync<IItemUpgradedPlugIn>(p => p.ItemUpgradedAsync(errtel)).ConfigureAwait(false);
++        await ShowAsync(player, $"Errtel of {ErrtelNames[socketIndex]} a +{newLevel} ({rate}% de exito).").ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Argumentos del comando: nada (montar), «sacar» o «subir».
++    /// </summary>
++    public class Arguments : ArgumentsBase
++    {
++        /// <summary>
++        /// Gets or sets the action: empty to mount, "sacar" to remove, "subir" to level up.
++        /// </summary>
++        [ValidValues("sacar", "subir")]
++        public string? Accion { get; set; }
++    }
++}
 diff --git a/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs
 new file mode 100644
-index 00000000..29046d63
+index 00000000..2458736a
 --- /dev/null
 +++ b/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,203 @@
 +﻿// <copyright file="PentagramChatCommandPlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -2528,7 +2558,6 @@ index 00000000..29046d63
 +using MUnique.OpenMU.DataModel.Configuration.Items;
 +using MUnique.OpenMU.DataModel.Entities;
 +using MUnique.OpenMU.GameLogic.Attributes;
-+using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 +using MUnique.OpenMU.GameLogic.Views;
 +using MUnique.OpenMU.GameLogic.Views.Inventory;
 +using MUnique.OpenMU.Interfaces;
@@ -2590,10 +2619,20 @@ index 00000000..29046d63
 +            return;
 +        }
 +
-+        var candidate = inventory.Items.FirstOrDefault(i => ErrtelCraftingHelper.IsPentagram(i.Definition));
++        var candidate = inventory.Items.FirstOrDefault(i => ErrtelHelper.IsPentagram(i.Definition));
 +        if (candidate is null)
 +        {
 +            await ShowAsync(player, "No tienes ningun pentagrama en el inventario.").ConfigureAwait(false);
++            return;
++        }
++
++        if (!player.CompliesRequirements(candidate))
++        {
++            // El camino normal de equipar (MoveItemAction) comprueba esto, pero al hueco 236 no
++            // llega: GetStorageInfo lo desvia al PentagramStorage antes, asi que la comprobacion
++            // de "esto es equiparse algo" no se cumple nunca para el 236. Sin esta linea un
++            // personaje de nivel 1 se pondria el Kundun's Seal Scroll, que pide 300.
++            await ShowAsync(player, $"Te falta nivel para {candidate.Definition?.Name}.").ConfigureAwait(false);
 +            return;
 +        }
 +
@@ -2690,9 +2729,9 @@ index 00000000..29046d63
 +            builder.Append(" (").Append(ElementNames[Math.Clamp(element, 0, ElementNames.Length - 1)]).Append(')');
 +
 +            var mounted = new List<string>();
-+            for (var socketIndex = 0; socketIndex < ErrtelCraftingHelper.ErrtelCount; socketIndex++)
++            for (var socketIndex = 0; socketIndex < ErrtelHelper.ErrtelCount; socketIndex++)
 +            {
-+                var options = ErrtelCraftingHelper.GetErrtelOptions(pentagram, socketIndex);
++                var options = ErrtelHelper.GetErrtelOptions(pentagram, socketIndex);
 +                if (options.Count > 0)
 +                {
 +                    mounted.Add($"{ErrtelNames[socketIndex]} +{options[0].Level}");
@@ -5779,10 +5818,10 @@ index 0c5b94de..3796d390 100644
      IncreasesCritDamageChance = 610,
 diff --git a/src/Persistence/Initialization/Updates/AddElementalSystemUpdatePlugIn.cs b/src/Persistence/Initialization/Updates/AddElementalSystemUpdatePlugIn.cs
 new file mode 100644
-index 00000000..f113c47c
+index 00000000..8dde6eed
 --- /dev/null
 +++ b/src/Persistence/Initialization/Updates/AddElementalSystemUpdatePlugIn.cs
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,138 @@
 +﻿// <copyright file="AddElementalSystemUpdatePlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -5827,8 +5866,9 @@ index 00000000..f113c47c
 +    internal const string PlugInDescription = "This update adds the pentagram slot, the 15 pentagrams, the 5 errtels with their options, the elemental values of every monster, the elemental damage channel, the drops and the three errtel craftings of the Chaos Machine.";
 +
 +    /// <summary>
-+    /// El numero de GUID del tipo de hueco del pentagrama. El 11 es el primero libre: los que hay
-+    /// van del 1 al 10 mas el 100 y el 101 de las dos manos.
++    /// El numero de GUID del tipo de hueco del pentagrama. Los que hay van del 1 al 10 mas el 100
++    /// y el 101 de las dos manos, asi que el 11 y el 12 estan libres; se usa el 12, el mismo que
++    /// pone SlotTypesInitializer, para que una base nueva y una vieja queden iguales.
 +    /// </summary>
 +    private const short PentagramSlotTypeNumber = 12;
 +
@@ -6640,10 +6680,10 @@ index ec5714c0..d66d3af7 100644
          ring.Description = "Ring";
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs b/src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs
 new file mode 100644
-index 00000000..aaa5be32
+index 00000000..c031dd5c
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs
-@@ -0,0 +1,464 @@
+@@ -0,0 +1,343 @@
 +﻿// <copyright file="ElementalSystem.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -6652,10 +6692,8 @@ index 00000000..aaa5be32
 +
 +using MUnique.OpenMU.AttributeSystem;
 +using MUnique.OpenMU.DataModel.Configuration;
-+using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 +using MUnique.OpenMU.GameLogic;
 +using MUnique.OpenMU.GameLogic.Attributes;
-+using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 +using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
 +
 +/// <summary>
@@ -6763,7 +6801,11 @@ index 00000000..aaa5be32
 +        589, 6, 1, 385, 417, 750, 235, // Ubaid Devilfairy
 +        590, 6, 1, 422, 446, 830, 240, // Ubaid Elemental Beast
 +        591, 6, 1, 456, 481, 860, 255, // Ubaid Elemental Knight
-+        592, 2, 2, 472, 10499, 65950, 315, // Undine
++        // Undine viene manipulada en el paquete igual que el 657, que si se excluyo: 10.499 de dano
++        // maximo y 65.950 de tasa de acierto, cuando sus cuatro hermanos de la misma tanda
++        // (593-596) traen 463-486 y 950. Se le ponen los de la tanda. El resto de su fila es el
++        // del paquete.
++        592, 2, 2, 472, 496, 950, 315, // Undine
 +        593, 1, 2, 463, 486, 950, 315, // Salamander
 +        594, 4, 2, 495, 512, 950, 315, // Sylphid
 +        595, 3, 2, 458, 485, 950, 315, // Gnome
@@ -6852,7 +6894,6 @@ index 00000000..aaa5be32
 +
 +        this.AddElementalRatesToCharacterClasses();
 +        this.CreateDrops(byNumber);
-+        this.CreateErrtelCraftings();
 +    }
 +
 +    /// <summary>
@@ -6937,136 +6978,6 @@ index 00000000..aaa5be32
 +    }
 +
 +    /// <summary>
-+    /// Las tres mezclas del errtel, en la Maquina del Caos.
-+    /// </summary>
-+    private void CreateErrtelCraftings()
-+    {
-+        var chaosGoblin = this.GameConfiguration.Monsters.FirstOrDefault(m => m.NpcWindow == NpcWindow.ChaosMachine);
-+        if (chaosGoblin is null)
-+        {
-+            return;
-+        }
-+
-+        chaosGoblin.ItemCraftings.Add(this.MountErrtelCrafting());
-+        chaosGoblin.ItemCraftings.Add(this.RemoveErrtelCrafting());
-+        chaosGoblin.ItemCraftings.Add(this.ErrtelLevelUpCrafting());
-+    }
-+
-+    private ItemCrafting MountErrtelCrafting()
-+    {
-+        var crafting = this.Context.CreateNew<ItemCrafting>();
-+        crafting.Name = "Mount Errtel";
-+        crafting.Number = 47;
-+        crafting.ItemCraftingHandlerClassName = typeof(MountErrtelCrafting).FullName!;
-+        crafting.SetGuid(crafting.Number);
-+        var settings = this.Context.CreateNew<SimpleCraftingSettings>();
-+        crafting.SimpleCraftingSettings = settings;
-+        settings.SuccessPercent = 100;
-+        settings.Money = 1_000_000;
-+        settings.SetGuid(crafting.Number);
-+
-+        var pentagram = this.Context.CreateNew<ItemCraftingRequiredItem>();
-+        pentagram.MinimumAmount = 1;
-+        pentagram.MaximumAmount = 1;
-+        pentagram.MinimumItemLevel = 0;
-+        pentagram.MaximumItemLevel = 15;
-+        pentagram.FailResult = MixResult.StaysAsIs;
-+        pentagram.SuccessResult = MixResult.StaysAsIs;
-+        pentagram.Reference = OpenMU.GameLogic.PlayerActions.Craftings.MountErrtelCrafting.PentagramReference;
-+        this.AddPentagrams(pentagram);
-+        settings.RequiredItems.Add(pentagram);
-+
-+        var errtel = this.Context.CreateNew<ItemCraftingRequiredItem>();
-+        errtel.MinimumAmount = 1;
-+        errtel.MaximumAmount = 1;
-+        errtel.MinimumItemLevel = 0;
-+        errtel.MaximumItemLevel = 10;
-+        errtel.FailResult = MixResult.Disappear;
-+        errtel.SuccessResult = MixResult.Disappear;
-+        errtel.Reference = OpenMU.GameLogic.PlayerActions.Craftings.MountErrtelCrafting.ErrtelReference;
-+        this.AddErrtels(errtel);
-+        settings.RequiredItems.Add(errtel);
-+
-+        return crafting;
-+    }
-+
-+    private ItemCrafting RemoveErrtelCrafting()
-+    {
-+        var crafting = this.Context.CreateNew<ItemCrafting>();
-+        crafting.Name = "Remove Errtel";
-+        crafting.Number = 48;
-+        crafting.ItemCraftingHandlerClassName = typeof(RemoveErrtelCrafting).FullName!;
-+        crafting.SetGuid(crafting.Number);
-+        var settings = this.Context.CreateNew<SimpleCraftingSettings>();
-+        crafting.SimpleCraftingSettings = settings;
-+        settings.SuccessPercent = 100;
-+        settings.Money = 1_000_000;
-+        settings.SetGuid(crafting.Number);
-+
-+        var pentagram = this.Context.CreateNew<ItemCraftingRequiredItem>();
-+        pentagram.MinimumAmount = 1;
-+        pentagram.MaximumAmount = 1;
-+        pentagram.MinimumItemLevel = 0;
-+        pentagram.MaximumItemLevel = 15;
-+        pentagram.FailResult = MixResult.StaysAsIs;
-+        pentagram.SuccessResult = MixResult.StaysAsIs;
-+        pentagram.Reference = OpenMU.GameLogic.PlayerActions.Craftings.RemoveErrtelCrafting.PentagramReference;
-+        this.AddPentagrams(pentagram);
-+        settings.RequiredItems.Add(pentagram);
-+
-+        return crafting;
-+    }
-+
-+    private ItemCrafting ErrtelLevelUpCrafting()
-+    {
-+        var crafting = this.Context.CreateNew<ItemCrafting>();
-+        crafting.Name = "Errtel Level Up";
-+        crafting.Number = 49;
-+        crafting.ItemCraftingHandlerClassName = typeof(ErrtelLevelUpCrafting).FullName!;
-+        crafting.SetGuid(crafting.Number);
-+        var settings = this.Context.CreateNew<SimpleCraftingSettings>();
-+        crafting.SimpleCraftingSettings = settings;
-+        settings.SuccessPercent = 100; // lo pisa el manejador segun el nivel y el tipo de errtel
-+        settings.Money = 100_000;
-+        settings.SetGuid(crafting.Number);
-+
-+        var errtel = this.Context.CreateNew<ItemCraftingRequiredItem>();
-+        errtel.MinimumAmount = 1;
-+        errtel.MaximumAmount = 1;
-+        errtel.MinimumItemLevel = 0;
-+        errtel.MaximumItemLevel = 9;
-+        errtel.FailResult = MixResult.StaysAsIs;
-+        errtel.SuccessResult = MixResult.StaysAsIs;
-+        errtel.Reference = OpenMU.GameLogic.PlayerActions.Craftings.ErrtelLevelUpCrafting.ErrtelReference;
-+        this.AddErrtels(errtel);
-+        settings.RequiredItems.Add(errtel);
-+
-+        var bless = this.Context.CreateNew<ItemCraftingRequiredItem>();
-+        bless.MinimumAmount = 1;
-+        bless.MaximumAmount = 1;
-+        bless.FailResult = MixResult.Disappear;
-+        bless.SuccessResult = MixResult.Disappear;
-+        bless.PossibleItems.Add(this.GameConfiguration.Items.First(i => i.Name == "Jewel of Bless"));
-+        settings.RequiredItems.Add(bless);
-+
-+        return crafting;
-+    }
-+
-+    private void AddPentagrams(ItemCraftingRequiredItem requiredItem)
-+    {
-+        this.GameConfiguration.Items
-+            .Where(i => i.Group == 12 && i.Number >= 200 && i.Number <= 214)
-+            .ForEach(requiredItem.PossibleItems.Add);
-+    }
-+
-+    private void AddErrtels(ItemCraftingRequiredItem requiredItem)
-+    {
-+        this.GameConfiguration.Items
-+            .Where(i => i.Group == 12 && i.Number >= 221 && i.Number <= 261 && (i.Number - 221) % 10 == 0)
-+            .ForEach(requiredItem.PossibleItems.Add);
-+    }
-+
-+    /// <summary>
 +    /// Le da a cada clase su tasa de acierto y de defensa elemental.
 +    /// </summary>
 +    /// <remarks>
@@ -7082,6 +6993,14 @@ index 00000000..aaa5be32
 +    {
 +        foreach (var characterClass in this.GameConfiguration.CharacterClasses)
 +        {
++            // Sin esta guarda, correr el update dos veces (una aplicacion a medias, una
++            // restauracion parcial) duplicaria las dos relaciones y dejaria las tasas elementales
++            // al doble, callando.
++            if (characterClass.AttributeCombinations.Any(c => c.TargetAttribute?.Id == Stats.ElementalAttackSuccessRate.Id))
++            {
++                continue;
++            }
++
 +            characterClass.AttributeCombinations.Add(CharacterClassHelper.CreateAttributeRelationship(
 +                this.Context,
 +                this.GameConfiguration,
