@@ -1284,7 +1284,7 @@ index 01632f87..ac3e4b16 100644
  
      private ItemOptionDefinition CreateItemOptionDefinition(string name, short number, params (AttributeDefinition TargetOption, float Value, AggregateType AggregateType, (AttributeDefinition? SourceAttribute, float Multiplier))[] options)
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs
-index b0fc83a7..957e670d 100644
+index b0fc83a7..0e9391d8 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs
 @@ -1,4 +1,4 @@
@@ -1293,7 +1293,7 @@ index b0fc83a7..957e670d 100644
  // Licensed under the MIT License. See LICENSE file in the project root for full license information.
  // </copyright>
  
-@@ -30,6 +30,100 @@ public class Misc : InitializerBase
+@@ -30,6 +30,104 @@ public class Misc : InitializerBase
          this.CreateLostMap();
          this.CreateSymbolOfKundun();
          this.CreateRena();
@@ -1347,6 +1347,10 @@ index b0fc83a7..957e670d 100644
 +        this.CreateSimpleItem(12, 146, "Elixir Fragment", 1, 1);
 +        this.CreateSimpleItem(12, 150, "Jewel Combination Frame", 2, 1);
 +        this.CreateSimpleItem(12, 151, "Spirit Powder", 1, 2);
++
++        // Lo tercero que vende Jin en Acheron (Data/Shop/025 - Jin.txt). Comprobado que tiene ficha
++        // en la tabla del cliente: 14/209 "Tradeable Seal", modelo TIstamp.bmd.
++        this.CreateSimpleItem(14, 209, "Tradeable Seal", 1, 1);
 +
 +        // Access to Acheron. Both are inert for now: the 5 fragments to 1 map stacking rule and the
 +        // NPC which takes the map don't exist yet.
@@ -1637,10 +1641,10 @@ index ca73adf7..914475cc 100644
          definition.SetGuid(ItemOptionDefinitionNumbers.Wing3rd);
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
 new file mode 100644
-index 00000000..bb8106a4
+index 00000000..c8087c87
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
-@@ -0,0 +1,656 @@
+@@ -0,0 +1,693 @@
 +﻿// <copyright file="Acheron.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1649,7 +1653,9 @@ index 00000000..bb8106a4
 +
 +using MUnique.OpenMU.AttributeSystem;
 +using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.DataModel.Entities;
 +using MUnique.OpenMU.GameLogic.Attributes;
++using MUnique.OpenMU.Persistence.Initialization.Items;
 +
 +/// <summary>
 +/// The initialization for the Acheron map.
@@ -1681,6 +1687,26 @@ index 00000000..bb8106a4
 +
 +    /// <inheritdoc/>
 +    protected override string MapName => Name;
++
++    /// <summary>
++    /// Crea la tienda de Jin, el mercader de Acheron. Los tres articulos son los que trae el propio
++    /// paquete del S8 en Data/Shop/025 - Jin.txt, y los tres tienen ficha en la tabla del cliente.
++    /// No es una tienda de pociones, como sugeria el minimapa: vende los materiales con los que se
++    /// combinan los errtels.
++    /// </summary>
++    /// <returns>La tienda.</returns>
++    private ItemStorage CreateJinStore()
++    {
++        var itemHelper = new ItemHelper(this.Context, this.GameConfiguration);
++        var store = this.Context.CreateNew<ItemStorage>();
++
++        store.Items.Add(itemHelper.CreateItem(0, 150, 12, 1, 0));   // Jewel Combination Frame
++        store.Items.Add(itemHelper.CreateItem(1, 151, 12, 1, 0));   // Spirit Powder
++        store.Items.Add(itemHelper.CreateItem(2, 209, 14, 1, 0));   // Tradeable Seal
++
++        store.SetGuid(583);
++        return store;
++    }
 +
 +    /// <inheritdoc/>
 +    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
@@ -1954,6 +1980,21 @@ index 00000000..bb8106a4
 +            this.GameConfiguration.Monsters.Add(def);
 +            def.Number = 583;
 +            def.Designation = "Jin";
++            def.ObjectKind = NpcObjectKind.PassiveNpc;
++            def.NpcWindow = NpcWindow.Merchant;
++            def.MerchantStore = this.CreateJinStore();
++            def.SetGuid(def.Number);
++        }
++        {
++            // Sir Lesnar (584). Segun el minimapa del propio paquete no vive en Acheron sino en los
++            // pueblos de siempre: Lorencia (114,132), Devias (240,53) y Noria (183,126), que es donde
++            // se le habla para entrar al Protector of Acheron y canjear trofeos. Aqui solo se define;
++            // los tres spawns estan en los ficheros de esos mapas.
++            // De momento no tiene ventana: el evento no existe todavia.
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(def);
++            def.Number = 584;
++            def.Designation = "Sir Lesnar";
 +            def.ObjectKind = NpcObjectKind.PassiveNpc;
 +            def.SetGuid(def.Number);
 +        }
@@ -2696,6 +2737,42 @@ index 00000000..63892157
 +        }
 +    }
 +}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Devias.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Devias.cs
+index ccbd5fb8..c301173e 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Devias.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Devias.cs
+@@ -45,5 +45,6 @@ internal class Devias : Version095d.Maps.Devias
+         yield return this.CreateMonsterSpawn(40, this.NpcDictionary[233], 217, 29, Direction.SouthEast);
+         yield return this.CreateMonsterSpawn(41, this.NpcDictionary[233], 217, 20, Direction.SouthEast);
+         yield return this.CreateMonsterSpawn(42, this.NpcDictionary[568], 225, 52, Direction.South, SpawnTrigger.Wandering); // Wandering Merchant Zyro
++        yield return this.CreateMonsterSpawn(109, this.NpcDictionary[584], 240, 53, Direction.SouthEast); // Sir Lesnar, evento de Acheron
+     }
+ }
+\ No newline at end of file
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Lorencia.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Lorencia.cs
+index a2b49869..62e7ebfb 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Lorencia.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Lorencia.cs
+@@ -44,5 +44,6 @@ internal class Lorencia : Version095d.Maps.Lorencia
+         yield return this.CreateMonsterSpawn(25, this.NpcDictionary[371], 130, 126, Direction.SouthEast);
+         yield return this.CreateMonsterSpawn(26, this.NpcDictionary[568], 131, 139, Direction.South, SpawnTrigger.Wandering); // Wandering Merchant Zyro
+         yield return this.CreateMonsterSpawn(27, this.NpcDictionary[547], 139, 138, Direction.SouthEast); // Market Union Member Julia (warps to the Loren Market)
++        yield return this.CreateMonsterSpawn(129, this.NpcDictionary[584], 114, 132, Direction.SouthEast); // Sir Lesnar, evento de Acheron
+     }
+ }
+\ No newline at end of file
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs
+index de9544a0..183d0d72 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs
+@@ -37,5 +37,6 @@ internal class Noria : Version095d.Maps.Noria
+         yield return this.CreateMonsterSpawn(12, this.NpcDictionary[450], 179, 126, Direction.SouthWest);
+         yield return this.CreateMonsterSpawn(13, this.NpcDictionary[451], 179, 129, Direction.SouthEast);
+         yield return this.CreateMonsterSpawn(14, this.NpcDictionary[229], 169, 88, Direction.SouthEast, SpawnTrigger.Wandering); // Marlon
++        yield return this.CreateMonsterSpawn(29, this.NpcDictionary[584], 183, 126, Direction.SouthEast); // Sir Lesnar, evento de Acheron
+     }
+ }
+\ No newline at end of file
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
 index 85f95903..2f42065f 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
