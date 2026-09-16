@@ -118,6 +118,17 @@ jobs:
           grep -q "new ElementalSystem(this.Context" src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs || { echo "el sistema elemental no esta registrado" >&2; exit 1; }
           # 39 bichos con elemento propio (el 657 queda fuera: sus cifras del paquete estan toqueteadas)
           test "$(grep -cE "^        [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, //" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs)" = "39" || { echo "no son 39 bichos elementales" >&2; exit 1; }
+          # montar y sacar errtels en la Maquina del Caos, subirlos de nivel, y el comando del pentagrama
+          for f in ErrtelCraftingHelper MountErrtelCrafting RemoveErrtelCrafting ErrtelLevelUpCrafting; do
+            test -f "src/GameLogic/PlayerActions/Craftings/$f.cs" || { echo "falta $f" >&2; exit 1; }
+          done
+          grep -q "ItemCraftings.Add(this.MountErrtelCrafting())" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "las mezclas de errtel no estan en la Maquina del Caos" >&2; exit 1; }
+          grep -q "/pentagrama" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "falta el comando del pentagrama" >&2; exit 1; }
+          # los drops
+          grep -q "Pentagrams (elemental bosses)" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "faltan los drops de pentagrama" >&2; exit 1; }
+          # y el plugin para la base que ya existe, sin chocar de version
+          test -f src/Persistence/Initialization/Updates/AddElementalSystemUpdatePlugIn.cs || { echo "falta el plugin de actualizacion del sistema elemental" >&2; exit 1; }
+          grep -q "AddElementalSystem = 118" src/Persistence/Initialization/Updates/UpdateVersion.cs || { echo "la version del plugin elemental choca" >&2; exit 1; }
 
       - name: Construir la imagen
         working-directory: OpenMU/src
