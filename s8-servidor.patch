@@ -1,3 +1,1362 @@
+diff --git a/src/DataModel/Configuration/MonsterDefinition.cs b/src/DataModel/Configuration/MonsterDefinition.cs
+index 6263e551..546ed00f 100644
+--- a/src/DataModel/Configuration/MonsterDefinition.cs
++++ b/src/DataModel/Configuration/MonsterDefinition.cs
+@@ -1,4 +1,4 @@
+-// <copyright file="MonsterDefinition.cs" company="MUnique">
++﻿// <copyright file="MonsterDefinition.cs" company="MUnique">
+ // Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ // </copyright>
+ 
+@@ -221,6 +221,13 @@ public enum NpcObjectKind
+     /// The npc is a destructible.
+     /// </summary>
+     Destructible,
++
++    /// <summary>
++    /// The npc is a mining zone of the 'Jewel of Pandora' mining system. It stands still, can't be
++    /// attacked and is only used through the mining packets; it's consumed and respawns like a
++    /// destructible.
++    /// </summary>
++    MiningZone,
+ }
+ 
+ /// <summary>
+diff --git a/src/GameLogic/ItemConstants.cs b/src/GameLogic/ItemConstants.cs
+index d872c077..959aec96 100644
+--- a/src/GameLogic/ItemConstants.cs
++++ b/src/GameLogic/ItemConstants.cs
+@@ -1,4 +1,4 @@
+-// <copyright file="ItemConstants.cs" company="MUnique">
++﻿// <copyright file="ItemConstants.cs" company="MUnique">
+ // Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ // </copyright>
+ 
+@@ -168,4 +168,16 @@ public class ItemConstants
+     /// Gets all scrolls.
+     /// </summary>
+     public static ItemIdentifier AllScrolls => new(null, 15);
++
++    /// <summary>
++    /// Gets the identifier for the packed jewel of bless (group 12, number 30). Its item level
++    /// says how many jewels the package holds: 0 for 10, 1 for 20 and 2 for 30.
++    /// </summary>
++    public static ItemIdentifier PackedJewelOfBless => new(30, 12);
++
++    /// <summary>
++    /// Gets the identifier for the Pandora Pick (group 0, number 41), the two handed tool of the
++    /// 'Jewel of Pandora' mining system.
++    /// </summary>
++    public static ItemIdentifier PandoraPick => new(41, 0);
+ }
+diff --git a/src/GameLogic/MapInitializer.cs b/src/GameLogic/MapInitializer.cs
+index 148b7a51..05b16691 100644
+--- a/src/GameLogic/MapInitializer.cs
++++ b/src/GameLogic/MapInitializer.cs
+@@ -210,6 +210,11 @@ public class MapInitializer : IMapInitializer
+             this._logger.LogDebug("Creating destructible {spawn}", spawnArea);
+             npc = new Destructible(spawnArea, monsterDef, createdMap, eventStateProvider, dropGenerator ?? this._dropGenerator, this.PlugInManager!);
+         }
++        else if (monsterDef.ObjectKind == NpcObjectKind.MiningZone)
++        {
++            this._logger.LogDebug("Creating mining zone {spawn}", spawnArea);
++            npc = new MiningZone(spawnArea, monsterDef, createdMap, eventStateProvider, this.PlugInManager!);
++        }
+         else if (monsterDef.MerchantStore is not null)
+         {
+             this._logger.LogDebug("Creating merchant npc {spawn}", spawnArea);
+diff --git a/src/GameLogic/Mining/MiningResult.cs b/src/GameLogic/Mining/MiningResult.cs
+new file mode 100644
+index 00000000..69a2db04
+--- /dev/null
++++ b/src/GameLogic/Mining/MiningResult.cs
+@@ -0,0 +1,67 @@
++﻿// <copyright file="MiningResult.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Mining;
++
++/// <summary>
++/// The result codes of the mining packets of the 'Jewel of Pandora' system.
++/// </summary>
++/// <remarks>
++/// The numbers are not ours: they come from the Season 8 client, whose strings map one to one onto
++/// them (see the research in <c>7-panel-de-mineria.md</c>). Keeping them is what lets the original
++/// client show the right message without a translation table.
++/// </remarks>
++public enum MiningResult
++{
++    /// <summary>
++    /// The attempt passed a stage between 1 and 4. The client opens the dialog which asks whether
++    /// to take the jewels or to keep mining.
++    /// </summary>
++    Success = 0,
++
++    /// <summary>
++    /// The attempt passed the fifth and last stage. The reward is paid right away, without a dialog.
++    /// </summary>
++    SuccessFinalStage = 1,
++
++    /// <summary>
++    /// The attempt failed. Everything accumulated in this chain is lost.
++    /// </summary>
++    Failed = 2,
++
++    /// <summary>
++    /// Somebody else is mining this zone.
++    /// </summary>
++    ZoneInUse = 3,
++
++    /// <summary>
++    /// The player is transformed into a monster.
++    /// </summary>
++    Transformed = 10,
++
++    /// <summary>
++    /// There is not enough free space in the inventory for the reward.
++    /// </summary>
++    NotEnoughSpace = 11,
++
++    /// <summary>
++    /// The player is trading or buying.
++    /// </summary>
++    Busy = 12,
++
++    /// <summary>
++    /// The player has a private store open.
++    /// </summary>
++    PrivateStoreOpen = 13,
++
++    /// <summary>
++    /// The stage or the zone of the request doesn't match what the server has. Anti cheat.
++    /// </summary>
++    StateMismatch = 17,
++
++    /// <summary>
++    /// No Pandora Pick equipped in the right hand, or its durability is below the cost of one attempt.
++    /// </summary>
++    NoPickOrDurability = 18,
++}
+diff --git a/src/GameLogic/Mining/MiningRewardItem.cs b/src/GameLogic/Mining/MiningRewardItem.cs
+new file mode 100644
+index 00000000..85ed15f3
+--- /dev/null
++++ b/src/GameLogic/Mining/MiningRewardItem.cs
+@@ -0,0 +1,12 @@
++﻿// <copyright file="MiningRewardItem.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Mining;
++
++/// <summary>
++/// One item of a mining reward: either a package of jewels or a single Jewel of Bless.
++/// </summary>
++/// <param name="IsPackage"><c>true</c> for a 'Packed Jewel of Bless'; <c>false</c> for a single 'Jewel of Bless'.</param>
++/// <param name="Level">The item level of the package: 0 for 10 jewels, 1 for 20 and 2 for 30. Meaningless for a single jewel.</param>
++public record struct MiningRewardItem(bool IsPackage, byte Level);
+diff --git a/src/GameLogic/Mining/MiningRewardPacker.cs b/src/GameLogic/Mining/MiningRewardPacker.cs
+new file mode 100644
+index 00000000..6803bdae
+--- /dev/null
++++ b/src/GameLogic/Mining/MiningRewardPacker.cs
+@@ -0,0 +1,58 @@
++﻿// <copyright file="MiningRewardPacker.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Mining;
++
++/// <summary>
++/// Splits a mining reward into packages of 30, 20 and 10 jewels plus loose ones, which is what the
++/// original does.
++/// </summary>
++/// <remarks>
++/// The Season 8 code pays with <c>GetRewardCount(count, 30, ...)</c>, then 20, then 10, then single
++/// jewels, and the official screenshot of a 125 jewel reward shows exactly 4 packages of 30 plus 5
++/// loose ones. OpenMU already has the item: 'Packed Jewel of Bless' (group 12, number 30) with
++/// <c>MaximumItemLevel = 2</c>, where level 0, 1 and 2 mean 10, 20 and 30 jewels.
++/// </remarks>
++public static class MiningRewardPacker
++{
++    /// <summary>
++    /// The jewels held by a package of each item level.
++    /// </summary>
++    private static readonly int[] PackageSizes = { 10, 20, 30 };
++
++    /// <summary>
++    /// Splits the given number of jewels into the items which have to be created.
++    /// </summary>
++    /// <param name="jewelCount">The number of jewels to pay.</param>
++    /// <returns>One entry per item, in the order in which they should be created.</returns>
++    public static IReadOnlyList<MiningRewardItem> Split(int jewelCount)
++    {
++        var result = new List<MiningRewardItem>();
++        var remaining = Math.Max(jewelCount, 0);
++
++        for (var level = PackageSizes.Length - 1; level >= 0; level--)
++        {
++            var size = PackageSizes[level];
++            while (remaining >= size)
++            {
++                result.Add(new MiningRewardItem(true, (byte)level));
++                remaining -= size;
++            }
++        }
++
++        for (var i = 0; i < remaining; i++)
++        {
++            result.Add(new MiningRewardItem(false, 0));
++        }
++
++        return result;
++    }
++
++    /// <summary>
++    /// Counts the inventory slots which a reward of the given size needs.
++    /// </summary>
++    /// <param name="jewelCount">The number of jewels to pay.</param>
++    /// <returns>The number of inventory slots.</returns>
++    public static int CountRequiredSlots(int jewelCount) => Split(jewelCount).Count;
++}
+diff --git a/src/GameLogic/Mining/MiningState.cs b/src/GameLogic/Mining/MiningState.cs
+new file mode 100644
+index 00000000..440c4ae7
+--- /dev/null
++++ b/src/GameLogic/Mining/MiningState.cs
+@@ -0,0 +1,55 @@
++﻿// <copyright file="MiningState.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Mining;
++
++using MUnique.OpenMU.GameLogic.NPC;
++
++/// <summary>
++/// The state of a mining chain of one player on one zone.
++/// </summary>
++/// <remarks>
++/// It only lives while the player is connected and standing on a chain. It's deliberately not
++/// persisted: the original loses everything accumulated when the player disconnects before taking
++/// the jewels, and so do we.
++/// </remarks>
++public sealed class MiningState
++{
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningState"/> class.
++    /// </summary>
++    /// <param name="zone">The zone which is being mined.</param>
++    /// <param name="configuration">The numbers of that zone size.</param>
++    public MiningState(MiningZone zone, MiningZoneConfiguration configuration)
++    {
++        this.Zone = zone;
++        this.Configuration = configuration;
++    }
++
++    /// <summary>
++    /// Gets the zone which is being mined.
++    /// </summary>
++    public MiningZone Zone { get; }
++
++    /// <summary>
++    /// Gets the numbers of the zone size.
++    /// </summary>
++    public MiningZoneConfiguration Configuration { get; }
++
++    /// <summary>
++    /// Gets or sets the stage which the chain has reached, 0 before the first hit.
++    /// </summary>
++    public byte Stage { get; set; }
++
++    /// <summary>
++    /// Gets or sets the jewels accumulated so far, which are lost on a failed attempt.
++    /// </summary>
++    public int JewelCount { get; set; }
++
++    /// <summary>
++    /// Gets or sets a value indicating whether the player is being asked to take the jewels or to
++    /// keep mining. While this is set, only a reward answer is accepted.
++    /// </summary>
++    public bool WaitingForDecision { get; set; }
++}
+diff --git a/src/GameLogic/Mining/MiningTable.cs b/src/GameLogic/Mining/MiningTable.cs
+new file mode 100644
+index 00000000..789a9139
+--- /dev/null
++++ b/src/GameLogic/Mining/MiningTable.cs
+@@ -0,0 +1,93 @@
++﻿// <copyright file="MiningTable.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Mining;
++
++/// <summary>
++/// The numbers of the 'Jewel of Pandora' mining system, transcribed from the original
++/// <c>Data/Mining.txt</c> of the Season 8 server package (15 rows, dated 13-10-2014).
++/// </summary>
++/// <remarks>
++/// The file has the columns <c>Index Stage Value ItemRate ItemIndex ItemCount BonusItemRate
++/// BonusItemIndex BonusItemCount</c>, where <c>Value</c> is the durability the pick loses per
++/// attempt, the rates are per 10.000 and <c>ItemIndex 7181</c> is the Jewel of Bless (group 14,
++/// number 13). The same table is published by Webzen in the official game guide, row by row.
++/// The rates are flat 47,5 % on all five stages, which is how the package simplified the per-stage
++/// curve of the original.
++/// </remarks>
++public static class MiningTable
++{
++    /// <summary>
++    /// The monster number of the small (blue) mining zone.
++    /// </summary>
++    public const ushort SmallZoneNumber = 605;
++
++    /// <summary>
++    /// The monster number of the medium (purple) mining zone.
++    /// </summary>
++    public const ushort MediumZoneNumber = 606;
++
++    /// <summary>
++    /// The monster number of the large (golden) mining zone.
++    /// </summary>
++    public const ushort LargeZoneNumber = 607;
++
++    /// <summary>
++    /// The number of stages of a mining chain.
++    /// </summary>
++    public const byte MaximumStage = 5;
++
++    /// <summary>
++    /// The divisor of all rates of this table, so that 4750 means 47,5 %.
++    /// </summary>
++    public const int RateDivisor = 10000;
++
++    private static readonly MiningZoneConfiguration Small = new(
++        SmallZoneNumber,
++        durabilityCost: 2,
++        successRate: 4750,
++        jewelsPerStage: new[] { 1, 3, 7, 16, 33 },
++        giftRate: 250,
++        giftJewels: 100);
++
++    private static readonly MiningZoneConfiguration Medium = new(
++        MediumZoneNumber,
++        durabilityCost: 4,
++        successRate: 4750,
++        jewelsPerStage: new[] { 2, 6, 15, 34, 67 },
++        giftRate: 190,
++        giftJewels: 400);
++
++    private static readonly MiningZoneConfiguration Large = new(
++        LargeZoneNumber,
++        durabilityCost: 8,
++        successRate: 4750,
++        jewelsPerStage: new[] { 4, 12, 29, 65, 125 },
++        giftRate: 180,
++        giftJewels: 1000);
++
++    /// <summary>
++    /// Gets the configuration of a mining zone by its monster number.
++    /// </summary>
++    /// <param name="monsterNumber">The monster number of the zone, 605 to 607.</param>
++    /// <returns>The configuration, or <see langword="null"/> when the number is not a mining zone.</returns>
++    public static MiningZoneConfiguration? GetConfiguration(ushort monsterNumber)
++    {
++        return monsterNumber switch
++        {
++            SmallZoneNumber => Small,
++            MediumZoneNumber => Medium,
++            LargeZoneNumber => Large,
++            _ => null,
++        };
++    }
++
++    /// <summary>
++    /// Determines whether the given monster number is one of the three mining zones.
++    /// </summary>
++    /// <param name="monsterNumber">The monster number.</param>
++    /// <returns><see langword="true"/> when it's a mining zone.</returns>
++    public static bool IsMiningZone(ushort monsterNumber)
++        => monsterNumber is SmallZoneNumber or MediumZoneNumber or LargeZoneNumber;
++}
+diff --git a/src/GameLogic/Mining/MiningZoneConfiguration.cs b/src/GameLogic/Mining/MiningZoneConfiguration.cs
+new file mode 100644
+index 00000000..782a25f3
+--- /dev/null
++++ b/src/GameLogic/Mining/MiningZoneConfiguration.cs
+@@ -0,0 +1,73 @@
++﻿// <copyright file="MiningZoneConfiguration.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Mining;
++
++/// <summary>
++/// The numbers of one of the three mining zone sizes. See <see cref="MiningTable"/> for the source.
++/// </summary>
++public sealed class MiningZoneConfiguration
++{
++    private readonly int[] _jewelsPerStage;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningZoneConfiguration"/> class.
++    /// </summary>
++    /// <param name="monsterNumber">The monster number of the zone.</param>
++    /// <param name="durabilityCost">The durability the pick loses on each attempt.</param>
++    /// <param name="successRate">The chance to pass a stage, per <see cref="MiningTable.RateDivisor"/>.</param>
++    /// <param name="jewelsPerStage">The accumulated jewels of each of the five stages.</param>
++    /// <param name="giftRate">The chance of the 'Gift of Pandora' after the fifth stage, per <see cref="MiningTable.RateDivisor"/>.</param>
++    /// <param name="giftJewels">The jewels of the 'Gift of Pandora'.</param>
++    public MiningZoneConfiguration(ushort monsterNumber, byte durabilityCost, int successRate, int[] jewelsPerStage, int giftRate, int giftJewels)
++    {
++        this.MonsterNumber = monsterNumber;
++        this.DurabilityCost = durabilityCost;
++        this.SuccessRate = successRate;
++        this._jewelsPerStage = jewelsPerStage;
++        this.GiftRate = giftRate;
++        this.GiftJewels = giftJewels;
++    }
++
++    /// <summary>
++    /// Gets the monster number of the zone, 605 to 607.
++    /// </summary>
++    public ushort MonsterNumber { get; }
++
++    /// <summary>
++    /// Gets the durability which the pick loses on each attempt: 2, 4 or 8.
++    /// </summary>
++    public byte DurabilityCost { get; }
++
++    /// <summary>
++    /// Gets the chance to pass a stage, per <see cref="MiningTable.RateDivisor"/>. The package uses
++    /// 4750 on all five stages.
++    /// </summary>
++    public int SuccessRate { get; }
++
++    /// <summary>
++    /// Gets the chance of the 'Gift of Pandora' after the fifth stage, per <see cref="MiningTable.RateDivisor"/>.
++    /// </summary>
++    public int GiftRate { get; }
++
++    /// <summary>
++    /// Gets the jewels of the 'Gift of Pandora', which are added on top of the fifth stage.
++    /// </summary>
++    public int GiftJewels { get; }
++
++    /// <summary>
++    /// Gets the accumulated jewels after passing the specified stage.
++    /// </summary>
++    /// <param name="stage">The stage, 1 to <see cref="MiningTable.MaximumStage"/>.</param>
++    /// <returns>The total jewels of that stage. They replace the previous total, they don't add up.</returns>
++    public int GetJewelsOfStage(byte stage)
++    {
++        if (stage < 1 || stage > this._jewelsPerStage.Length)
++        {
++            return 0;
++        }
++
++        return this._jewelsPerStage[stage - 1];
++    }
++}
+diff --git a/src/GameLogic/NPC/MiningZone.cs b/src/GameLogic/NPC/MiningZone.cs
+new file mode 100644
+index 00000000..6562a13e
+--- /dev/null
++++ b/src/GameLogic/NPC/MiningZone.cs
+@@ -0,0 +1,160 @@
++﻿// <copyright file="MiningZone.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.NPC;
++
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// A mining zone of the 'Jewel of Pandora' mining system, which was introduced with Season 8.
++/// </summary>
++/// <remarks>
++/// It's a blinking spot on the ground of the safe zone of certain maps, not a monster: it stands
++/// still, it can't be attacked with a weapon and it's only used through the mining packets.
++/// It derives from <see cref="AttackableNpcBase"/> for one reason only: the respawn. When a chain
++/// ends, the zone is consumed and comes back after <see cref="MonsterDefinition.RespawnDelay"/>,
++/// which is exactly what the base class already does after a death.
++/// Because <see cref="GetHitNotificationTarget"/> returns <see langword="null"/>, the death gives
++/// no experience, drops nothing and shows no damage number.
++/// </remarks>
++public sealed class MiningZone : AttackableNpcBase, IAttackable
++{
++    private readonly object _minerLock = new();
++
++    private Player? _miner;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningZone" /> class.
++    /// </summary>
++    /// <param name="spawnInfo">The spawn information.</param>
++    /// <param name="stats">The stats.</param>
++    /// <param name="map">The map on which this instance will spawn.</param>
++    /// <param name="eventStateProvider">The event state provider.</param>
++    /// <param name="plugInManager">The plugin manager.</param>
++    public MiningZone(MonsterSpawnArea spawnInfo, MonsterDefinition stats, GameMap map, IEventStateProvider? eventStateProvider, PlugInManager plugInManager)
++        : base(spawnInfo, stats, map, eventStateProvider, NullDropGenerator.Instance, plugInManager)
++    {
++    }
++
++    /// <summary>
++    /// Gets the player which is currently mining this zone, if there is one.
++    /// </summary>
++    public Player? Miner
++    {
++        get
++        {
++            lock (this._minerLock)
++            {
++                return this._miner;
++            }
++        }
++    }
++
++    /// <summary>
++    /// Tries to reserve this zone for the specified player.
++    /// </summary>
++    /// <param name="player">The player who wants to mine here.</param>
++    /// <returns><see langword="true"/>, when the zone is now reserved for the player; <see langword="false"/>, when somebody else is using it.</returns>
++    public bool TryReserve(Player player)
++    {
++        lock (this._minerLock)
++        {
++            if (this._miner is null || this._miner == player || IsStale(this._miner, this.CurrentMap))
++            {
++                this._miner = player;
++                return true;
++            }
++
++            return false;
++        }
++    }
++
++    /// <summary>
++    /// Releases the reservation of the specified player, without consuming the zone.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    public void Release(Player player)
++    {
++        lock (this._minerLock)
++        {
++            if (this._miner == player)
++            {
++                this._miner = null;
++            }
++        }
++    }
++
++    /// <summary>
++    /// Consumes this zone, so that it disappears and respawns after its configured delay.
++    /// </summary>
++    /// <param name="player">The player which used the zone up.</param>
++    public async ValueTask ConsumeAsync(Player player)
++    {
++        if (!this.IsAlive)
++        {
++            return;
++        }
++
++        this.Release(player);
++        var damage = (uint)Math.Max(this.Health, 1);
++        await this.HitAsync(new HitInfo(damage, 0, DamageAttributes.Undefined), player, null).ConfigureAwait(false);
++    }
++
++    /// <inheritdoc/>
++    public override ValueTask ReflectDamageAsync(IAttacker reflector, uint damage)
++    {
++        // A mining zone doesn't attack, so it doesn't reflect.
++        return ValueTask.CompletedTask;
++    }
++
++    /// <inheritdoc />
++    public override ValueTask ApplyPoisonDamageAsync(IAttacker initialAttacker, uint damage)
++    {
++        // A mining zone is not an organism which can be poisoned.
++        return ValueTask.CompletedTask;
++    }
++
++    /// <inheritdoc />
++    public override ValueTask ApplyBleedingDamageAsync(IAttacker initialAttacker, uint damage)
++    {
++        // A mining zone is not an organism which can bleed.
++        return ValueTask.CompletedTask;
++    }
++
++    /// <inheritdoc />
++    /// <remarks>A mining zone is never attacked with a weapon; it's only used through the mining packets.</remarks>
++    protected override bool CanBeAttackedBy(IAttacker attacker) => false;
++
++    /// <inheritdoc />
++    /// <remarks>
++    /// Returning <see langword="null"/> keeps the whole reward path of the base class switched off:
++    /// no damage number, no experience, no drop and no party share when the zone is consumed.
++    /// </remarks>
++    protected override Player? GetHitNotificationTarget(IAttacker attacker) => null;
++
++    /// <summary>
++    /// Determines whether a reservation can be taken away from the player who holds it: when the
++    /// player disconnected, or walked away to another map without closing the chain.
++    /// </summary>
++    /// <param name="miner">The player who holds the reservation.</param>
++    /// <param name="map">The map of the zone.</param>
++    /// <returns><see langword="true"/> when the reservation is stale.</returns>
++    private static bool IsStale(Player miner, GameMap map)
++    {
++        return miner.PlayerState.CurrentState == PlayerState.Disconnected
++               || miner.CurrentMap != map;
++    }
++
++    /// <inheritdoc />
++    protected override void OnRemoveFromMap()
++    {
++        lock (this._minerLock)
++        {
++            this._miner = null;
++        }
++
++        base.OnRemoveFromMap();
++    }
++}
+diff --git a/src/GameLogic/Player.cs b/src/GameLogic/Player.cs
+index 10a442a0..18ab7f3a 100644
+--- a/src/GameLogic/Player.cs
++++ b/src/GameLogic/Player.cs
+@@ -364,6 +364,13 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
+     /// </summary>
+     public GuildWarContext? GuildWarContext { get; set; }
+ 
++    /// <summary>
++    /// Gets or sets the state of the mining chain of the 'Jewel of Pandora' system, while the
++    /// player is standing on one. It's deliberately not persisted: like in the original, whatever
++    /// was accumulated is lost when the player disconnects before taking it.
++    /// </summary>
++    public Mining.MiningState? MiningState { get; set; }
++
+     /// <summary>
+     /// Gets the skill list.
+     /// </summary>
+@@ -637,6 +644,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
+             }
+ 
+             this.DuelRoom = null;
++            this.MiningState = null;
+ 
+             this._selectedCharacter = null;
+         }
+diff --git a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs b/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
+index 57af2828..621734ac 100644
+--- a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
++++ b/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
+@@ -7,6 +7,7 @@
+ namespace MUnique.OpenMU.GameLogic.PlayerActions.ItemConsumeActions;
+ 
+ using System.Runtime.InteropServices;
++using MUnique.OpenMU.DataModel.Configuration.Items;
+ using MUnique.OpenMU.Persistence;
+ using MUnique.OpenMU.PlugIns;
+ 
+@@ -18,6 +19,12 @@ using MUnique.OpenMU.PlugIns;
+ [Display(Name = nameof(PlugInResources.BlessJewelConsumeHandlerPlugIn_Name), Description = nameof(PlugInResources.BlessJewelConsumeHandlerPlugIn_Description), ResourceType = typeof(PlugInResources))]
+ public class BlessJewelConsumeHandlerPlugIn : UpgradeItemLevelJewelConsumeHandlerPlugIn<BlessJewelConsumeHandlerPlugInConfiguration>
+ {
++    /// <summary>
++    /// The durability which one Jewel of Bless restores on the Pandora Pick, when the stored
++    /// configuration doesn't say otherwise. It's the number of the official Webzen guide.
++    /// </summary>
++    private const double DefaultPartialRepairAmount = 4;
++
+     /// <inheritdoc />
+     public override ItemIdentifier Key => ItemConstants.JewelOfBless;
+ 
+@@ -31,12 +38,27 @@ public class BlessJewelConsumeHandlerPlugIn : UpgradeItemLevelJewelConsumeHandle
+             SuccessRatePercentage = 100,
+             SuccessRateBonusWithLuckPercentage = 0,
+             ResetToLevel0WhenFailMinLevel = 0,
++            PartialRepairAmount = 4,
+         };
+     }
+ 
+     /// <inheritdoc/>
+     protected override bool ModifyItem(Item item, IContext persistenceContext)
+     {
++        if (item.Definition is { } definition
++            && (IsPandoraPick(definition) || this.Configuration?.PartialRepairTargetItems.Contains(definition) is true))
++        {
++            var maximumDurability = (double)item.GetMaximumDurabilityOfOnePiece();
++            if (item.Durability >= maximumDurability)
++            {
++                return false;
++            }
++
++            var amountPerJewel = this.Configuration?.PartialRepairAmount > 0 ? this.Configuration.PartialRepairAmount : DefaultPartialRepairAmount;
++            item.Durability = Math.Min(item.Durability + amountPerJewel, maximumDurability);
++            return true;
++        }
++
+         if (this.Configuration?.RepairTargetItems.Contains(item.Definition!) is true
+             && item.Durability < item.GetMaximumDurabilityOfOnePiece())
+         {
+@@ -46,4 +68,21 @@ public class BlessJewelConsumeHandlerPlugIn : UpgradeItemLevelJewelConsumeHandle
+ 
+         return base.ModifyItem(item, persistenceContext);
+     }
++
++    /// <summary>
++    /// Determines whether the item is the Pandora Pick of the 'Jewel of Pandora' mining system.
++    /// </summary>
++    /// <param name="definition">The item definition.</param>
++    /// <returns><see langword="true"/> for the Pandora Pick.</returns>
++    /// <remarks>
++    /// This is checked here and not only through <see cref="BlessJewelConsumeHandlerPlugInConfiguration.PartialRepairTargetItems"/>
++    /// on purpose: a database which was created before the mining system exists has no such entry
++    /// in its stored plug-in configuration, and since the pick can't be repaired with money either,
++    /// the pick would be unrepairable and the whole system silently dead on an existing server.
++    /// </remarks>
++    private static bool IsPandoraPick(ItemDefinition definition)
++    {
++        return definition.Group == ItemConstants.PandoraPick.Group
++               && definition.Number == ItemConstants.PandoraPick.Number;
++    }
+ }
+\ No newline at end of file
+diff --git a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugInConfiguration.cs b/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugInConfiguration.cs
+index 97d1d790..a12190e0 100644
+--- a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugInConfiguration.cs
++++ b/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugInConfiguration.cs
+@@ -15,4 +15,21 @@ public class BlessJewelConsumeHandlerPlugInConfiguration : UpgradeItemLevelConfi
+     /// Gets or sets the items which can be repaired by consuming a bless on them.
+     /// </summary>
+     public ICollection<ItemDefinition> RepairTargetItems { get; set; } = new List<ItemDefinition>();
++
++    /// <summary>
++    /// Gets or sets the items which are repaired only by <see cref="PartialRepairAmount"/> per
++    /// consumed jewel, instead of being restored to full durability.
++    /// </summary>
++    /// <remarks>
++    /// This exists for the Pandora Pick of the 'Jewel of Pandora' mining system: the official guide
++    /// says that one Jewel of Bless repairs 4 durability out of 255, and that's what makes mining a
++    /// jewel sink instead of a jewel faucet. Repairing it to full with a single jewel would break
++    /// the whole balance of the system.
++    /// </remarks>
++    public ICollection<ItemDefinition> PartialRepairTargetItems { get; set; } = new List<ItemDefinition>();
++
++    /// <summary>
++    /// Gets or sets the durability which one jewel restores on a <see cref="PartialRepairTargetItems"/>.
++    /// </summary>
++    public double PartialRepairAmount { get; set; } = 4;
+ }
+\ No newline at end of file
+diff --git a/src/GameLogic/PlayerActions/Items/ItemRepairAction.cs b/src/GameLogic/PlayerActions/Items/ItemRepairAction.cs
+index 9d520d45..650da09b 100644
+--- a/src/GameLogic/PlayerActions/Items/ItemRepairAction.cs
++++ b/src/GameLogic/PlayerActions/Items/ItemRepairAction.cs
+@@ -40,6 +40,12 @@ public class ItemRepairAction
+             return;
+         }
+ 
++        if (IsRepairedOnlyWithJewels(item))
++        {
++            await player.ShowBlueMessageAsync("You don't have enough durability. Use Jewels of Bless to repair your equipment.").ConfigureAwait(false);
++            return;
++        }
++
+         if (IsMoneySufficient(player, item))
+         {
+             item.Durability = item.GetMaximumDurabilityOfOnePiece();
+@@ -87,6 +93,11 @@ public class ItemRepairAction
+                 continue;
+             }
+ 
++            if (IsRepairedOnlyWithJewels(item))
++            {
++                continue;
++            }
++
+             if (IsMoneySufficient(player, item))
+             {
+                 item.Durability = item.GetMaximumDurabilityOfOnePiece();
+@@ -100,6 +111,24 @@ public class ItemRepairAction
+         }
+     }
+ 
++    /// <summary>
++    /// Determines whether the item can only be repaired with Jewels of Bless and never with money.
++    /// </summary>
++    /// <param name="item">The item.</param>
++    /// <returns><see langword="true"/> for the Pandora Pick.</returns>
++    /// <remarks>
++    /// The whole 'Jewel of Pandora' mining system hangs on this: the official guide says that the
++    /// pick is repaired only with Jewels of Bless, one jewel per 4 durability. That's what turns the
++    /// system into a jewel sink instead of a jewel faucet. If the repair NPC could fix it for money,
++    /// mining would print Jewels of Bless out of nothing.
++    /// </remarks>
++    private static bool IsRepairedOnlyWithJewels(Item item)
++    {
++        return item.Definition is { } definition
++               && definition.Group == ItemConstants.PandoraPick.Group
++               && definition.Number == ItemConstants.PandoraPick.Number;
++    }
++
+     private static bool IsMoneySufficient(Player player, Item item)
+     {
+         var priceCalculator = new ItemPriceCalculator();
+diff --git a/src/GameLogic/PlayerActions/Mining/MiningAction.cs b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
+new file mode 100644
+index 00000000..9152912a
+--- /dev/null
++++ b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
+@@ -0,0 +1,309 @@
++﻿// <copyright file="MiningAction.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.PlayerActions.Mining;
++
++using MUnique.OpenMU.GameLogic.Attributes;
++using MUnique.OpenMU.GameLogic.Mining;
++using MUnique.OpenMU.GameLogic.NPC;
++using MUnique.OpenMU.GameLogic.Views.Inventory;
++using MUnique.OpenMU.GameLogic.Views.Mining;
++
++/// <summary>
++/// The actions of the 'Jewel of Pandora' mining system, which was introduced with Season 8.
++/// </summary>
++/// <remarks>
++/// The chain works like the original: each hit costs durability of the Pandora Pick and either
++/// passes the stage or loses everything accumulated. After stages 1 to 4 the player chooses between
++/// taking the jewels and risking them on the next stage; the fifth stage pays by itself and may add
++/// the 'Gift of Pandora'. The numbers live in <see cref="MiningTable"/>.
++/// </remarks>
++public class MiningAction
++{
++    /// <summary>
++    /// How far the player may stand from the zone, in coordinates.
++    /// </summary>
++    private const int MaximumDistance = 5;
++
++    /// <summary>
++    /// Handles a mining attempt on a zone.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    /// <param name="zoneId">The object id of the zone.</param>
++    /// <param name="zoneClass">The monster number of the zone, as the client sees it.</param>
++    /// <param name="stage">The stage which the client believes the chain is on.</param>
++    public async ValueTask MineAsync(Player player, ushort zoneId, ushort zoneClass, byte stage)
++    {
++        if (this.FindZone(player, zoneId, zoneClass) is not { } zone
++            || MiningTable.GetConfiguration(zoneClass) is not { } configuration)
++        {
++            await this.SendHitResultAsync(player, zoneId, zoneClass, 0, 0, MiningResult.StateMismatch).ConfigureAwait(false);
++            return;
++        }
++
++        if (this.GetBlockingState(player) is { } blockingState)
++        {
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, blockingState).ConfigureAwait(false);
++            return;
++        }
++
++        var state = player.MiningState;
++        if (state is not null && state.Zone != zone)
++        {
++            // The player moved to another zone without closing the previous chain.
++            await this.DropChainAsync(player, consumeZone: false).ConfigureAwait(false);
++            state = null;
++        }
++
++        if ((state?.Stage ?? 0) != stage || (state?.WaitingForDecision ?? false))
++        {
++            await this.DropChainAsync(player, consumeZone: false).ConfigureAwait(false);
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.StateMismatch).ConfigureAwait(false);
++            return;
++        }
++
++        if (this.GetEquippedPick(player) is not { } pick || pick.Durability < configuration.DurabilityCost)
++        {
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.NoPickOrDurability).ConfigureAwait(false);
++            return;
++        }
++
++        if (!zone.TryReserve(player))
++        {
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.ZoneInUse).ConfigureAwait(false);
++            return;
++        }
++
++        var nextStage = (byte)(stage + 1);
++        var possibleReward = configuration.GetJewelsOfStage(nextStage)
++                             + (nextStage == MiningTable.MaximumStage ? configuration.GiftJewels : 0);
++        if (this.CountFreeInventorySlots(player) < MiningRewardPacker.CountRequiredSlots(possibleReward))
++        {
++            zone.Release(player);
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.NotEnoughSpace).ConfigureAwait(false);
++            return;
++        }
++
++        state ??= new MiningState(zone, configuration);
++        player.MiningState = state;
++
++        if (pick.DecreaseDurability(configuration.DurabilityCost))
++        {
++            await player.InvokeViewPlugInAsync<IItemDurabilityChangedPlugIn>(p => p.ItemDurabilityChangedAsync(pick, false)).ConfigureAwait(false);
++        }
++
++        if (!Rand.NextRandomBool(configuration.SuccessRate, MiningTable.RateDivisor))
++        {
++            await this.DropChainAsync(player, consumeZone: false).ConfigureAwait(false);
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.Failed).ConfigureAwait(false);
++            return;
++        }
++
++        state.Stage = nextStage;
++        state.JewelCount = configuration.GetJewelsOfStage(nextStage);
++
++        if (nextStage < MiningTable.MaximumStage)
++        {
++            state.WaitingForDecision = true;
++            await this.SendHitResultAsync(player, zoneId, zoneClass, nextStage, state.JewelCount, MiningResult.Success).ConfigureAwait(false);
++            return;
++        }
++
++        var withGift = Rand.NextRandomBool(configuration.GiftRate, MiningTable.RateDivisor);
++        if (withGift)
++        {
++            state.JewelCount += configuration.GiftJewels;
++        }
++
++        var paid = await this.PayRewardAsync(player, state.JewelCount).ConfigureAwait(false);
++        await this.SendHitResultAsync(player, zoneId, zoneClass, nextStage, state.JewelCount, paid ? MiningResult.SuccessFinalStage : MiningResult.NotEnoughSpace).ConfigureAwait(false);
++
++        if (paid && withGift)
++        {
++            await player.GameContext.SendGlobalMessageAsync(
++                string.Format("{0} has just received the Gift of Pandora: {1} Jewels of Bless!", player.Name, configuration.GiftJewels),
++                Interfaces.MessageType.GoldenCenter).ConfigureAwait(false);
++        }
++
++        await this.DropChainAsync(player, consumeZone: paid).ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Handles the answer of the dialog which asks whether to take the jewels or to keep mining.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    /// <param name="zoneId">The object id of the zone.</param>
++    /// <param name="zoneClass">The monster number of the zone.</param>
++    /// <param name="stage">The stage which the client believes the chain is on.</param>
++    /// <param name="cashOut"><c>true</c>, when the player wants the jewels; <c>false</c>, when the next stage should be rolled.</param>
++    public async ValueTask DecideAsync(Player player, ushort zoneId, ushort zoneClass, byte stage, bool cashOut)
++    {
++        var state = player.MiningState;
++        if (state is null
++            || !state.WaitingForDecision
++            || state.Stage != stage
++            || state.Zone.Id != zoneId)
++        {
++            await this.DropChainAsync(player, consumeZone: false).ConfigureAwait(false);
++            await player.InvokeViewPlugInAsync<IMiningViewPlugIn>(p => p.ShowMiningRewardResultAsync(zoneId, zoneClass, this.GetMapNumber(player), stage, MiningResult.StateMismatch)).ConfigureAwait(false);
++            return;
++        }
++
++        if (!cashOut)
++        {
++            // The player keeps mining: the next hit request continues the chain.
++            state.WaitingForDecision = false;
++            return;
++        }
++
++        var paid = await this.PayRewardAsync(player, state.JewelCount).ConfigureAwait(false);
++        await player.InvokeViewPlugInAsync<IMiningViewPlugIn>(p => p.ShowMiningRewardResultAsync(zoneId, zoneClass, this.GetMapNumber(player), stage, paid ? MiningResult.Success : MiningResult.NotEnoughSpace)).ConfigureAwait(false);
++
++        if (paid)
++        {
++            await this.DropChainAsync(player, consumeZone: true).ConfigureAwait(false);
++        }
++    }
++
++    /// <summary>
++    /// Ends a mining chain because the player walked away or closed the dialog. Everything
++    /// accumulated is lost and the zone is consumed, like in the original.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    /// <param name="zoneId">The object id of the zone.</param>
++    public async ValueTask EndAsync(Player player, ushort zoneId)
++    {
++        if (player.MiningState is not { } state || state.Zone.Id != zoneId)
++        {
++            return;
++        }
++
++        await this.DropChainAsync(player, consumeZone: true).ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Ends the mining chain of a player without telling the client, for example when the player
++    /// leaves the map or disconnects.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    public ValueTask CancelAsync(Player player) => this.DropChainAsync(player, consumeZone: false);
++
++    private async ValueTask DropChainAsync(Player player, bool consumeZone)
++    {
++        if (player.MiningState is not { } state)
++        {
++            return;
++        }
++
++        player.MiningState = null;
++        if (consumeZone)
++        {
++            await state.Zone.ConsumeAsync(player).ConfigureAwait(false);
++        }
++        else
++        {
++            state.Zone.Release(player);
++        }
++    }
++
++    private async ValueTask<bool> PayRewardAsync(Player player, int jewelCount)
++    {
++        if (player.Inventory is not { } inventory || jewelCount <= 0)
++        {
++            return false;
++        }
++
++        var reward = MiningRewardPacker.Split(jewelCount);
++        if (this.CountFreeInventorySlots(player) < reward.Count)
++        {
++            return false;
++        }
++
++        var packedDefinition = player.GameContext.Configuration.Items.FirstOrDefault(
++            i => i.Group == ItemConstants.PackedJewelOfBless.Group && i.Number == ItemConstants.PackedJewelOfBless.Number);
++        var jewelDefinition = player.GameContext.Configuration.Items.FirstOrDefault(
++            i => i.Group == ItemConstants.JewelOfBless.Group && i.Number == ItemConstants.JewelOfBless.Number);
++        if (packedDefinition is null || jewelDefinition is null)
++        {
++            player.Logger.LogWarning("Mining reward can't be paid: the Jewel of Bless or its package is missing from the configuration.");
++            return false;
++        }
++
++        foreach (var entry in reward)
++        {
++            var definition = entry.IsPackage ? packedDefinition : jewelDefinition;
++            var item = player.PersistenceContext.CreateNew<Item>();
++            item.Definition = definition;
++            item.Level = entry.IsPackage ? entry.Level : (byte)0;
++            item.Durability = definition.Durability;
++            if (await inventory.AddItemAsync(item).ConfigureAwait(false))
++            {
++                await player.InvokeViewPlugInAsync<IItemAppearPlugIn>(p => p.ItemAppearAsync(item)).ConfigureAwait(false);
++            }
++            else
++            {
++                await player.PersistenceContext.DeleteAsync(item).ConfigureAwait(false);
++            }
++        }
++
++        return true;
++    }
++
++    private MiningZone? FindZone(Player player, ushort zoneId, ushort zoneClass)
++    {
++        if (player.CurrentMap?.GetObject(zoneId) is not MiningZone zone
++            || !zone.IsAlive
++            || zone.Definition.Number != zoneClass
++            || !player.IsInRange(zone.Position, MaximumDistance))
++        {
++            return null;
++        }
++
++        return zone;
++    }
++
++    private MiningResult? GetBlockingState(Player player)
++    {
++        if (player.Attributes?[Stats.TransformationSkin] > 0)
++        {
++            return MiningResult.Transformed;
++        }
++
++        if (player.ShopStorage?.StoreOpen ?? false)
++        {
++            return MiningResult.PrivateStoreOpen;
++        }
++
++        var currentState = player.PlayerState.CurrentState;
++        if (currentState == PlayerState.TradeRequested
++            || currentState == PlayerState.TradeOpened
++            || currentState == PlayerState.TradeButtonPressed
++            || currentState == PlayerState.NpcDialogOpened)
++        {
++            return MiningResult.Busy;
++        }
++
++        return null;
++    }
++
++    private Item? GetEquippedPick(Player player)
++    {
++        if (player.Inventory?.GetItem(InventoryConstants.RightHandSlot) is not { } item
++            || item.Definition is not { } definition
++            || definition.Group != ItemConstants.PandoraPick.Group
++            || definition.Number != ItemConstants.PandoraPick.Number)
++        {
++            return null;
++        }
++
++        return item;
++    }
++
++    private int CountFreeInventorySlots(Player player) => player.Inventory?.FreeSlots.Count() ?? 0;
++
++    private byte GetMapNumber(Player player) => (byte)(player.CurrentMap?.Definition.Number ?? 0);
++
++    private ValueTask SendHitResultAsync(Player player, ushort zoneId, ushort zoneClass, byte stage, int jewelCount, MiningResult result)
++        => player.InvokeViewPlugInAsync<IMiningViewPlugIn>(p => p.ShowMiningHitResultAsync(zoneId, zoneClass, this.GetMapNumber(player), stage, jewelCount, result));
++}
+diff --git a/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs b/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs
+new file mode 100644
+index 00000000..e5f0e1ad
+--- /dev/null
++++ b/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs
+@@ -0,0 +1,35 @@
++﻿// <copyright file="IMiningViewPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.Views.Mining;
++
++using MUnique.OpenMU.GameLogic.Mining;
++
++/// <summary>
++/// Interface of a view whose implementation answers the mining packets of the 'Jewel of Pandora'
++/// system.
++/// </summary>
++public interface IMiningViewPlugIn : IViewPlugIn
++{
++    /// <summary>
++    /// Answers a mining attempt.
++    /// </summary>
++    /// <param name="zoneId">The object id of the mining zone.</param>
++    /// <param name="zoneClass">The monster number of the zone, 605 to 607.</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <param name="stage">The stage the chain reached, 1 to 5.</param>
++    /// <param name="jewelCount">The jewels accumulated so far, which the client shows as a floating number.</param>
++    /// <param name="result">What happened.</param>
++    ValueTask ShowMiningHitResultAsync(ushort zoneId, ushort zoneClass, byte mapNumber, byte stage, int jewelCount, MiningResult result);
++
++    /// <summary>
++    /// Answers the decision of taking the jewels or keeping on mining.
++    /// </summary>
++    /// <param name="zoneId">The object id of the mining zone.</param>
++    /// <param name="zoneClass">The monster number of the zone, 605 to 607.</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <param name="stage">The stage the chain reached.</param>
++    /// <param name="result">What happened.</param>
++    ValueTask ShowMiningRewardResultAsync(ushort zoneId, ushort zoneClass, byte mapNumber, byte stage, MiningResult result);
++}
+diff --git a/src/GameServer/MessageHandler/Mining/MiningEndRequestHandlerPlugIn.cs b/src/GameServer/MessageHandler/Mining/MiningEndRequestHandlerPlugIn.cs
+new file mode 100644
+index 00000000..e4235983
+--- /dev/null
++++ b/src/GameServer/MessageHandler/Mining/MiningEndRequestHandlerPlugIn.cs
+@@ -0,0 +1,43 @@
++﻿// <copyright file="MiningEndRequestHandlerPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameServer.MessageHandler.Mining;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.GameLogic;
++using MUnique.OpenMU.GameLogic.PlayerActions.Mining;
++using MUnique.OpenMU.Network.Packets.ClientToServer;
++using MUnique.OpenMU.Network.PlugIns;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Handler for the packet which the client sends when the player leaves a mining zone.
++/// </summary>
++[PlugIn]
++[Display(Name = "Mining End Request Handler", Description = "Handler for the packet which ends a mining chain of the Jewel of Pandora system.")]
++[Guid("1A3C9F10-130A-4226-A77A-F15912B2CE3C")]
++[MinimumClient(6, 3, ClientLanguage.Invariant)]
++[BelongsToGroup(MiningGroupHandlerPlugIn.GroupKey)]
++internal class MiningEndRequestHandlerPlugIn : ISubPacketHandlerPlugIn
++{
++    private readonly MiningAction _action = new();
++
++    /// <inheritdoc/>
++    public bool IsEncryptionExpected => false;
++
++    /// <inheritdoc/>
++    public byte Key => MiningEndRequest.SubCode;
++
++    /// <inheritdoc/>
++    public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
++    {
++        if (packet.Length < MiningEndRequest.Length)
++        {
++            return;
++        }
++
++        MiningEndRequest request = packet;
++        await this._action.EndAsync(player, request.ZoneId).ConfigureAwait(false);
++    }
++}
+diff --git a/src/GameServer/MessageHandler/Mining/MiningGroupHandlerPlugIn.cs b/src/GameServer/MessageHandler/Mining/MiningGroupHandlerPlugIn.cs
+new file mode 100644
+index 00000000..a6e493d4
+--- /dev/null
++++ b/src/GameServer/MessageHandler/Mining/MiningGroupHandlerPlugIn.cs
+@@ -0,0 +1,40 @@
++﻿// <copyright file="MiningGroupHandlerPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameServer.MessageHandler.Mining;
++
++using System.Runtime.InteropServices;
++using Microsoft.Extensions.Logging;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Packet handler for the packets of the 'Jewel of Pandora' mining system (0x4C identifier).
++/// </summary>
++[PlugIn]
++[Display(Name = "Mining Packet Group Handler", Description = "Packet handler for the mining packets (0x4C identifier) of the Jewel of Pandora system.")]
++[Guid("177B1B1F-3812-4B05-8FC1-EABDB0F926E3")]
++internal class MiningGroupHandlerPlugIn : GroupPacketHandlerPlugIn
++{
++    /// <summary>
++    /// The group key.
++    /// </summary>
++    internal const byte GroupKey = 0x4C;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningGroupHandlerPlugIn"/> class.
++    /// </summary>
++    /// <param name="clientVersionProvider">The client version provider.</param>
++    /// <param name="manager">The manager.</param>
++    /// <param name="loggerFactory">The logger factory.</param>
++    public MiningGroupHandlerPlugIn(IClientVersionProvider clientVersionProvider, PlugInManager manager, ILoggerFactory loggerFactory)
++        : base(clientVersionProvider, manager, loggerFactory)
++    {
++    }
++
++    /// <inheritdoc/>
++    public override bool IsEncryptionExpected => false;
++
++    /// <inheritdoc/>
++    public override byte Key => GroupKey;
++}
+diff --git a/src/GameServer/MessageHandler/Mining/MiningHitRequestHandlerPlugIn.cs b/src/GameServer/MessageHandler/Mining/MiningHitRequestHandlerPlugIn.cs
+new file mode 100644
+index 00000000..63ff2402
+--- /dev/null
++++ b/src/GameServer/MessageHandler/Mining/MiningHitRequestHandlerPlugIn.cs
+@@ -0,0 +1,43 @@
++﻿// <copyright file="MiningHitRequestHandlerPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameServer.MessageHandler.Mining;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.GameLogic;
++using MUnique.OpenMU.GameLogic.PlayerActions.Mining;
++using MUnique.OpenMU.Network.Packets.ClientToServer;
++using MUnique.OpenMU.Network.PlugIns;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Handler for the mining attempt packet of the 'Jewel of Pandora' system.
++/// </summary>
++[PlugIn]
++[Display(Name = "Mining Hit Request Handler", Description = "Handler for the mining attempt packet of the Jewel of Pandora system.")]
++[Guid("996F748F-3F98-453B-976C-F9EF4032134F")]
++[MinimumClient(6, 3, ClientLanguage.Invariant)]
++[BelongsToGroup(MiningGroupHandlerPlugIn.GroupKey)]
++internal class MiningHitRequestHandlerPlugIn : ISubPacketHandlerPlugIn
++{
++    private readonly MiningAction _action = new();
++
++    /// <inheritdoc/>
++    public bool IsEncryptionExpected => false;
++
++    /// <inheritdoc/>
++    public byte Key => MiningHitRequest.SubCode;
++
++    /// <inheritdoc/>
++    public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
++    {
++        if (packet.Length < MiningHitRequest.Length)
++        {
++            return;
++        }
++
++        MiningHitRequest request = packet;
++        await this._action.MineAsync(player, request.ZoneId, request.ZoneClass, request.Stage).ConfigureAwait(false);
++    }
++}
+diff --git a/src/GameServer/MessageHandler/Mining/MiningRewardRequestHandlerPlugIn.cs b/src/GameServer/MessageHandler/Mining/MiningRewardRequestHandlerPlugIn.cs
+new file mode 100644
+index 00000000..83d5c81b
+--- /dev/null
++++ b/src/GameServer/MessageHandler/Mining/MiningRewardRequestHandlerPlugIn.cs
+@@ -0,0 +1,43 @@
++﻿// <copyright file="MiningRewardRequestHandlerPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameServer.MessageHandler.Mining;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.GameLogic;
++using MUnique.OpenMU.GameLogic.PlayerActions.Mining;
++using MUnique.OpenMU.Network.Packets.ClientToServer;
++using MUnique.OpenMU.Network.PlugIns;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Handler for the answer to the mining dialog: take the jewels, or risk them on the next stage.
++/// </summary>
++[PlugIn]
++[Display(Name = "Mining Reward Request Handler", Description = "Handler for the answer to the mining dialog of the Jewel of Pandora system.")]
++[Guid("8D734FC5-D8F7-49CB-A8DA-630D9C700FF1")]
++[MinimumClient(6, 3, ClientLanguage.Invariant)]
++[BelongsToGroup(MiningGroupHandlerPlugIn.GroupKey)]
++internal class MiningRewardRequestHandlerPlugIn : ISubPacketHandlerPlugIn
++{
++    private readonly MiningAction _action = new();
++
++    /// <inheritdoc/>
++    public bool IsEncryptionExpected => false;
++
++    /// <inheritdoc/>
++    public byte Key => MiningRewardRequest.SubCode;
++
++    /// <inheritdoc/>
++    public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
++    {
++        if (packet.Length < MiningRewardRequest.Length)
++        {
++            return;
++        }
++
++        MiningRewardRequest request = packet;
++        await this._action.DecideAsync(player, request.ZoneId, request.ZoneClass, request.Stage, request.CashOut).ConfigureAwait(false);
++    }
++}
 diff --git a/src/GameServer/RemoteView/MasterSkillExtensions.cs b/src/GameServer/RemoteView/MasterSkillExtensions.cs
 index c6e115f1..8c04f26d 100644
 --- a/src/GameServer/RemoteView/MasterSkillExtensions.cs
@@ -245,6 +1604,1831 @@ index c6e115f1..8c04f26d 100644
              }
          },
      };
+diff --git a/src/GameServer/RemoteView/Mining/MiningViewPlugIn.cs b/src/GameServer/RemoteView/Mining/MiningViewPlugIn.cs
+new file mode 100644
+index 00000000..efceefb9
+--- /dev/null
++++ b/src/GameServer/RemoteView/Mining/MiningViewPlugIn.cs
+@@ -0,0 +1,67 @@
++﻿// <copyright file="MiningViewPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameServer.RemoteView.Mining;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.GameLogic.Mining;
++using MUnique.OpenMU.GameLogic.Views;
++using MUnique.OpenMU.GameLogic.Views.Mining;
++using MUnique.OpenMU.Network.Packets.ServerToClient;
++using MUnique.OpenMU.Network.PlugIns;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// The default implementation of the <see cref="IMiningViewPlugIn"/>, which sends the answers of
++/// the 'Jewel of Pandora' mining system to the game client.
++/// </summary>
++[PlugIn]
++[Display(Name = "Mining View PlugIn", Description = "Sends the answers of the Jewel of Pandora mining system to the game client.")]
++[Guid("E6765C8D-341C-4BC1-81B5-D6588478D60E")]
++[MinimumClient(6, 3, ClientLanguage.Invariant)]
++public class MiningViewPlugIn : IMiningViewPlugIn
++{
++    private readonly RemotePlayer _player;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningViewPlugIn"/> class.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    public MiningViewPlugIn(RemotePlayer player) => this._player = player;
++
++    /// <inheritdoc />
++    public async ValueTask ShowMiningHitResultAsync(ushort zoneId, ushort zoneClass, byte mapNumber, byte stage, int jewelCount, MiningResult result)
++    {
++        if (this._player.Connection is not { Connected: true } connection)
++        {
++            return;
++        }
++
++        await connection.SendMiningHitResultAsync(
++            this._player.GetId(this._player),
++            zoneId,
++            zoneClass,
++            mapNumber,
++            stage,
++            (uint)Math.Max(jewelCount, 0),
++            (uint)result).ConfigureAwait(false);
++    }
++
++    /// <inheritdoc />
++    public async ValueTask ShowMiningRewardResultAsync(ushort zoneId, ushort zoneClass, byte mapNumber, byte stage, MiningResult result)
++    {
++        if (this._player.Connection is not { Connected: true } connection)
++        {
++            return;
++        }
++
++        await connection.SendMiningRewardResultAsync(
++            this._player.GetId(this._player),
++            zoneId,
++            zoneClass,
++            mapNumber,
++            stage,
++            (uint)result).ConfigureAwait(false);
++    }
++}
+diff --git a/src/Network/Packets/ClientToServer/ClientToServerPackets.cs b/src/Network/Packets/ClientToServer/ClientToServerPackets.cs
+index 4853d5bc..08cce42b 100644
+--- a/src/Network/Packets/ClientToServer/ClientToServerPackets.cs
++++ b/src/Network/Packets/ClientToServer/ClientToServerPackets.cs
+@@ -10486,6 +10486,363 @@ public readonly struct RageAttackRangeRequest
+ }
+ 
+ 
++/// <summary>
++/// Is sent by the client when: The player clicks on a mining zone of the Jewel of Pandora mining system, with a Pandora Pick equipped in the right hand.
++/// Causes reaction on server side: The server checks the pick and its durability, rolls the stage and answers with a MiningHitResult.
++/// </summary>
++public readonly struct MiningHitRequest
++{
++    private readonly Memory<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitRequest"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningHitRequest(Memory<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitRequest"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningHitRequest(Memory<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x00;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 12;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCode Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the id of the mining player. The server doesn't trust it and uses the connection instead.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[4..]);
++        set => WriteUInt16BigEndian(this._data.Span[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the object id of the mining zone which the player clicked.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[6..]);
++        set => WriteUInt16BigEndian(this._data.Span[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the monster number of the mining zone, 605 (small), 606 (medium) or 607 (large).
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data.Span[8..]);
++        set => WriteUInt16BigEndian(this._data.Span[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data.Span[10];
++        set => this._data.Span[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the mining stage the client believes it is on, 0 when the chain starts. The server rejects a value which doesn't match its own state.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data.Span[11];
++        set => this._data.Span[11] = value;
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Memory of bytes to a <see cref="MiningHitRequest"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningHitRequest(Memory<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningHitRequest"/> to a Memory of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Memory<byte>(MiningHitRequest packet) => packet._data; 
++}
++
++
++/// <summary>
++/// Is sent by the client when: The player answered the mining dialog, either to take the jewels or to keep mining.
++/// Causes reaction on server side: When the player takes the jewels, they are put into the inventory and the chain ends. Otherwise the next stage is rolled.
++/// </summary>
++public readonly struct MiningRewardRequest
++{
++    private readonly Memory<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardRequest"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningRewardRequest(Memory<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardRequest"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningRewardRequest(Memory<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x01;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 13;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCode Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[4..]);
++        set => WriteUInt16BigEndian(this._data.Span[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[6..]);
++        set => WriteUInt16BigEndian(this._data.Span[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone class.
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data.Span[8..]);
++        set => WriteUInt16BigEndian(this._data.Span[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data.Span[10];
++        set => this._data.Span[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the stage.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data.Span[11];
++        set => this._data.Span[11] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets true, when the player pressed the 'Obtained' button and wants the jewels. False, when the player pressed 'Mining' and risks them on the next stage.
++    /// </summary>
++    public bool CashOut
++    {
++        get => this._data.Span[12..].GetBoolean();
++        set => this._data.Span[12..].SetBoolean(value);
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Memory of bytes to a <see cref="MiningRewardRequest"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningRewardRequest(Memory<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningRewardRequest"/> to a Memory of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Memory<byte>(MiningRewardRequest packet) => packet._data; 
++}
++
++
++/// <summary>
++/// Is sent by the client when: The player leaves a mining zone without answering the dialog, for example by walking away or closing it.
++/// Causes reaction on server side: The mining chain is dropped, the accumulated jewels are lost and the zone is consumed.
++/// </summary>
++public readonly struct MiningEndRequest
++{
++    private readonly Memory<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningEndRequest"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningEndRequest(Memory<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningEndRequest"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningEndRequest(Memory<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x03;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 9;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCode Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[4..]);
++        set => WriteUInt16BigEndian(this._data.Span[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[6..]);
++        set => WriteUInt16BigEndian(this._data.Span[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data.Span[8];
++        set => this._data.Span[8] = value;
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Memory of bytes to a <see cref="MiningEndRequest"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningEndRequest(Memory<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningEndRequest"/> to a Memory of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Memory<byte>(MiningEndRequest packet) => packet._data; 
++}
++
++
+ /// <summary>
+ /// Is sent by the client when: The player wants to cancel the trade.
+ /// Causes reaction on server side: The trade is cancelled and the previous inventory state is restored.
+diff --git a/src/Network/Packets/ClientToServer/ClientToServerPackets.xml b/src/Network/Packets/ClientToServer/ClientToServerPackets.xml
+index 63498d1f..050e2f50 100644
+--- a/src/Network/Packets/ClientToServer/ClientToServerPackets.xml
++++ b/src/Network/Packets/ClientToServer/ClientToServerPackets.xml
+@@ -2656,6 +2656,117 @@
+         </Field>
+       </Fields>
+     </Packet>
++    <Packet>
++      <HeaderType>C1HeaderWithSubCode</HeaderType>
++      <Code>4C</Code>
++      <SubCode>00</SubCode>
++      <Name>MiningHitRequest</Name>
++      <Length>12</Length>
++      <Direction>ClientToServer</Direction>
++      <SentWhen>The player clicks on a mining zone of the Jewel of Pandora mining system, with a Pandora Pick equipped in the right hand.</SentWhen>
++      <CausedReaction>The server checks the pick and its durability, rolls the stage and answers with a MiningHitResult.</CausedReaction>
++      <Fields>
++        <Field>
++          <Index>4</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>PlayerId</Name>
++          <Description>The id of the mining player. The server doesn't trust it and uses the connection instead.</Description>
++        </Field>
++        <Field>
++          <Index>6</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneId</Name>
++          <Description>The object id of the mining zone which the player clicked.</Description>
++        </Field>
++        <Field>
++          <Index>8</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneClass</Name>
++          <Description>The monster number of the mining zone, 605 (small), 606 (medium) or 607 (large).</Description>
++        </Field>
++        <Field>
++          <Index>10</Index>
++          <Type>Byte</Type>
++          <Name>MapNumber</Name>
++        </Field>
++        <Field>
++          <Index>11</Index>
++          <Type>Byte</Type>
++          <Name>Stage</Name>
++          <Description>The mining stage the client believes it is on, 0 when the chain starts. The server rejects a value which doesn't match its own state.</Description>
++        </Field>
++      </Fields>
++    </Packet>
++    <Packet>
++      <HeaderType>C1HeaderWithSubCode</HeaderType>
++      <Code>4C</Code>
++      <SubCode>01</SubCode>
++      <Name>MiningRewardRequest</Name>
++      <Length>13</Length>
++      <Direction>ClientToServer</Direction>
++      <SentWhen>The player answered the mining dialog, either to take the jewels or to keep mining.</SentWhen>
++      <CausedReaction>When the player takes the jewels, they are put into the inventory and the chain ends. Otherwise the next stage is rolled.</CausedReaction>
++      <Fields>
++        <Field>
++          <Index>4</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>PlayerId</Name>
++        </Field>
++        <Field>
++          <Index>6</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneId</Name>
++        </Field>
++        <Field>
++          <Index>8</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneClass</Name>
++        </Field>
++        <Field>
++          <Index>10</Index>
++          <Type>Byte</Type>
++          <Name>MapNumber</Name>
++        </Field>
++        <Field>
++          <Index>11</Index>
++          <Type>Byte</Type>
++          <Name>Stage</Name>
++        </Field>
++        <Field>
++          <Index>12</Index>
++          <Type>Boolean</Type>
++          <Name>CashOut</Name>
++          <Description>True, when the player pressed the 'Obtained' button and wants the jewels. False, when the player pressed 'Mining' and risks them on the next stage.</Description>
++        </Field>
++      </Fields>
++    </Packet>
++    <Packet>
++      <HeaderType>C1HeaderWithSubCode</HeaderType>
++      <Code>4C</Code>
++      <SubCode>03</SubCode>
++      <Name>MiningEndRequest</Name>
++      <Length>9</Length>
++      <Direction>ClientToServer</Direction>
++      <SentWhen>The player leaves a mining zone without answering the dialog, for example by walking away or closing it.</SentWhen>
++      <CausedReaction>The mining chain is dropped, the accumulated jewels are lost and the zone is consumed.</CausedReaction>
++      <Fields>
++        <Field>
++          <Index>4</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>PlayerId</Name>
++        </Field>
++        <Field>
++          <Index>6</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneId</Name>
++        </Field>
++        <Field>
++          <Index>8</Index>
++          <Type>Byte</Type>
++          <Name>MapNumber</Name>
++        </Field>
++      </Fields>
++    </Packet>
+     <Packet>
+       <HeaderType>C1Header</HeaderType>
+       <Code>3D</Code>
+diff --git a/src/Network/Packets/ClientToServer/ClientToServerPacketsRef.cs b/src/Network/Packets/ClientToServer/ClientToServerPacketsRef.cs
+index d4ab2457..b156dd6c 100644
+--- a/src/Network/Packets/ClientToServer/ClientToServerPacketsRef.cs
++++ b/src/Network/Packets/ClientToServer/ClientToServerPacketsRef.cs
+@@ -10361,6 +10361,363 @@ public readonly ref struct RageAttackRangeRequestRef
+ }
+ 
+ 
++/// <summary>
++/// Is sent by the client when: The player clicks on a mining zone of the Jewel of Pandora mining system, with a Pandora Pick equipped in the right hand.
++/// Causes reaction on server side: The server checks the pick and its durability, rolls the stage and answers with a MiningHitResult.
++/// </summary>
++public readonly ref struct MiningHitRequestRef
++{
++    private readonly Span<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitRequestRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningHitRequestRef(Span<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitRequestRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningHitRequestRef(Span<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x00;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 12;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCodeRef Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the id of the mining player. The server doesn't trust it and uses the connection instead.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data[4..]);
++        set => WriteUInt16BigEndian(this._data[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the object id of the mining zone which the player clicked.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data[6..]);
++        set => WriteUInt16BigEndian(this._data[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the monster number of the mining zone, 605 (small), 606 (medium) or 607 (large).
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data[8..]);
++        set => WriteUInt16BigEndian(this._data[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data[10];
++        set => this._data[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the mining stage the client believes it is on, 0 when the chain starts. The server rejects a value which doesn't match its own state.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data[11];
++        set => this._data[11] = value;
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Span of bytes to a <see cref="MiningHitRequest"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningHitRequestRef(Span<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningHitRequest"/> to a Span of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Span<byte>(MiningHitRequestRef packet) => packet._data; 
++}
++
++
++/// <summary>
++/// Is sent by the client when: The player answered the mining dialog, either to take the jewels or to keep mining.
++/// Causes reaction on server side: When the player takes the jewels, they are put into the inventory and the chain ends. Otherwise the next stage is rolled.
++/// </summary>
++public readonly ref struct MiningRewardRequestRef
++{
++    private readonly Span<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardRequestRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningRewardRequestRef(Span<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardRequestRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningRewardRequestRef(Span<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x01;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 13;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCodeRef Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data[4..]);
++        set => WriteUInt16BigEndian(this._data[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data[6..]);
++        set => WriteUInt16BigEndian(this._data[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone class.
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data[8..]);
++        set => WriteUInt16BigEndian(this._data[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data[10];
++        set => this._data[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the stage.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data[11];
++        set => this._data[11] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets true, when the player pressed the 'Obtained' button and wants the jewels. False, when the player pressed 'Mining' and risks them on the next stage.
++    /// </summary>
++    public bool CashOut
++    {
++        get => this._data[12..].GetBoolean();
++        set => this._data[12..].SetBoolean(value);
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Span of bytes to a <see cref="MiningRewardRequest"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningRewardRequestRef(Span<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningRewardRequest"/> to a Span of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Span<byte>(MiningRewardRequestRef packet) => packet._data; 
++}
++
++
++/// <summary>
++/// Is sent by the client when: The player leaves a mining zone without answering the dialog, for example by walking away or closing it.
++/// Causes reaction on server side: The mining chain is dropped, the accumulated jewels are lost and the zone is consumed.
++/// </summary>
++public readonly ref struct MiningEndRequestRef
++{
++    private readonly Span<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningEndRequestRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningEndRequestRef(Span<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningEndRequestRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningEndRequestRef(Span<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x03;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 9;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCodeRef Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data[4..]);
++        set => WriteUInt16BigEndian(this._data[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data[6..]);
++        set => WriteUInt16BigEndian(this._data[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data[8];
++        set => this._data[8] = value;
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Span of bytes to a <see cref="MiningEndRequest"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningEndRequestRef(Span<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningEndRequest"/> to a Span of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Span<byte>(MiningEndRequestRef packet) => packet._data; 
++}
++
++
+ /// <summary>
+ /// Is sent by the client when: The player wants to cancel the trade.
+ /// Causes reaction on server side: The trade is cancelled and the previous inventory state is restored.
+diff --git a/src/Network/Packets/ClientToServer/ConnectionExtensions.cs b/src/Network/Packets/ClientToServer/ConnectionExtensions.cs
+index ce289c8f..cc35ff49 100644
+--- a/src/Network/Packets/ClientToServer/ConnectionExtensions.cs
++++ b/src/Network/Packets/ClientToServer/ConnectionExtensions.cs
+@@ -3226,6 +3226,112 @@ public static class ConnectionExtensions
+         await connection.SendAsync(WritePacket).ConfigureAwait(false);
+     }
+ 
++    /// <summary>
++    /// Sends a <see cref="MiningHitRequest" /> to this connection.
++    /// </summary>
++    /// <param name="connection">The connection.</param>
++    /// <param name="playerId">The id of the mining player. The server doesn't trust it and uses the connection instead.</param>
++    /// <param name="zoneId">The object id of the mining zone which the player clicked.</param>
++    /// <param name="zoneClass">The monster number of the mining zone, 605 (small), 606 (medium) or 607 (large).</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <param name="stage">The mining stage the client believes it is on, 0 when the chain starts. The server rejects a value which doesn't match its own state.</param>
++    /// <remarks>
++    /// Is sent by the client when: The player clicks on a mining zone of the Jewel of Pandora mining system, with a Pandora Pick equipped in the right hand.
++    /// Causes reaction on server side: The server checks the pick and its durability, rolls the stage and answers with a MiningHitResult.
++    /// </remarks>
++    public static async ValueTask SendMiningHitRequestAsync(this IConnection? connection, ushort @playerId, ushort @zoneId, ushort @zoneClass, byte @mapNumber, byte @stage)
++    {
++        if (connection is null)
++        {
++            return;
++        }
++
++        int WritePacket()
++        {
++            var length = MiningHitRequestRef.Length;
++            var packet = new MiningHitRequestRef(connection.Output.GetSpan(length)[..length]);
++            packet.PlayerId = @playerId;
++            packet.ZoneId = @zoneId;
++            packet.ZoneClass = @zoneClass;
++            packet.MapNumber = @mapNumber;
++            packet.Stage = @stage;
++
++            return packet.Header.Length;
++        }
++
++        await connection.SendAsync(WritePacket).ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Sends a <see cref="MiningRewardRequest" /> to this connection.
++    /// </summary>
++    /// <param name="connection">The connection.</param>
++    /// <param name="playerId">The player id.</param>
++    /// <param name="zoneId">The zone id.</param>
++    /// <param name="zoneClass">The zone class.</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <param name="stage">The stage.</param>
++    /// <param name="cashOut">True, when the player pressed the 'Obtained' button and wants the jewels. False, when the player pressed 'Mining' and risks them on the next stage.</param>
++    /// <remarks>
++    /// Is sent by the client when: The player answered the mining dialog, either to take the jewels or to keep mining.
++    /// Causes reaction on server side: When the player takes the jewels, they are put into the inventory and the chain ends. Otherwise the next stage is rolled.
++    /// </remarks>
++    public static async ValueTask SendMiningRewardRequestAsync(this IConnection? connection, ushort @playerId, ushort @zoneId, ushort @zoneClass, byte @mapNumber, byte @stage, bool @cashOut)
++    {
++        if (connection is null)
++        {
++            return;
++        }
++
++        int WritePacket()
++        {
++            var length = MiningRewardRequestRef.Length;
++            var packet = new MiningRewardRequestRef(connection.Output.GetSpan(length)[..length]);
++            packet.PlayerId = @playerId;
++            packet.ZoneId = @zoneId;
++            packet.ZoneClass = @zoneClass;
++            packet.MapNumber = @mapNumber;
++            packet.Stage = @stage;
++            packet.CashOut = @cashOut;
++
++            return packet.Header.Length;
++        }
++
++        await connection.SendAsync(WritePacket).ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Sends a <see cref="MiningEndRequest" /> to this connection.
++    /// </summary>
++    /// <param name="connection">The connection.</param>
++    /// <param name="playerId">The player id.</param>
++    /// <param name="zoneId">The zone id.</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <remarks>
++    /// Is sent by the client when: The player leaves a mining zone without answering the dialog, for example by walking away or closing it.
++    /// Causes reaction on server side: The mining chain is dropped, the accumulated jewels are lost and the zone is consumed.
++    /// </remarks>
++    public static async ValueTask SendMiningEndRequestAsync(this IConnection? connection, ushort @playerId, ushort @zoneId, byte @mapNumber)
++    {
++        if (connection is null)
++        {
++            return;
++        }
++
++        int WritePacket()
++        {
++            var length = MiningEndRequestRef.Length;
++            var packet = new MiningEndRequestRef(connection.Output.GetSpan(length)[..length]);
++            packet.PlayerId = @playerId;
++            packet.ZoneId = @zoneId;
++            packet.MapNumber = @mapNumber;
++
++            return packet.Header.Length;
++        }
++
++        await connection.SendAsync(WritePacket).ConfigureAwait(false);
++    }
++
+     /// <summary>
+     /// Sends a <see cref="TradeCancel" /> to this connection.
+     /// </summary>
+diff --git a/src/Network/Packets/ServerToClient/ConnectionExtensions.cs b/src/Network/Packets/ServerToClient/ConnectionExtensions.cs
+index 7d50718b..0bb5b367 100644
+--- a/src/Network/Packets/ServerToClient/ConnectionExtensions.cs
++++ b/src/Network/Packets/ServerToClient/ConnectionExtensions.cs
+@@ -538,6 +538,84 @@ public static class ConnectionExtensions
+         await connection.SendAsync(WritePacket).ConfigureAwait(false);
+     }
+ 
++    /// <summary>
++    /// Sends a <see cref="MiningHitResult" /> to this connection.
++    /// </summary>
++    /// <param name="connection">The connection.</param>
++    /// <param name="playerId">The player id.</param>
++    /// <param name="zoneId">The zone id.</param>
++    /// <param name="zoneClass">The zone class.</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <param name="stage">The stage which the chain reached, 1 to 5. The client doesn't keep this state, it gets it here on every answer.</param>
++    /// <param name="jewelCount">The total number of jewels accumulated in this chain, which the client shows as the floating yellow number.</param>
++    /// <param name="result">0: success on stage 1 to 4, the dialog opens. 1: success on stage 5, the reward is paid automatically. 2: the attempt failed and everything accumulated is lost. 3: the zone is being used by somebody else. 10: the player is transformed. 11: not enough free inventory space. 12: the player is trading or buying. 13: the player has a private store open. 17: the stage or the zone doesn't match the server state. 18: no pick equipped or not enough durability.</param>
++    /// <remarks>
++    /// Is sent by the server when: After the player sent a MiningHitRequest for the Jewel of Pandora mining system.
++    /// Causes reaction on client side: On success the client shows the floating jewel count and the dialog which asks to take the jewels or to keep mining. On failure it shows the matching chat message.
++    /// </remarks>
++    public static async ValueTask SendMiningHitResultAsync(this IConnection? connection, ushort @playerId, ushort @zoneId, ushort @zoneClass, byte @mapNumber, byte @stage, uint @jewelCount, uint @result)
++    {
++        if (connection is null)
++        {
++            return;
++        }
++
++        int WritePacket()
++        {
++            var length = MiningHitResultRef.Length;
++            var packet = new MiningHitResultRef(connection.Output.GetSpan(length)[..length]);
++            packet.PlayerId = @playerId;
++            packet.ZoneId = @zoneId;
++            packet.ZoneClass = @zoneClass;
++            packet.MapNumber = @mapNumber;
++            packet.Stage = @stage;
++            packet.JewelCount = @jewelCount;
++            packet.Result = @result;
++
++            return packet.Header.Length;
++        }
++
++        await connection.SendAsync(WritePacket).ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Sends a <see cref="MiningRewardResult" /> to this connection.
++    /// </summary>
++    /// <param name="connection">The connection.</param>
++    /// <param name="playerId">The player id.</param>
++    /// <param name="zoneId">The zone id.</param>
++    /// <param name="zoneClass">The zone class.</param>
++    /// <param name="mapNumber">The map number.</param>
++    /// <param name="stage">The stage.</param>
++    /// <param name="result">0: the jewels were paid into the inventory. 11: not enough free inventory space, nothing was paid and the chain stays open. 17: the stage or the zone doesn't match the server state.</param>
++    /// <remarks>
++    /// Is sent by the server when: After the player sent a MiningRewardRequest, to confirm what happened with the accumulated jewels.
++    /// Causes reaction on client side: The client shows the matching chat message and closes the dialog.
++    /// </remarks>
++    public static async ValueTask SendMiningRewardResultAsync(this IConnection? connection, ushort @playerId, ushort @zoneId, ushort @zoneClass, byte @mapNumber, byte @stage, uint @result)
++    {
++        if (connection is null)
++        {
++            return;
++        }
++
++        int WritePacket()
++        {
++            var length = MiningRewardResultRef.Length;
++            var packet = new MiningRewardResultRef(connection.Output.GetSpan(length)[..length]);
++            packet.PlayerId = @playerId;
++            packet.ZoneId = @zoneId;
++            packet.ZoneClass = @zoneClass;
++            packet.MapNumber = @mapNumber;
++            packet.Stage = @stage;
++            packet.Result = @result;
++
++            return packet.Header.Length;
++        }
++
++        await connection.SendAsync(WritePacket).ConfigureAwait(false);
++    }
++
+     /// <summary>
+     /// Sends a <see cref="AppearanceChanged" /> to this connection.
+     /// </summary>
+diff --git a/src/Network/Packets/ServerToClient/ServerToClientPackets.cs b/src/Network/Packets/ServerToClient/ServerToClientPackets.cs
+index 7f6fee19..419fafdb 100644
+--- a/src/Network/Packets/ServerToClient/ServerToClientPackets.cs
++++ b/src/Network/Packets/ServerToClient/ServerToClientPackets.cs
+@@ -4244,6 +4244,277 @@ public readonly struct RageTarget
+ }
+ 
+ 
++/// <summary>
++/// Is sent by the server when: After the player sent a MiningHitRequest for the Jewel of Pandora mining system.
++/// Causes reaction on client side: On success the client shows the floating jewel count and the dialog which asks to take the jewels or to keep mining. On failure it shows the matching chat message.
++/// </summary>
++public readonly struct MiningHitResult
++{
++    private readonly Memory<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitResult"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningHitResult(Memory<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitResult"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningHitResult(Memory<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x00;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 20;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCode Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[4..]);
++        set => WriteUInt16BigEndian(this._data.Span[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[6..]);
++        set => WriteUInt16BigEndian(this._data.Span[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone class.
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data.Span[8..]);
++        set => WriteUInt16BigEndian(this._data.Span[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data.Span[10];
++        set => this._data.Span[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the stage which the chain reached, 1 to 5. The client doesn't keep this state, it gets it here on every answer.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data.Span[11];
++        set => this._data.Span[11] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the total number of jewels accumulated in this chain, which the client shows as the floating yellow number.
++    /// </summary>
++    public uint JewelCount
++    {
++        get => ReadUInt32BigEndian(this._data.Span[12..]);
++        set => WriteUInt32BigEndian(this._data.Span[12..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets 0: success on stage 1 to 4, the dialog opens. 1: success on stage 5, the reward is paid automatically. 2: the attempt failed and everything accumulated is lost. 3: the zone is being used by somebody else. 10: the player is transformed. 11: not enough free inventory space. 12: the player is trading or buying. 13: the player has a private store open. 17: the stage or the zone doesn't match the server state. 18: no pick equipped or not enough durability.
++    /// </summary>
++    public uint Result
++    {
++        get => ReadUInt32BigEndian(this._data.Span[16..]);
++        set => WriteUInt32BigEndian(this._data.Span[16..], value);
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Memory of bytes to a <see cref="MiningHitResult"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningHitResult(Memory<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningHitResult"/> to a Memory of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Memory<byte>(MiningHitResult packet) => packet._data; 
++}
++
++
++/// <summary>
++/// Is sent by the server when: After the player sent a MiningRewardRequest, to confirm what happened with the accumulated jewels.
++/// Causes reaction on client side: The client shows the matching chat message and closes the dialog.
++/// </summary>
++public readonly struct MiningRewardResult
++{
++    private readonly Memory<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardResult"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningRewardResult(Memory<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardResult"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningRewardResult(Memory<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x01;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 16;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCode Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[4..]);
++        set => WriteUInt16BigEndian(this._data.Span[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data.Span[6..]);
++        set => WriteUInt16BigEndian(this._data.Span[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone class.
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data.Span[8..]);
++        set => WriteUInt16BigEndian(this._data.Span[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data.Span[10];
++        set => this._data.Span[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the stage.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data.Span[11];
++        set => this._data.Span[11] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets 0: the jewels were paid into the inventory. 11: not enough free inventory space, nothing was paid and the chain stays open. 17: the stage or the zone doesn't match the server state.
++    /// </summary>
++    public uint Result
++    {
++        get => ReadUInt32BigEndian(this._data.Span[12..]);
++        set => WriteUInt32BigEndian(this._data.Span[12..], value);
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Memory of bytes to a <see cref="MiningRewardResult"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningRewardResult(Memory<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningRewardResult"/> to a Memory of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Memory<byte>(MiningRewardResult packet) => packet._data; 
++}
++
++
+ /// <summary>
+ /// Is sent by the server when: The appearance of a player changed, all surrounding players are informed about it.
+ /// Causes reaction on client side: The appearance of the player is updated.
+diff --git a/src/Network/Packets/ServerToClient/ServerToClientPackets.xml b/src/Network/Packets/ServerToClient/ServerToClientPackets.xml
+index a2ddfb95..9bfc4a44 100644
+--- a/src/Network/Packets/ServerToClient/ServerToClientPackets.xml
++++ b/src/Network/Packets/ServerToClient/ServerToClientPackets.xml
+@@ -1657,6 +1657,99 @@
+         </Structure>
+       </Structures>
+     </Packet>
++    <Packet>
++      <HeaderType>C1HeaderWithSubCode</HeaderType>
++      <Code>4C</Code>
++      <SubCode>00</SubCode>
++      <Name>MiningHitResult</Name>
++      <Length>20</Length>
++      <Direction>ServerToClient</Direction>
++      <SentWhen>After the player sent a MiningHitRequest for the Jewel of Pandora mining system.</SentWhen>
++      <CausedReaction>On success the client shows the floating jewel count and the dialog which asks to take the jewels or to keep mining. On failure it shows the matching chat message.</CausedReaction>
++      <Fields>
++        <Field>
++          <Index>4</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>PlayerId</Name>
++        </Field>
++        <Field>
++          <Index>6</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneId</Name>
++        </Field>
++        <Field>
++          <Index>8</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneClass</Name>
++        </Field>
++        <Field>
++          <Index>10</Index>
++          <Type>Byte</Type>
++          <Name>MapNumber</Name>
++        </Field>
++        <Field>
++          <Index>11</Index>
++          <Type>Byte</Type>
++          <Name>Stage</Name>
++          <Description>The stage which the chain reached, 1 to 5. The client doesn't keep this state, it gets it here on every answer.</Description>
++        </Field>
++        <Field>
++          <Index>12</Index>
++          <Type>IntegerBigEndian</Type>
++          <Name>JewelCount</Name>
++          <Description>The total number of jewels accumulated in this chain, which the client shows as the floating yellow number.</Description>
++        </Field>
++        <Field>
++          <Index>16</Index>
++          <Type>IntegerBigEndian</Type>
++          <Name>Result</Name>
++          <Description>0: success on stage 1 to 4, the dialog opens. 1: success on stage 5, the reward is paid automatically. 2: the attempt failed and everything accumulated is lost. 3: the zone is being used by somebody else. 10: the player is transformed. 11: not enough free inventory space. 12: the player is trading or buying. 13: the player has a private store open. 17: the stage or the zone doesn't match the server state. 18: no pick equipped or not enough durability.</Description>
++        </Field>
++      </Fields>
++    </Packet>
++    <Packet>
++      <HeaderType>C1HeaderWithSubCode</HeaderType>
++      <Code>4C</Code>
++      <SubCode>01</SubCode>
++      <Name>MiningRewardResult</Name>
++      <Length>16</Length>
++      <Direction>ServerToClient</Direction>
++      <SentWhen>After the player sent a MiningRewardRequest, to confirm what happened with the accumulated jewels.</SentWhen>
++      <CausedReaction>The client shows the matching chat message and closes the dialog.</CausedReaction>
++      <Fields>
++        <Field>
++          <Index>4</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>PlayerId</Name>
++        </Field>
++        <Field>
++          <Index>6</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneId</Name>
++        </Field>
++        <Field>
++          <Index>8</Index>
++          <Type>ShortBigEndian</Type>
++          <Name>ZoneClass</Name>
++        </Field>
++        <Field>
++          <Index>10</Index>
++          <Type>Byte</Type>
++          <Name>MapNumber</Name>
++        </Field>
++        <Field>
++          <Index>11</Index>
++          <Type>Byte</Type>
++          <Name>Stage</Name>
++        </Field>
++        <Field>
++          <Index>12</Index>
++          <Type>IntegerBigEndian</Type>
++          <Name>Result</Name>
++          <Description>0: the jewels were paid into the inventory. 11: not enough free inventory space, nothing was paid and the chain stays open. 17: the stage or the zone doesn't match the server state.</Description>
++        </Field>
++      </Fields>
++    </Packet>
+     <Packet>
+       <HeaderType>C1Header</HeaderType>
+       <Code>25</Code>
+diff --git a/src/Network/Packets/ServerToClient/ServerToClientPacketsRef.cs b/src/Network/Packets/ServerToClient/ServerToClientPacketsRef.cs
+index fff09c95..a248eb02 100644
+--- a/src/Network/Packets/ServerToClient/ServerToClientPacketsRef.cs
++++ b/src/Network/Packets/ServerToClient/ServerToClientPacketsRef.cs
+@@ -4244,6 +4244,277 @@ public readonly ref struct RageTargetRef
+ }
+ 
+ 
++/// <summary>
++/// Is sent by the server when: After the player sent a MiningHitRequest for the Jewel of Pandora mining system.
++/// Causes reaction on client side: On success the client shows the floating jewel count and the dialog which asks to take the jewels or to keep mining. On failure it shows the matching chat message.
++/// </summary>
++public readonly ref struct MiningHitResultRef
++{
++    private readonly Span<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitResultRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningHitResultRef(Span<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningHitResultRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningHitResultRef(Span<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x00;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 20;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCodeRef Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data[4..]);
++        set => WriteUInt16BigEndian(this._data[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data[6..]);
++        set => WriteUInt16BigEndian(this._data[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone class.
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data[8..]);
++        set => WriteUInt16BigEndian(this._data[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data[10];
++        set => this._data[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the stage which the chain reached, 1 to 5. The client doesn't keep this state, it gets it here on every answer.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data[11];
++        set => this._data[11] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the total number of jewels accumulated in this chain, which the client shows as the floating yellow number.
++    /// </summary>
++    public uint JewelCount
++    {
++        get => ReadUInt32BigEndian(this._data[12..]);
++        set => WriteUInt32BigEndian(this._data[12..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets 0: success on stage 1 to 4, the dialog opens. 1: success on stage 5, the reward is paid automatically. 2: the attempt failed and everything accumulated is lost. 3: the zone is being used by somebody else. 10: the player is transformed. 11: not enough free inventory space. 12: the player is trading or buying. 13: the player has a private store open. 17: the stage or the zone doesn't match the server state. 18: no pick equipped or not enough durability.
++    /// </summary>
++    public uint Result
++    {
++        get => ReadUInt32BigEndian(this._data[16..]);
++        set => WriteUInt32BigEndian(this._data[16..], value);
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Span of bytes to a <see cref="MiningHitResult"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningHitResultRef(Span<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningHitResult"/> to a Span of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Span<byte>(MiningHitResultRef packet) => packet._data; 
++}
++
++
++/// <summary>
++/// Is sent by the server when: After the player sent a MiningRewardRequest, to confirm what happened with the accumulated jewels.
++/// Causes reaction on client side: The client shows the matching chat message and closes the dialog.
++/// </summary>
++public readonly ref struct MiningRewardResultRef
++{
++    private readonly Span<byte> _data;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardResultRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    public MiningRewardResultRef(Span<byte> data)
++        : this(data, true)
++    {
++    }
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MiningRewardResultRef"/> struct.
++    /// </summary>
++    /// <param name="data">The underlying data.</param>
++    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
++    private MiningRewardResultRef(Span<byte> data, bool initialize)
++    {
++        this._data = data;
++        if (initialize)
++        {
++            var header = this.Header;
++            header.Type = HeaderType;
++            header.Code = Code;
++            header.Length = (byte)Math.Min(data.Length, Length);
++            header.SubCode = SubCode;
++        }
++    }
++
++    /// <summary>
++    /// Gets the header type of this data packet.
++    /// </summary>
++    public static byte HeaderType => 0xC1;
++
++    /// <summary>
++    /// Gets the operation code of this data packet.
++    /// </summary>
++    public static byte Code => 0x4C;
++
++    /// <summary>
++    /// Gets the operation sub-code of this data packet.
++    /// The <see cref="Code" /> is used as a grouping key.
++    /// </summary>
++    public static byte SubCode => 0x01;
++
++    /// <summary>
++    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
++    /// </summary>
++    public static int Length => 16;
++
++    /// <summary>
++    /// Gets the header of this packet.
++    /// </summary>
++    public C1HeaderWithSubCodeRef Header => new (this._data);
++
++    /// <summary>
++    /// Gets or sets the player id.
++    /// </summary>
++    public ushort PlayerId
++    {
++        get => ReadUInt16BigEndian(this._data[4..]);
++        set => WriteUInt16BigEndian(this._data[4..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone id.
++    /// </summary>
++    public ushort ZoneId
++    {
++        get => ReadUInt16BigEndian(this._data[6..]);
++        set => WriteUInt16BigEndian(this._data[6..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the zone class.
++    /// </summary>
++    public ushort ZoneClass
++    {
++        get => ReadUInt16BigEndian(this._data[8..]);
++        set => WriteUInt16BigEndian(this._data[8..], value);
++    }
++
++    /// <summary>
++    /// Gets or sets the map number.
++    /// </summary>
++    public byte MapNumber
++    {
++        get => this._data[10];
++        set => this._data[10] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets the stage.
++    /// </summary>
++    public byte Stage
++    {
++        get => this._data[11];
++        set => this._data[11] = value;
++    }
++
++    /// <summary>
++    /// Gets or sets 0: the jewels were paid into the inventory. 11: not enough free inventory space, nothing was paid and the chain stays open. 17: the stage or the zone doesn't match the server state.
++    /// </summary>
++    public uint Result
++    {
++        get => ReadUInt32BigEndian(this._data[12..]);
++        set => WriteUInt32BigEndian(this._data[12..], value);
++    }
++
++    /// <summary>
++    /// Performs an implicit conversion from a Span of bytes to a <see cref="MiningRewardResult"/>.
++    /// </summary>
++    /// <param name="packet">The packet as span.</param>
++    /// <returns>The packet as struct.</returns>
++    public static implicit operator MiningRewardResultRef(Span<byte> packet) => new (packet, false);
++
++    /// <summary>
++    /// Performs an implicit conversion from <see cref="MiningRewardResult"/> to a Span of bytes.
++    /// </summary>
++    /// <param name="packet">The packet as struct.</param>
++    /// <returns>The packet as byte span.</returns>
++    public static implicit operator Span<byte>(MiningRewardResultRef packet) => packet._data; 
++}
++
++
+ /// <summary>
+ /// Is sent by the server when: The appearance of a player changed, all surrounding players are informed about it.
+ /// Causes reaction on client side: The appearance of the player is updated.
+diff --git a/src/Persistence/Initialization/DataInitializationBase.cs b/src/Persistence/Initialization/DataInitializationBase.cs
+index 0e16c8e6..d1d17452 100644
+--- a/src/Persistence/Initialization/DataInitializationBase.cs
++++ b/src/Persistence/Initialization/DataInitializationBase.cs
+@@ -159,6 +159,15 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
+                     config.RepairTargetItems.Add(fenrir);
+                 }
+ 
++                // El Pandora Pick se repara SOLO con Jewels of Bless y solo 4 puntos por joya,
++                // que es lo que dice la guia oficial de Webzen. Es lo que convierte la mineria en
++                // sumidero de joyas en vez de grifo: repararlo entero con una sola joya haria que
++                // el sistema imprimiese Bless de la nada.
++                if (this.GameConfiguration.Items.FirstOrDefault(item => item is { Group: 0, Number: 41 }) is { } pandoraPick)
++                {
++                    config.PartialRepairTargetItems.Add(pandoraPick);
++                }
++
+                 plugInConfiguration.SetConfiguration(config, referenceHandler);
+             }
+ 
 diff --git a/src/Persistence/Initialization/GameConfigurationInitializerBase.cs b/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
 index b2d78ef9..ba3c42bd 100644
 --- a/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
@@ -615,6 +3799,275 @@ index 0c5b94de..3796d390 100644
      IncreaseMaximumAg = 602,
      IncreaseMaximumAttackPower = 609,
      IncreasesCritDamageChance = 610,
+diff --git a/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
+new file mode 100644
+index 00000000..31a84cb7
+--- /dev/null
++++ b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
+@@ -0,0 +1,263 @@
++﻿// <copyright file="AddPandoraMiningSystemUpdatePlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.Updates;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.AttributeSystem;
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.GameLogic.Attributes;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Adds the 'Jewel of Pandora' mining system of Season 8 to an existing Season 6 database.
++/// </summary>
++/// <remarks>
++/// The map initializers only run when a database is created from scratch, so an existing server
++/// gets the three mining zones (605 to 607), their 42 placements and the Pandora Pick in the store
++/// of the Weapons Merchant Bolo from here.
++/// The coordinates are the ones of the Season 8 server package (<c>Data/MonsterSetBase/</c>), which
++/// sit on the spawn gate of each of the five maps.
++/// </remarks>
++[PlugIn]
++[Display(Name = PlugInName, Description = PlugInDescription)]
++[Guid("66883D60-E6E4-4571-A4B2-A301C2273551")]
++public class AddPandoraMiningSystemUpdatePlugIn : UpdatePlugInBase
++{
++    /// <summary>
++    /// The plug-in name.
++    /// </summary>
++    internal const string PlugInName = "Add the Jewel of Pandora mining system";
++
++    /// <summary>
++    /// The plug-in description.
++    /// </summary>
++    internal const string PlugInDescription = "This update adds the three mining zones of the Jewel of Pandora system, their 42 placements on Lost Tower, Tarkan, Aida, Swamp of Calmness and Raklion, and the Pandora Pick in the store of the Weapons Merchant Bolo.";
++
++    /// <summary>
++    /// The first spawn number of the mining zones. Chosen well above everything which the five map
++    /// initializers use today, so that the deterministic spawn ids can't collide.
++    /// </summary>
++    private const short FirstSpawnNumber = 2000;
++
++    /// <summary>
++    /// The item slot of the Pandora Pick inside the store of Bolo. Slot 4 is the only free one
++    /// between his six weapons.
++    /// </summary>
++    private const byte PandoraPickStoreSlot = 4;
++
++    /// <summary>
++    /// The monster number of the Weapons Merchant Bolo.
++    /// </summary>
++    private const short BoloNumber = 578;
++
++    /// <summary>
++    /// The three zones: monster number, designation and respawn delay in seconds, from
++    /// <c>Data/Monster/Monster.txt:564-566</c> of the package.
++    /// </summary>
++    private static readonly (short Number, string Designation, int RespawnSeconds)[] Zones =
++    {
++        (605, "Mining Area (Small)", 10),
++        (606, "Mining Area (Medium)", 20),
++        (607, "Mining Area (Large)", 30),
++    };
++
++    /// <summary>
++    /// The 42 placements: map number, spawn number, monster number, x and y.
++    /// </summary>
++    private static readonly (byte Map, short Number, short Monster, byte X, byte Y)[] Spawns =
++    {
++        (4, 2000, 605, 202, 75),
++        (4, 2001, 605, 206, 80),
++        (4, 2002, 605, 211, 80),
++        (4, 2003, 606, 212, 76),
++        (4, 2004, 606, 208, 72),
++        (4, 2005, 607, 207, 76),
++        (8, 2000, 605, 188, 54),
++        (8, 2001, 605, 198, 64),
++        (8, 2002, 605, 206, 72),
++        (8, 2003, 605, 206, 55),
++        (8, 2004, 605, 186, 60),
++        (8, 2005, 606, 164, 58),
++        (8, 2006, 606, 197, 57),
++        (8, 2007, 606, 192, 73),
++        (8, 2008, 606, 203, 65),
++        (8, 2009, 607, 205, 59),
++        (8, 2010, 607, 201, 70),
++        (8, 2011, 607, 199, 56),
++        (33, 2000, 605, 83, 15),
++        (33, 2001, 605, 76, 9),
++        (33, 2002, 605, 88, 7),
++        (33, 2003, 606, 91, 12),
++        (33, 2004, 606, 83, 12),
++        (33, 2005, 607, 79, 10),
++        (56, 2000, 605, 139, 113),
++        (56, 2001, 605, 145, 109),
++        (56, 2002, 605, 143, 99),
++        (56, 2003, 605, 135, 100),
++        (56, 2004, 605, 130, 111),
++        (56, 2005, 606, 134, 105),
++        (56, 2006, 606, 142, 105),
++        (56, 2007, 606, 138, 109),
++        (56, 2008, 606, 137, 101),
++        (56, 2009, 607, 141, 105),
++        (56, 2010, 607, 145, 119),
++        (56, 2011, 607, 142, 109),
++        (57, 2000, 605, 211, 208),
++        (57, 2001, 605, 220, 203),
++        (57, 2002, 605, 222, 208),
++        (57, 2003, 606, 223, 203),
++        (57, 2004, 606, 217, 208),
++        (57, 2005, 607, 224, 221),    };
++
++    /// <inheritdoc />
++    public override string Name => PlugInName;
++
++    /// <inheritdoc />
++    public override string Description => PlugInDescription;
++
++    /// <inheritdoc />
++    public override UpdateVersion Version => UpdateVersion.AddPandoraMiningSystem;
++
++    /// <inheritdoc />
++    public override string DataInitializationKey => VersionSeasonSix.DataInitialization.Id;
++
++    /// <inheritdoc />
++    public override bool IsMandatory => false;
++
++    /// <inheritdoc />
++    public override DateTime CreatedAt => new(2026, 09, 16, 20, 0, 0, DateTimeKind.Utc);
++
++    /// <inheritdoc />
++    protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
++    {
++        this.AddMiningZones(context, gameConfiguration);
++        this.AddSpawns(context, gameConfiguration);
++        this.AddPandoraPickToBoloStore(context, gameConfiguration);
++        FixPandoraPickDefinition(gameConfiguration);
++        return ValueTask.CompletedTask;
++    }
++
++    /// <summary>
++    /// The pick doesn't drop from monsters: <c>Data/Item/Item.txt:44</c> of the package says
++    /// <c>DropItem 0</c>. It was added with the flag set, so an existing database has it wrong.
++    /// </summary>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    private static void FixPandoraPickDefinition(GameConfiguration gameConfiguration)
++    {
++        if (gameConfiguration.Items.FirstOrDefault(i => i is { Group: 0, Number: 41 }) is { } pick)
++        {
++            pick.DropsFromMonsters = false;
++        }
++    }
++
++    private void AddMiningZones(IContext context, GameConfiguration gameConfiguration)
++    {
++        foreach (var (number, designation, respawnSeconds) in Zones)
++        {
++            if (gameConfiguration.Monsters.Any(m => m.Number == number))
++            {
++                continue;
++            }
++
++            var def = context.CreateNew<MonsterDefinition>();
++            gameConfiguration.Monsters.Add(def);
++            def.Number = number;
++            def.Designation = designation;
++            def.ObjectKind = NpcObjectKind.MiningZone;
++            def.Attribute = 1;
++            def.RespawnDelay = new TimeSpan(respawnSeconds * TimeSpan.TicksPerSecond);
++            def.NumberOfMaximumItemDrops = 0;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 1 },
++                { Stats.MaximumHealth, 5 },
++            };
++            def.AddAttributes(attributes, context, gameConfiguration);
++            def.SetGuid(def.Number);
++        }
++    }
++
++    /// <summary>
++    /// Adds the 42 placements to the maps which already exist in the database.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    /// <remarks>
++    /// The body of <c>BaseMapInitializer.CreateMonsterSpawn</c> is repeated here on purpose: that
++    /// helper assigns the map definition which the initializer creates itself, and it's only
++    /// reachable through the <c>CreateMonsterSpawns</c> iterator, which would re-create every spawn
++    /// of the map with the same deterministic ids that the database already has.
++    /// </remarks>
++    private void AddSpawns(IContext context, GameConfiguration gameConfiguration)
++    {
++        foreach (var (mapNumber, number, monsterNumber, x, y) in Spawns)
++        {
++            if (gameConfiguration.Maps.FirstOrDefault(m => m.Number == mapNumber && m.Discriminator == 0) is not { } map)
++            {
++                continue;
++            }
++
++            if (gameConfiguration.Monsters.FirstOrDefault(m => m.Number == monsterNumber) is not { } monster)
++            {
++                continue;
++            }
++
++            if (map.MonsterSpawns.Any(s => s.MonsterDefinition?.Number == monsterNumber && s.X1 == x && s.Y1 == y))
++            {
++                continue;
++            }
++
++            var area = context.CreateNew<MonsterSpawnArea>();
++            map.MonsterSpawns.Add(area);
++            area.SetGuid(map.Number, number);
++            area.GameMap = map;
++            area.MonsterDefinition = monster;
++            area.Quantity = 1;
++            area.Direction = Direction.SouthEast;
++            area.SpawnTrigger = SpawnTrigger.Automatic;
++            area.X1 = x;
++            area.X2 = x;
++            area.Y1 = y;
++            area.Y2 = y;
++        }
++    }
++
++    /// <summary>
++    /// Puts the Pandora Pick into the store of the Weapons Merchant Bolo, with durability 1 out of
++    /// 255 like the original, so that it has to be repaired with Jewels of Bless before it can be
++    /// used at all.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    private void AddPandoraPickToBoloStore(IContext context, GameConfiguration gameConfiguration)
++    {
++        if (gameConfiguration.Monsters.FirstOrDefault(m => m.Number == BoloNumber) is not { MerchantStore: { } store })
++        {
++            return;
++        }
++
++        if (gameConfiguration.Items.FirstOrDefault(i => i is { Group: 0, Number: 41 }) is not { } pickDefinition)
++        {
++            return;
++        }
++
++        if (store.Items.Any(i => i.Definition?.Group == 0 && i.Definition?.Number == 41))
++        {
++            return;
++        }
++
++        if (store.Items.Any(i => i.ItemSlot == PandoraPickStoreSlot))
++        {
++            return;
++        }
++
++        var item = context.CreateNew<Item>();
++        store.Items.Add(item);
++        item.Definition = pickDefinition;
++        item.ItemSlot = PandoraPickStoreSlot;
++        item.Durability = 1;
++        item.Level = 0;
++    }
++}
 diff --git a/src/Persistence/Initialization/Updates/AddSeason8MasterSkillTreePlugIn.cs b/src/Persistence/Initialization/Updates/AddSeason8MasterSkillTreePlugIn.cs
 new file mode 100644
 index 00000000..3b6359fb
@@ -1013,10 +4466,10 @@ index 00000000..cde4a174
 +    }
 +}
 diff --git a/src/Persistence/Initialization/Updates/UpdateVersion.cs b/src/Persistence/Initialization/Updates/UpdateVersion.cs
-index cab7f067..ead1605c 100644
+index cab7f067..4c39552d 100644
 --- a/src/Persistence/Initialization/Updates/UpdateVersion.cs
 +++ b/src/Persistence/Initialization/Updates/UpdateVersion.cs
-@@ -579,4 +579,14 @@ public enum UpdateVersion
+@@ -579,4 +579,19 @@ public enum UpdateVersion
      /// The version of the <see cref="AddKanturuMapContentUpdatePlugIn"/>.
      /// </summary>
      AddKanturuMapContent = 114,
@@ -1030,12 +4483,23 @@ index cab7f067..ead1605c 100644
 +    /// The version of the <see cref="AddSeasonEightItemsAndDropsUpdatePlugIn"/>.
 +    /// </summary>
 +    AddSeasonEightItemsAndDrops = 116,
++
++    /// <summary>
++    /// The version of the <see cref="AddPandoraMiningSystemUpdatePlugIn"/>.
++    /// </summary>
++    AddPandoraMiningSystem = 117,
  }
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
-index c0d52d96..7c5d874a 100644
+index c0d52d96..5ee9580b 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
-@@ -40,6 +40,8 @@ public class GameMapsInitializer : GameMapsInitializerBase
+@@ -35,11 +35,13 @@ public class GameMapsInitializer : GameMapsInitializerBase
+             yield return typeof(Version075.Maps.Exile);
+             yield return typeof(Version075.Maps.Arena);
+             yield return typeof(Atlans);
+-            yield return typeof(Version095d.Maps.Tarkan);
++            yield return typeof(Tarkan);
+             yield return typeof(Icarus);
              yield return typeof(Elvenland);
              yield return typeof(Karutan1);
              yield return typeof(Karutan2);
@@ -1498,7 +4962,7 @@ index bfa2d41d..10cd7a52 100644
  
      private ItemDefinition CreateAlcohol()
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
-index 5eb9dcde..30fce844 100644
+index 5eb9dcde..a7265f93 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
 @@ -1,4 +1,4 @@
@@ -1518,7 +4982,7 @@ index 5eb9dcde..30fce844 100644
 +        this.CreateWeapon(0, 36, 0, 0, 1, 4, true, "Cyclone Sword", 149, 129, 144, 40, 90, 0, 360, 182, 50, 0, 0, 0, 3, 0, 0, 0, 0, 0);
 +        this.CreateWeapon(0, 37, 0, 0, 2, 4, true, "Blast Break", 149, 163, 216, 30, 130, 0, 360, 182, 50, 0, 0, 0, 3, 0, 3, 0, 0, 0);
 +        this.CreateWeapon(0, 38, 0, 0, 1, 2, true, "Prickle Glove", 147, 149, 168, 50, 98, 0, 380, 110, 63, 0, 0, 0, 0, 0, 0, 0, 0, 1);
-+        this.CreateWeapon(0, 41, 0, 0, 2, 2, true, "Pandora Pick (two-handed)", 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1);
++        this.CreateWeapon(0, 41, 0, 0, 2, 2, false, "Pandora Pick (two-handed)", 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1); // no cae de bichos: Data/Item/Item.txt:44 dice DropItem 0
 +        this.CreateWeapon(2, 19, 0, 0, 1, 4, true, "Thunderbolt", 149, 127, 154, 40, 78, 76, 360, 111, 22, 0, 0, 0, 0, 0, 0, 3, 0, 0);
 +        this.CreateWeapon(2, 20, 0, 0, 2, 4, true, "Horn of Steal", 149, 177, 206, 25, 120, 0, 360, 182, 50, 0, 0, 0, 3, 0, 0, 0, 0, 0);
 +        this.CreateWeapon(3, 12, 0, 0, 2, 4, true, "Magmus Peer", 149, 135, 236, 35, 85, 0, 360, 49, 162, 0, 0, 0, 3, 0, 0, 0, 0, 0);
@@ -2325,6 +5789,25 @@ index 00000000..12b91493
 +        this.GameConfiguration.DropItemGroups.Add(dropItemGroup);
 +    }
 +}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs
+index 8b83dc24..cef924e4 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs
+@@ -44,6 +44,14 @@ internal class Aida : BaseMapInitializer
+     {
+         yield return this.CreateMonsterSpawn(1, this.NpcDictionary[369], 078, 013, Direction.SouthEast); // Osbourne
+         yield return this.CreateMonsterSpawn(2, this.NpcDictionary[370], 086, 014, Direction.SouthWest); // Jerridon
++
++        // Zonas de mineria de la Jewel of Pandora, coordenadas del paquete S8.
++        yield return this.CreateMonsterSpawn(2000, this.NpcDictionary[605], 083, 015, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2001, this.NpcDictionary[605], 076, 009, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 088, 007, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[606], 091, 012, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[606], 083, 012, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[607], 079, 010, Direction.SouthEast); // Mining Area (Large)
+     }
+ 
+     /// <inheritdoc/>
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs
 new file mode 100644
 index 00000000..63892157
@@ -2748,6 +6231,38 @@ index a2b49869..62e7ebfb 100644
      }
  }
 \ No newline at end of file
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs
+index 28dde161..2c422e61 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs
+@@ -23,4 +23,26 @@ internal class LostTower : Version075.Maps.LostTower
+ 
+     /// <inheritdoc />
+     protected override string TerrainVersionPrefix => string.Empty;
++
++    /// <inheritdoc/>
++    /// <remarks>
++    /// Los dos NPC de siempre vienen de la clase de 0.75, que comparten tres datasets; aqui solo se
++    /// anaden las zonas de mineria de la Jewel of Pandora (tipos 605 a 607), con las coordenadas
++    /// del paquete S8 (Data/MonsterSetBase/004 - Lost Tower.txt), que caen sobre la puerta de
++    /// aparicion del mapa.
++    /// </remarks>
++    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
++    {
++        foreach (var npc in base.CreateNpcSpawns())
++        {
++            yield return npc;
++        }
++
++        yield return this.CreateMonsterSpawn(2000, this.NpcDictionary[605], 202, 075, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2001, this.NpcDictionary[605], 206, 080, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 211, 080, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[606], 212, 076, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[606], 208, 072, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[607], 207, 076, Direction.SouthEast); // Mining Area (Large)
++    }
+ }
+\ No newline at end of file
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs
 index de9544a0..183d0d72 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Noria.cs
@@ -2761,10 +6276,32 @@ index de9544a0..183d0d72 100644
  }
 \ No newline at end of file
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
-index 85f95903..2f42065f 100644
+index 85f95903..5428b36d 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
-@@ -466,4 +466,57 @@ internal class Raklion : BaseMapInitializer
+@@ -40,6 +40,21 @@ internal class Raklion : BaseMapInitializer
+     /// <inheritdoc/>
+     protected override string MapName => Name;
+ 
++    /// <inheritdoc/>
++    /// <remarks>
++    /// Las zonas de mineria de la Jewel of Pandora (tipos 605 a 607). Las coordenadas son las del
++    /// paquete S8 (Data/MonsterSetBase/), que caen sobre la puerta de aparicion de este mapa.
++    /// </remarks>
++    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
++    {
++        yield return this.CreateMonsterSpawn(2000, this.NpcDictionary[605], 211, 208, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2001, this.NpcDictionary[605], 220, 203, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 222, 208, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[606], 223, 203, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[606], 217, 208, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[607], 224, 221, Direction.SouthEast); // Mining Area (Large)
++    }
++
+     /// <inheritdoc/>
+     protected override IEnumerable<MonsterSpawnArea> CreateMonsterSpawns()
+     {
+@@ -466,4 +481,57 @@ internal class Raklion : BaseMapInitializer
              monster.SetGuid(monster.Number);
          }
      }
@@ -2824,11 +6361,123 @@ index 85f95903..2f42065f 100644
 +        this.GameConfiguration.DropItemGroups.Add(dropItemGroup);
 +    }
 +}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/SwampOfCalmness.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/SwampOfCalmness.cs
+index 39dbe624..17ea998f 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/SwampOfCalmness.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/SwampOfCalmness.cs
+@@ -40,6 +40,27 @@ internal class SwampOfCalmness : BaseMapInitializer
+     /// <inheritdoc/>
+     protected override string MapName => Name;
+ 
++    /// <inheritdoc/>
++    /// <remarks>
++    /// Las zonas de mineria de la Jewel of Pandora (tipos 605 a 607). Las coordenadas son las del
++    /// paquete S8 (Data/MonsterSetBase/), que caen sobre la puerta de aparicion de este mapa.
++    /// </remarks>
++    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
++    {
++        yield return this.CreateMonsterSpawn(2000, this.NpcDictionary[605], 139, 113, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2001, this.NpcDictionary[605], 145, 109, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 143, 099, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[605], 135, 100, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[605], 130, 111, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[606], 134, 105, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2006, this.NpcDictionary[606], 142, 105, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2007, this.NpcDictionary[606], 138, 109, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2008, this.NpcDictionary[606], 137, 101, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2009, this.NpcDictionary[607], 141, 105, Direction.SouthEast); // Mining Area (Large)
++        yield return this.CreateMonsterSpawn(2010, this.NpcDictionary[607], 145, 119, Direction.SouthEast); // Mining Area (Large)
++        yield return this.CreateMonsterSpawn(2011, this.NpcDictionary[607], 142, 109, Direction.SouthEast); // Mining Area (Large)
++    }
++
+     /// <inheritdoc/>
+     protected override IEnumerable<MonsterSpawnArea> CreateMonsterSpawns()
+     {
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Tarkan.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Tarkan.cs
+new file mode 100644
+index 00000000..251a2cde
+--- /dev/null
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Tarkan.cs
+@@ -0,0 +1,54 @@
++﻿// <copyright file="Tarkan.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Maps;
++
++using MUnique.OpenMU.DataModel.Configuration;
++
++/// <summary>
++/// The initialization for the Tarkan map of Season 6.
++/// </summary>
++/// <remarks>
++/// Hasta ahora Season 6 usaba directamente la clase de 0.95d. Esta subclase existe para anadirle
++/// las zonas de mineria de la Jewel of Pandora sin ensuciar los datasets de 0.95d y 0.97d, que es
++/// el mismo patron de Atlans y de Lorencia.
++/// </remarks>
++internal class Tarkan : Version095d.Maps.Tarkan
++{
++    /// <summary>
++    /// Initializes a new instance of the <see cref="Tarkan"/> class.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    public Tarkan(IContext context, GameConfiguration gameConfiguration)
++        : base(context, gameConfiguration)
++    {
++    }
++
++    /// <inheritdoc/>
++    /// <remarks>
++    /// Las coordenadas son las del paquete S8 (Data/MonsterSetBase/008 - Tarkan.txt), que caen
++    /// sobre la puerta de aparicion del mapa.
++    /// </remarks>
++    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
++    {
++        foreach (var npc in base.CreateNpcSpawns())
++        {
++            yield return npc;
++        }
++
++        yield return this.CreateMonsterSpawn(2000, this.NpcDictionary[605], 188, 054, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2001, this.NpcDictionary[605], 198, 064, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 206, 072, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[605], 206, 055, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[605], 186, 060, Direction.SouthEast); // Mining Area (Small)
++        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[606], 164, 058, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2006, this.NpcDictionary[606], 197, 057, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2007, this.NpcDictionary[606], 192, 073, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2008, this.NpcDictionary[606], 203, 065, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2009, this.NpcDictionary[607], 205, 059, Direction.SouthEast); // Mining Area (Large)
++        yield return this.CreateMonsterSpawn(2010, this.NpcDictionary[607], 201, 070, Direction.SouthEast); // Mining Area (Large)
++        yield return this.CreateMonsterSpawn(2011, this.NpcDictionary[607], 199, 056, Direction.SouthEast); // Mining Area (Large)
++    }
++}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/MerchantStores.cs b/src/Persistence/Initialization/VersionSeasonSix/MerchantStores.cs
+index 5892c8d0..13a3a8c1 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/MerchantStores.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/MerchantStores.cs
+@@ -581,6 +581,15 @@ internal partial class NpcInitialization
+             this.ItemHelper.CreateWeapon(7, ItemGroups.Staff, 6, 3, 3, true, false, null), // Staff of Resurrection +3+Luck+12
+         };
+ 
++        // Pandora Pick, la herramienta de la mineria de la Jewel of Pandora. Oficialmente la vende
++        // Bolo en Karutan y sale de la tienda con durabilidad 1 sobre 255, o sea inservible hasta
++        // repararlo con Jewels of Bless; esa es toda la gracia del sistema. Sin nivel, sin suerte y
++        // sin habilidad: no es un arma, es una apuesta. La durabilidad del item de la tienda viaja
++        // al comprador, porque BuyNpcItemAction.cs:85 hace AssignValues del item de la tienda.
++        var pandoraPick = this.ItemHelper.CreateWeapon(4, ItemGroups.Swords, 41, 0, 0, false, false, null);
++        pandoraPick.Durability = 1;
++        itemList.Add(pandoraPick);
++
+         var storage = this.CreateMerchantStore(itemList);
+         storage.SetGuid(number);
+         return storage;
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs b/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs
-index e1c16ac5..5a95e22f 100644
+index e1c16ac5..006a1e16 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/NpcInitialization.cs
-@@ -1121,5 +1121,24 @@ internal partial class NpcInitialization : Version095d.NpcInitialization
+@@ -1121,5 +1121,111 @@ internal partial class NpcInitialization : Version095d.NpcInitialization
              def.SetGuid(def.Number);
              this.GameConfiguration.Monsters.Add(def);
          }
@@ -2848,6 +6497,93 @@ index e1c16ac5..5a95e22f 100644
 +            def.Number = 584;
 +            def.Designation = "Sir Lesnar";
 +            def.ObjectKind = NpcObjectKind.PassiveNpc;
++            def.SetGuid(def.Number);
++            this.GameConfiguration.Monsters.Add(def);
++        }
++
++        {
++            // Zona de mineria de la Jewel of Pandora, Mining Area (Small).
++            // Datos del paquete S8: Data/Monster/Monster.txt:564-566 (vida 5, respawn 10 s) y
++            // Data/Mining.txt para lo demas, transcrito en GameLogic/Mining/MiningTable.cs.
++            //
++            // Va con ObjectKind.MiningZone y no con Monster a proposito: las 42 colocaciones estan
++            // sobre la puerta de aparicion de cada mapa, y NonPlayerCharacter.IsValidSpawnPoint
++            // (:225-232) solo exige terreno caminable y prohibe la zona segura a Monster y Trap.
++            // Con Monster, 17 de las 42 no apareceran y solo se veria en el log.
++            //
++            // El nivel va a 1 y no al 95/100/105 del paquete: son objetos de 5 de vida y ese nivel
++            // seria experiencia regalada si algun dia se les pudiera pegar.
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            def.Number = 605;
++            def.Designation = "Mining Area (Small)";
++            def.ObjectKind = NpcObjectKind.MiningZone;
++            def.Attribute = 1;
++            def.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            def.NumberOfMaximumItemDrops = 0;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 1 },
++                { Stats.MaximumHealth, 5 },
++            };
++            def.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            def.SetGuid(def.Number);
++            this.GameConfiguration.Monsters.Add(def);
++        }
++
++        {
++            // Zona de mineria de la Jewel of Pandora, Mining Area (Medium).
++            // Datos del paquete S8: Data/Monster/Monster.txt:564-566 (vida 5, respawn 20 s) y
++            // Data/Mining.txt para lo demas, transcrito en GameLogic/Mining/MiningTable.cs.
++            //
++            // Va con ObjectKind.MiningZone y no con Monster a proposito: las 42 colocaciones estan
++            // sobre la puerta de aparicion de cada mapa, y NonPlayerCharacter.IsValidSpawnPoint
++            // (:225-232) solo exige terreno caminable y prohibe la zona segura a Monster y Trap.
++            // Con Monster, 17 de las 42 no apareceran y solo se veria en el log.
++            //
++            // El nivel va a 1 y no al 95/100/105 del paquete: son objetos de 5 de vida y ese nivel
++            // seria experiencia regalada si algun dia se les pudiera pegar.
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            def.Number = 606;
++            def.Designation = "Mining Area (Medium)";
++            def.ObjectKind = NpcObjectKind.MiningZone;
++            def.Attribute = 1;
++            def.RespawnDelay = new TimeSpan(20 * TimeSpan.TicksPerSecond);
++            def.NumberOfMaximumItemDrops = 0;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 1 },
++                { Stats.MaximumHealth, 5 },
++            };
++            def.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            def.SetGuid(def.Number);
++            this.GameConfiguration.Monsters.Add(def);
++        }
++
++        {
++            // Zona de mineria de la Jewel of Pandora, Mining Area (Large).
++            // Datos del paquete S8: Data/Monster/Monster.txt:564-566 (vida 5, respawn 30 s) y
++            // Data/Mining.txt para lo demas, transcrito en GameLogic/Mining/MiningTable.cs.
++            //
++            // Va con ObjectKind.MiningZone y no con Monster a proposito: las 42 colocaciones estan
++            // sobre la puerta de aparicion de cada mapa, y NonPlayerCharacter.IsValidSpawnPoint
++            // (:225-232) solo exige terreno caminable y prohibe la zona segura a Monster y Trap.
++            // Con Monster, 17 de las 42 no apareceran y solo se veria en el log.
++            //
++            // El nivel va a 1 y no al 95/100/105 del paquete: son objetos de 5 de vida y ese nivel
++            // seria experiencia regalada si algun dia se les pudiera pegar.
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            def.Number = 607;
++            def.Designation = "Mining Area (Large)";
++            def.ObjectKind = NpcObjectKind.MiningZone;
++            def.Attribute = 1;
++            def.RespawnDelay = new TimeSpan(30 * TimeSpan.TicksPerSecond);
++            def.NumberOfMaximumItemDrops = 0;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 1 },
++                { Stats.MaximumHealth, 5 },
++            };
++            def.AddAttributes(attributes, this.Context, this.GameConfiguration);
 +            def.SetGuid(def.Number);
 +            this.GameConfiguration.Monsters.Add(def);
 +        }
