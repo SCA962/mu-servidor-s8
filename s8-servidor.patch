@@ -461,10 +461,10 @@ index 00000000..782a25f3
 +}
 diff --git a/src/GameLogic/NPC/MiningZone.cs b/src/GameLogic/NPC/MiningZone.cs
 new file mode 100644
-index 00000000..002d8265
+index 00000000..c232563b
 --- /dev/null
 +++ b/src/GameLogic/NPC/MiningZone.cs
-@@ -0,0 +1,160 @@
+@@ -0,0 +1,179 @@
 +﻿// <copyright file="MiningZone.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -488,9 +488,22 @@ index 00000000..002d8265
 +/// </remarks>
 +public sealed class MiningZone : AttackableNpcBase, IAttackable
 +{
++    /// <summary>
++    /// Cuanto aguanta una reserva sin que el jugador vuelva a picar. Pasado eso, la veta es de
++    /// quien la pida.
++    /// </summary>
++    /// <remarks>
++    /// Hace falta porque el cliente no manda el paquete de abandonar: sin esto, un jugador que
++    /// llega a la fase 2, pulsa «seguir minando» y se va a dar una vuelta por el mismo mapa deja
++    /// la veta bloqueada para todos los demas hasta que se desconecte.
++    /// </remarks>
++    private static readonly TimeSpan ReservationTimeout = TimeSpan.FromSeconds(60);
++
 +    private readonly object _minerLock = new();
 +
 +    private Player? _miner;
++
++    private DateTime _reservedAt;
 +
 +    /// <summary>
 +    /// Initializes a new instance of the <see cref="MiningZone" /> class.
@@ -528,9 +541,10 @@ index 00000000..002d8265
 +    {
 +        lock (this._minerLock)
 +        {
-+            if (this._miner is null || this._miner == player || IsStale(this._miner, this.CurrentMap))
++            if (this._miner is null || this._miner == player || this.IsStale())
 +            {
 +                this._miner = player;
++                this._reservedAt = DateTime.UtcNow;
 +                return true;
 +            }
 +
@@ -613,20 +627,25 @@ index 00000000..002d8265
 +    }
 +
 +    /// <summary>
-+    /// Determines whether a reservation can be taken away from the player who holds it: when the
-+    /// player disconnected, or walked away to another map without closing the chain.
++    /// Determines whether the current reservation can be taken away: when the player disconnected,
++    /// walked away to another map, or simply stopped mining without closing the chain.
 +    /// </summary>
-+    /// <param name="miner">The player who holds the reservation.</param>
-+    /// <param name="map">The map of the zone.</param>
 +    /// <returns><see langword="true"/> when the reservation is stale.</returns>
-+    private static bool IsStale(Player miner, GameMap map)
++    /// <remarks>Only call this while holding <c>_minerLock</c>.</remarks>
++    private bool IsStale()
 +    {
++        if (this._miner is not { } miner)
++        {
++            return true;
++        }
++
 +        return miner.PlayerState.CurrentState == PlayerState.Disconnected
-+               || miner.CurrentMap != map;
++               || miner.CurrentMap != this.CurrentMap
++               || DateTime.UtcNow - this._reservedAt > ReservationTimeout;
 +    }
 +}
 diff --git a/src/GameLogic/Player.cs b/src/GameLogic/Player.cs
-index 10a442a0..18ab7f3a 100644
+index 10a442a0..2eae896c 100644
 --- a/src/GameLogic/Player.cs
 +++ b/src/GameLogic/Player.cs
 @@ -364,6 +364,13 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
@@ -643,14 +662,18 @@ index 10a442a0..18ab7f3a 100644
      /// <summary>
      /// Gets the skill list.
      /// </summary>
-@@ -637,6 +644,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
-             }
+@@ -638,6 +645,11 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
  
              this.DuelRoom = null;
-+            this.MiningState = null;
  
++            // Soltar la veta, no solo olvidar la cadena: si no, la zona guarda una referencia a
++            // este Player ya desechado hasta que otro jugador la reclame.
++            this.MiningState?.Zone.Release(this);
++            this.MiningState = null;
++
              this._selectedCharacter = null;
          }
+         else
 diff --git a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs b/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
 index 57af2828..621734ac 100644
 --- a/src/GameLogic/PlayerActions/ItemConsumeActions/BlessJewelConsumeHandlerPlugIn.cs
@@ -810,10 +833,10 @@ index 9d520d45..650da09b 100644
          var priceCalculator = new ItemPriceCalculator();
 diff --git a/src/GameLogic/PlayerActions/Mining/MiningAction.cs b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
 new file mode 100644
-index 00000000..d4cfffc2
+index 00000000..da646c43
 --- /dev/null
 +++ b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
-@@ -0,0 +1,334 @@
+@@ -0,0 +1,369 @@
 +﻿// <copyright file="MiningAction.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -854,7 +877,11 @@ index 00000000..d4cfffc2
 +        if (this.FindZone(player, zoneId, zoneClass) is not { } zone
 +            || MiningTable.GetConfiguration(zoneClass) is not { } configuration)
 +        {
-+            await this.SendHitResultAsync(player, zoneId, zoneClass, 0, 0, MiningResult.StateMismatch).ConfigureAwait(false);
++            // La veta ya no esta, murio, o el jugador se alejo. La cadena se cierra en los dos
++            // lados: el cliente ya se resetea con este resultado, y si aqui no se hiciera, el
++            // siguiente clic seria otro rechazo mudo.
++            await this.DropChainAsync(player, consumeZone: false).ConfigureAwait(false);
++            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.StateMismatch).ConfigureAwait(false);
 +            return;
 +        }
 +
@@ -896,7 +923,20 @@ index 00000000..d4cfffc2
 +                             + (nextStage == MiningTable.MaximumStage ? configuration.GiftJewels : 0);
 +        if (this.CountFreeInventorySlots(player) < MiningRewardPacker.CountRequiredSlots(possibleReward))
 +        {
-+            zone.Release(player);
++            // No cabe lo que podria salir de la fase siguiente. El salto gordo esta en la ultima
++            // de la veta dorada: pasar de 8 huecos a 43, porque ahi entra el Gift of Pandora.
++            //
++            // Si ya hay joyas acumuladas NO se tira la cadena: se deja el cartel abierto para que
++            // el jugador pueda cobrarlas. Tirarla seria quitarle sin avisar lo que ya habia
++            // ganado, que es justo lo que este sistema no debe hacer salvo cuando falla la tirada.
++            if (state is not null && state.JewelCount > 0)
++            {
++                state.WaitingForDecision = true;
++                await this.SendHitResultAsync(player, zoneId, zoneClass, state.Stage, state.JewelCount, MiningResult.NotEnoughSpace).ConfigureAwait(false);
++                return;
++            }
++
++            await this.DropChainAsync(player, consumeZone: false).ConfigureAwait(false);
 +            await this.SendHitResultAsync(player, zoneId, zoneClass, stage, 0, MiningResult.NotEnoughSpace).ConfigureAwait(false);
 +            return;
 +        }
@@ -984,8 +1024,16 @@ index 00000000..d4cfffc2
 +
 +    /// <summary>
 +    /// Ends a mining chain because the player walked away or closed the dialog. Everything
-+    /// accumulated is lost and the zone is consumed, like in the original.
++    /// accumulated is lost and the zone is consumed.
 +    /// </summary>
++    /// <remarks>
++    /// Ojo con la diferencia, que no es la misma regla en los dos casos: **abandonar** consume la
++    /// veta (es lo que hace el original, que le pone la vida a cero), pero **fallar la tirada** no,
++    /// y eso es decision nuestra: no encontre fuente que diga lo que hace el S8 al fallar, y dejar
++    /// la veta permite reintentar en el mismo sitio. Hoy este metodo no lo llama nadie, porque el
++    /// cliente no manda el paquete de abandonar; la reserva se suelta sola por caducidad
++    /// (MiningZone.ReservationTimeout).
++    /// </remarks>
 +    /// <param name="player">The player.</param>
 +    /// <param name="zoneId">The object id of the zone.</param>
 +    public async ValueTask EndAsync(Player player, ushort zoneId)
@@ -1046,6 +1094,7 @@ index 00000000..d4cfffc2
 +            return false;
 +        }
 +
++        var allPaid = true;
 +        foreach (var entry in reward)
 +        {
 +            var definition = entry.IsPackage ? packedDefinition : jewelDefinition;
@@ -1059,11 +1108,20 @@ index 00000000..d4cfffc2
 +            }
 +            else
 +            {
++                // No deberia pasar: el hueco se comprueba antes de cada intento y otra vez aqui.
++                // Si pasa, se dice, porque decirle "cobrado" a alguien que recibio menos de lo que
++                // gano es la clase de fallo que no se nota hasta que alguien lleva la cuenta.
 +                await player.PersistenceContext.DeleteAsync(item).ConfigureAwait(false);
++                player.Logger.LogWarning(
++                    "Mining reward: couldn't add {0} of {1} items to the inventory of {2}.",
++                    reward.Count(e => e.IsPackage == entry.IsPackage),
++                    reward.Count,
++                    player.Name);
++                allPaid = false;
 +            }
 +        }
 +
-+        return true;
++        return allPaid;
 +    }
 +
 +    private MiningZone? FindZone(Player player, ushort zoneId, ushort zoneClass)
@@ -3826,10 +3884,10 @@ index 0c5b94de..3796d390 100644
      IncreasesCritDamageChance = 610,
 diff --git a/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
 new file mode 100644
-index 00000000..43ef3293
+index 00000000..7a8441e1
 --- /dev/null
 +++ b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
-@@ -0,0 +1,264 @@
+@@ -0,0 +1,269 @@
 +﻿// <copyright file="AddPandoraMiningSystemUpdatePlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -3982,6 +4040,11 @@ index 00000000..43ef3293
 +        if (gameConfiguration.Items.FirstOrDefault(i => i is { Group: 0, Number: 41 }) is { } pick)
 +        {
 +            pick.DropsFromMonsters = false;
++
++            // Y no sube de nivel: cualquier joya de nivel que acierte pone la durabilidad al
++            // maximo, o sea que una Jewel of Soul reparaba el pico entero y el sumidero de Bless
++            // dejaba de existir. Con el maximo a 0, CanLevelBeUpgraded() las corta todas.
++            pick.MaximumItemLevel = 0;
 +        }
 +    }
 +
@@ -4988,7 +5051,7 @@ index bfa2d41d..10cd7a52 100644
  
      private ItemDefinition CreateAlcohol()
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
-index 5eb9dcde..a7265f93 100644
+index 5eb9dcde..4f374922 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
 @@ -1,4 +1,4 @@
@@ -4997,7 +5060,7 @@ index 5eb9dcde..a7265f93 100644
  // Licensed under the MIT License. See LICENSE file in the project root for full license information.
  // </copyright>
  
-@@ -270,6 +270,22 @@ internal class Weapons : InitializerBase
+@@ -270,6 +270,31 @@ internal class Weapons : InitializerBase
          this.CreateWeapon(5, 36, 0, 0, 1, 4, false, "Divine Stick of Archangel", 104, 153, 165, 30, 182, 146, 0, 55, 13, 0, 0, 0, 0, 0, 0, 0, 1, 0);
  
          this.AddGuardianOptions();
@@ -5009,6 +5072,15 @@ index 5eb9dcde..a7265f93 100644
 +        this.CreateWeapon(0, 37, 0, 0, 2, 4, true, "Blast Break", 149, 163, 216, 30, 130, 0, 360, 182, 50, 0, 0, 0, 3, 0, 3, 0, 0, 0);
 +        this.CreateWeapon(0, 38, 0, 0, 1, 2, true, "Prickle Glove", 147, 149, 168, 50, 98, 0, 380, 110, 63, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 +        this.CreateWeapon(0, 41, 0, 0, 2, 2, false, "Pandora Pick (two-handed)", 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1); // no cae de bichos: Data/Item/Item.txt:44 dice DropItem 0
++
++        // El pico NO sube de nivel, y esto sostiene todo el equilibrio de la mineria.
++        // UpgradeItemLevelJewelConsumeHandlerPlugIn pone `item.Durability = maximo` en cada subida
++        // que sale bien, asi que con MaximumItemLevel > 0 una sola Jewel of Soul lo dejaba en
++        // 255/255 al 50 %: unas 2 joyas en vez de las 64 Bless previstas, y fallar no cuesta nada.
++        // Con el maximo a 0, `CanLevelBeUpgraded()` (ItemExtensions.cs:152-156) da false para
++        // TODAS las joyas de nivel a la vez, y la joya ni siquiera se gasta. La reparacion con
++        // Bless sigue funcionando porque intercepta antes, en BlessJewelConsumeHandlerPlugIn.
++        this.GameConfiguration.Items.First(i => i.Group == 0 && i.Number == 41).MaximumItemLevel = 0;
 +        this.CreateWeapon(2, 19, 0, 0, 1, 4, true, "Thunderbolt", 149, 127, 154, 40, 78, 76, 360, 111, 22, 0, 0, 0, 0, 0, 0, 3, 0, 0);
 +        this.CreateWeapon(2, 20, 0, 0, 2, 4, true, "Horn of Steal", 149, 177, 206, 25, 120, 0, 360, 182, 50, 0, 0, 0, 3, 0, 0, 0, 0, 0);
 +        this.CreateWeapon(3, 12, 0, 0, 2, 4, true, "Magmus Peer", 149, 135, 236, 35, 85, 0, 360, 49, 162, 0, 0, 0, 3, 0, 0, 0, 0, 0);
