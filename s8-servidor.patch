@@ -1,0 +1,1394 @@
+diff --git a/src/Persistence/Initialization/GameConfigurationInitializerBase.cs b/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
+index b2d78ef9..ba3c42bd 100644
+--- a/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
++++ b/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
+@@ -40,7 +40,7 @@ public abstract class GameConfigurationInitializerBase : InitializerBase
+         this.GameConfiguration.ExperienceRate = 1.0f;
+         this.GameConfiguration.MinimumMonsterLevelForMasterExperience = 95;
+         this.GameConfiguration.MaximumLevel = 400;
+-        this.GameConfiguration.MaximumMasterLevel = 200;
++        this.GameConfiguration.MaximumMasterLevel = 330;
+         this.GameConfiguration.InfoRange = 12;
+         this.GameConfiguration.AreaSkillHitsPlayer = false;
+         this.GameConfiguration.MaximumInventoryMoney = int.MaxValue;
+diff --git a/src/Persistence/Initialization/Resources/Terrain92.att b/src/Persistence/Initialization/Resources/Terrain92.att
+new file mode 100644
+index 0000000000000000000000000000000000000000..d8764e2ebf38c79eb256a67c2981375e5566c4e2
+GIT binary patch
+literal 65539
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/src/Persistence/Initialization/Resources/Terrain96.att b/src/Persistence/Initialization/Resources/Terrain96.att
+new file mode 100644
+index 0000000000000000000000000000000000000000..d124c8467dee1194a6fb77dbc72ae26858858a39
+GIT binary patch
+literal 65539
+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
+KzYrX}J>mcLA#*MO
+
+literal 0
+HcmV?d00001
+
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
+index c0d52d96..7c5d874a 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
+@@ -40,6 +40,8 @@ public class GameMapsInitializer : GameMapsInitializerBase
+             yield return typeof(Elvenland);
+             yield return typeof(Karutan1);
+             yield return typeof(Karutan2);
++            yield return typeof(Acheron);
++            yield return typeof(Debenter);
+             yield return typeof(Aida);
+             yield return typeof(Vulcanus);
+             yield return typeof(CrywolfFortress);
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Gates.cs b/src/Persistence/Initialization/VersionSeasonSix/Gates.cs
+index 6d14dcb3..50e8beec 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Gates.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Gates.cs
+@@ -83,6 +83,8 @@ public class Gates : InitializerBase
+         this.GameConfiguration.WarpList.Add(this.CreateWarpInfo(46, "Karutan1", 13000, 170, gates[335]));
+         this.GameConfiguration.WarpList.Add(this.CreateWarpInfo(47, "Karutan2", 14000, 170, gates[344]));
+         this.GameConfiguration.WarpList.Add(this.CreateWarpInfo(48, "LaCleon", 15000, 280, gates[287]));
++        this.GameConfiguration.WarpList.Add(this.CreateWarpInfo(49, "Acheron", 20000, 280, gates[400]));
++        this.GameConfiguration.WarpList.Add(this.CreateWarpInfo(50, "Debenter", 25000, 300, gates[401]));
+     }
+ 
+     private WarpInfo CreateWarpInfo(ushort index, string name, int costs, int levelRequirement, ExitGate gate)
+@@ -440,6 +442,11 @@ public class Gates : InitializerBase
+         targetGates.Add(344, this.CreateExitGate(maps[81], 162, 16, 163, 17, 5));
+         targetGates.Add(341, this.CreateExitGate(maps[81], 162, 12, 164, 14, 5));
+ 
++        // Season 8
++        targetGates.Add(400, this.CreateExitGate(maps[91], 038, 208, 046, 216, 3));
++        targetGates.Add(401, this.CreateExitGate(maps[95], 017, 103, 021, 107, 3));
++
++
+         return targetGates;
+     }
+ 
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs
+index e5aba3ce..ef14bf86 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs
+@@ -347,6 +347,62 @@ public class Armors : ArmorInitializerBase
+ 
+         this.BuildSets();
+         this.AddGuardianOptionsToSets();
++
++        // Season 8: escudos nuevos
++        this.CreateShield(22, 1, 0, 2, 2, "Lazy Wind Shield", 129, 36, 108, 90, 360, 67, 56, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateShield(23, 1, 0, 2, 2, "Light Lord Shield", 124, 23, 69, 90, 360, 16, 35, 35, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateShield(24, 1, 0, 2, 2, "Dark Devil Shield", 122, 21, 63, 90, 360, 52, 15, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0);
++        this.CreateShield(25, 1, 0, 2, 2, "Magic Knight Shield", 128, 29, 87, 90, 360, 53, 18, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateShield(26, 1, 0, 2, 2, "Ambition Shield", 131, 25, 75, 90, 360, 104, 24, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++
++        // Season 8: armaduras nuevas
++        this.CreateArmor(53, 2, 2, 2, "Succubus Helm", 143, 44, 90, 360, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0);
++        this.CreateArmor(54, 2, 2, 2, "Lazy Wind Helm", 143, 68, 90, 360, 67, 151, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(55, 2, 2, 2, "Dark Devil Helm", 143, 50, 90, 360, 45, 13, 171, 0, 0, 3, 0, 0, 0, 0, 0, 0);
++        this.CreateArmor(56, 2, 2, 2, "Sticky Helm", 143, 59, 90, 360, 48, 180, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(58, 2, 2, 2, "Ambition Mask", 143, 53, 90, 360, 112, 22, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++        this.CreateArmor(74, 2, 2, 2, "Stormwing Helm", 143, 72, 90, 360, 200, 33, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(75, 2, 2, 2, "Light Lord Helmet", 143, 53, 90, 360, 14, 31, 127, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(77, 2, 2, 2, "Bloody Dragon Helm", 128, 78, 88, 380, 105, 0, 0, 85, 0, 0, 0, 0, 0, 0, 0, 1);
++        this.CreateArmor(53, 3, 2, 2, "Succubus Armor", 148, 58, 90, 360, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0);
++        this.CreateArmor(54, 3, 2, 3, "Lazy Wind Armor", 148, 79, 90, 360, 67, 151, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(55, 3, 2, 3, "Dark Devil Armor", 148, 59, 90, 360, 45, 13, 171, 0, 0, 3, 0, 0, 0, 0, 0, 0);
++        this.CreateArmor(56, 3, 2, 2, "Sticky Armor", 148, 69, 90, 360, 48, 180, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(57, 3, 2, 3, "Hell Night Armor", 148, 89, 90, 360, 194, 52, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(58, 3, 2, 3, "Ambition Armor", 148, 67, 90, 360, 112, 22, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++        this.CreateArmor(74, 3, 2, 3, "Stormwing Armor", 148, 90, 90, 360, 200, 33, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(75, 3, 2, 2, "Light Lord Armor", 148, 61, 90, 360, 14, 31, 127, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(76, 3, 2, 3, "Magic Knight Armor", 148, 75, 90, 360, 48, 17, 142, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(77, 3, 2, 3, "Bloody Dragon Armor", 128, 102, 88, 380, 118, 0, 0, 85, 0, 0, 0, 0, 0, 0, 0, 1);
++        this.CreateArmor(53, 4, 2, 2, "Succubus Pants", 145, 50, 90, 360, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0);
++        this.CreateArmor(54, 4, 2, 2, "Lazy Wind Pants", 145, 75, 90, 360, 67, 151, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(55, 4, 2, 2, "Dark Devil Pants", 145, 53, 90, 360, 45, 13, 171, 0, 0, 3, 0, 0, 0, 0, 0, 0);
++        this.CreateArmor(56, 4, 2, 2, "Sticky Pants", 145, 62, 90, 360, 48, 180, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(57, 4, 2, 2, "Hell Night Pants", 145, 75, 90, 360, 194, 52, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(58, 4, 2, 2, "Ambition Pants", 145, 55, 90, 360, 112, 22, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++        this.CreateArmor(74, 4, 2, 2, "Stormwing Pants", 145, 83, 90, 360, 200, 33, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(75, 4, 2, 2, "Light Lord Pants", 145, 55, 90, 360, 14, 31, 127, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(76, 4, 2, 2, "Magic Knight Pants", 145, 60, 90, 360, 48, 17, 142, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(77, 4, 2, 2, "Bloody Dragon Pants", 134, 78, 88, 380, 108, 0, 0, 85, 0, 0, 0, 0, 0, 0, 0, 1);
++        this.CreateArmor(53, 5, 2, 2, "Succubus Gloves", 142, 38, 90, 360, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0);
++        this.CreateArmor(54, 5, 2, 2, "Lazy Wind Gloves", 142, 59, 90, 360, 67, 151, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(55, 5, 2, 2, "Dark Devil Gloves", 142, 40, 90, 360, 45, 13, 171, 0, 0, 3, 0, 0, 0, 0, 0, 0);
++        this.CreateArmor(56, 5, 2, 2, "Sticky Gloves", 142, 52, 90, 360, 48, 180, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(57, 5, 2, 2, "Hell Night Gloves", 142, 58, 90, 360, 194, 52, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(58, 5, 2, 2, "Ambition Gloves", 142, 43, 90, 360, 112, 22, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++        this.CreateArmor(74, 5, 2, 2, "Stormwing Gloves", 142, 65, 90, 360, 200, 33, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(75, 5, 2, 2, "Light Lord Gloves", 142, 45, 90, 360, 14, 31, 127, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(76, 5, 2, 2, "Magic Knight Gloves", 142, 49, 90, 360, 48, 17, 142, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(53, 6, 2, 2, "Succubus Boots", 140, 41, 90, 360, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0);
++        this.CreateArmor(54, 6, 2, 2, "Lazy Wind Boots", 140, 62, 90, 360, 67, 151, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(55, 6, 2, 2, "Dark Devil Boots", 140, 43, 90, 360, 45, 13, 171, 0, 0, 3, 0, 0, 0, 0, 0, 0);
++        this.CreateArmor(56, 6, 2, 2, "Sticky Boots", 140, 51, 90, 360, 48, 180, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(57, 6, 2, 2, "Hell Night Boots", 140, 63, 90, 360, 194, 52, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(58, 6, 2, 2, "Ambition Boots", 140, 47, 90, 360, 112, 22, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++        this.CreateArmor(74, 6, 2, 2, "Stormwing Boots", 140, 66, 90, 360, 200, 33, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateArmor(75, 6, 2, 2, "Light Lord Boots", 140, 44, 90, 360, 14, 31, 127, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateArmor(76, 6, 2, 2, "Magic Knight Boots", 140, 53, 90, 360, 48, 17, 142, 0, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateArmor(77, 6, 2, 2, "Bloody Dragon Boots", 119, 72, 88, 380, 108, 17, 0, 85, 0, 0, 0, 0, 0, 0, 0, 1);
+     }
+ 
+     private void AddGuardianOptionsToSets()
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
+index 5eb9dcde..30fce844 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
+@@ -1,4 +1,4 @@
+-// <copyright file="Weapons.cs" company="MUnique">
++﻿// <copyright file="Weapons.cs" company="MUnique">
+ // Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ // </copyright>
+ 
+@@ -270,6 +270,22 @@ internal class Weapons : InitializerBase
+         this.CreateWeapon(5, 36, 0, 0, 1, 4, false, "Divine Stick of Archangel", 104, 153, 165, 30, 182, 146, 0, 55, 13, 0, 0, 0, 0, 0, 0, 0, 1, 0);
+ 
+         this.AddGuardianOptions();
++
++        // Season 8: armas nuevas
++        this.CreateWeapon(0, 29, 0, 0, 1, 4, true, "Sonic Blade", 149, 109, 116, 35, 80, 0, 360, 49, 162, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateWeapon(0, 30, 0, 0, 1, 4, true, "Asura", 149, 115, 140, 45, 90, 112, 360, 86, 70, 16, 0, 0, 0, 0, 3, 0, 0, 0);
++        this.CreateWeapon(0, 36, 0, 0, 1, 4, true, "Cyclone Sword", 149, 129, 144, 40, 90, 0, 360, 182, 50, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateWeapon(0, 37, 0, 0, 2, 4, true, "Blast Break", 149, 163, 216, 30, 130, 0, 360, 182, 50, 0, 0, 0, 3, 0, 3, 0, 0, 0);
++        this.CreateWeapon(0, 38, 0, 0, 1, 2, true, "Prickle Glove", 147, 149, 168, 50, 98, 0, 380, 110, 63, 0, 0, 0, 0, 0, 0, 0, 0, 1);
++        this.CreateWeapon(0, 41, 0, 0, 2, 2, true, "Pandora Pick (two-handed)", 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1);
++        this.CreateWeapon(2, 19, 0, 0, 1, 4, true, "Thunderbolt", 149, 127, 154, 40, 78, 76, 360, 111, 22, 0, 0, 0, 0, 0, 0, 3, 0, 0);
++        this.CreateWeapon(2, 20, 0, 0, 2, 4, true, "Horn of Steal", 149, 177, 206, 25, 120, 0, 360, 182, 50, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateWeapon(3, 12, 0, 0, 2, 4, true, "Magmus Peer", 149, 135, 236, 35, 85, 0, 360, 49, 162, 0, 0, 0, 3, 0, 0, 0, 0, 0);
++        this.CreateWeapon(4, 25, 1, 0, 2, 4, true, "Angelic Bow", 149, 179, 202, 45, 70, 0, 360, 30, 193, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateWeapon(4, 26, 0, 0, 2, 3, true, "Devil Crossbow", 149, 167, 218, 40, 90, 0, 360, 30, 193, 0, 0, 0, 0, 3, 0, 0, 0, 0);
++        this.CreateWeapon(5, 32, 0, 0, 1, 4, true, "Summon Spirit Stick", 149, 59, 61, 30, 0, 110, 360, 56, 14, 0, 0, 0, 0, 0, 0, 0, 3, 0);
++        this.CreateWeapon(5, 35, 0, 0, 1, 4, true, "Miracle Staff", 149, 67, 69, 30, 0, 130, 360, 46, 13, 0, 0, 3, 0, 0, 3, 0, 0, 0);
++        this.CreateWeapon(5, 37, 0, 0, 2, 4, true, "Spite Staff", 149, 69, 71, 25, 0, 136, 360, 48, 11, 0, 0, 3, 0, 0, 3, 0, 0, 0);
+     }
+ 
+     /// <summary>
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
+new file mode 100644
+index 00000000..f2c852ad
+--- /dev/null
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
+@@ -0,0 +1,615 @@
++// <copyright file="Acheron.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Maps;
++
++using MUnique.OpenMU.AttributeSystem;
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.GameLogic.Attributes;
++
++/// <summary>
++/// The initialization for the Acheron map.
++/// </summary>
++internal class Acheron : BaseMapInitializer
++{
++    /// <summary>
++    /// The Number of the Map.
++    /// </summary>
++    internal const byte Number = 91;
++
++    /// <summary>
++    /// The Name of the Map.
++    /// </summary>
++    internal const string Name = "Acheron";
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="Acheron"/> class.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    public Acheron(IContext context, GameConfiguration gameConfiguration)
++        : base(context, gameConfiguration)
++    {
++    }
++
++    /// <inheritdoc/>
++    protected override byte MapNumber => Number;
++
++    /// <inheritdoc/>
++    protected override string MapName => Name;
++
++    /// <inheritdoc/>
++    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
++    {
++        yield return this.CreateMonsterSpawn(1, this.NpcDictionary[581], 029, 210, Direction.South); // Deruvish
++        yield return this.CreateMonsterSpawn(2, this.NpcDictionary[582], 038, 216, Direction.South); // Adniel
++        yield return this.CreateMonsterSpawn(3, this.NpcDictionary[583], 056, 202, Direction.South); // Jin
++        yield return this.CreateMonsterSpawn(4, this.NpcDictionary[240], 050, 184, Direction.SouthEast); // Baz, Storage Guard
++        yield return this.CreateMonsterSpawn(5, this.NpcDictionary[240], 058, 214, Direction.SouthEast); // Baz, Storage Guard
++        yield return this.CreateMonsterSpawn(6, this.NpcDictionary[546], 063, 218, Direction.South); // Jeweller Raul
++    }
++
++    /// <inheritdoc/>
++    protected override IEnumerable<MonsterSpawnArea> CreateMonsterSpawns()
++    {
++        yield return this.CreateMonsterSpawn(100, this.NpcDictionary[586], 152, 158, 137, 143, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(101, this.NpcDictionary[586], 155, 159, 135, 146, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(102, this.NpcDictionary[586], 152, 157, 145, 151, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(103, this.NpcDictionary[586], 157, 162, 146, 153, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(104, this.NpcDictionary[586], 047, 052, 134, 139, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(105, this.NpcDictionary[586], 050, 057, 131, 137, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(106, this.NpcDictionary[586], 052, 060, 138, 143, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(107, this.NpcDictionary[586], 057, 065, 131, 140, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(108, this.NpcDictionary[586], 031, 037, 115, 121, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(109, this.NpcDictionary[586], 031, 037, 109, 115, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(110, this.NpcDictionary[586], 034, 046, 107, 113, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(111, this.NpcDictionary[587], 037, 047, 112, 119, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(112, this.NpcDictionary[587], 047, 055, 109, 114, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(113, this.NpcDictionary[586], 024, 031, 081, 087, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(114, this.NpcDictionary[586], 028, 035, 078, 086, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(115, this.NpcDictionary[587], 041, 048, 086, 091, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(116, this.NpcDictionary[587], 031, 040, 087, 093, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(117, this.NpcDictionary[587], 035, 043, 079, 090, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(118, this.NpcDictionary[587], 044, 051, 081, 088, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(119, this.NpcDictionary[586], 151, 159, 071, 076, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(120, this.NpcDictionary[586], 150, 156, 064, 074, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(121, this.NpcDictionary[586], 161, 167, 061, 070, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(122, this.NpcDictionary[587], 154, 165, 060, 068, 3); // Elemental Beast
++        yield return this.CreateMonsterSpawn(123, this.NpcDictionary[587], 157, 164, 068, 074, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(124, this.NpcDictionary[586], 020, 025, 036, 042, 3); // Devilfairy
++        yield return this.CreateMonsterSpawn(125, this.NpcDictionary[586], 013, 022, 029, 037, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(126, this.NpcDictionary[586], 019, 026, 012, 019, 3); // Devilfairy
++        yield return this.CreateMonsterSpawn(127, this.NpcDictionary[587], 009, 018, 024, 032, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(128, this.NpcDictionary[587], 017, 028, 015, 022, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(129, this.NpcDictionary[588], 011, 023, 019, 026, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(130, this.NpcDictionary[587], 138, 144, 008, 014, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(131, this.NpcDictionary[587], 141, 149, 014, 018, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(132, this.NpcDictionary[588], 141, 147, 006, 012, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(133, this.NpcDictionary[588], 147, 152, 008, 016, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(134, this.NpcDictionary[587], 167, 175, 037, 043, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(135, this.NpcDictionary[587], 171, 176, 035, 045, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(136, this.NpcDictionary[587], 175, 182, 032, 041, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(137, this.NpcDictionary[588], 169, 177, 043, 049, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(138, this.NpcDictionary[588], 208, 215, 020, 025, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(139, this.NpcDictionary[588], 216, 222, 021, 027, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(140, this.NpcDictionary[588], 219, 224, 010, 018, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(141, this.NpcDictionary[587], 215, 225, 018, 024, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(142, this.NpcDictionary[587], 225, 233, 023, 028, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(143, this.NpcDictionary[587], 225, 230, 014, 020, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(144, this.NpcDictionary[587], 230, 235, 017, 025, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(145, this.NpcDictionary[586], 107, 113, 154, 160, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(146, this.NpcDictionary[586], 109, 115, 161, 167, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(147, this.NpcDictionary[586], 114, 121, 154, 159, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(148, this.NpcDictionary[586], 115, 124, 160, 165, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(149, this.NpcDictionary[586], 097, 105, 144, 150, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(150, this.NpcDictionary[586], 105, 112, 141, 148, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(151, this.NpcDictionary[586], 104, 109, 134, 143, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(152, this.NpcDictionary[586], 110, 116, 130, 138, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(153, this.NpcDictionary[586], 122, 128, 119, 125, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(154, this.NpcDictionary[586], 117, 125, 125, 130, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(155, this.NpcDictionary[587], 108, 118, 124, 133, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(156, this.NpcDictionary[587], 108, 118, 124, 133, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(157, this.NpcDictionary[586], 124, 131, 152, 160, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(158, this.NpcDictionary[586], 131, 139, 146, 153, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(159, this.NpcDictionary[586], 134, 141, 140, 147, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(160, this.NpcDictionary[586], 139, 144, 125, 138, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(161, this.NpcDictionary[587], 139, 147, 148, 154, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(162, this.NpcDictionary[587], 132, 140, 084, 093, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(163, this.NpcDictionary[586], 137, 142, 095, 103, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(164, this.NpcDictionary[586], 140, 148, 105, 110, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(165, this.NpcDictionary[586], 138, 146, 114, 121, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(166, this.NpcDictionary[586], 143, 150, 112, 126, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(167, this.NpcDictionary[586], 062, 067, 118, 125, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(168, this.NpcDictionary[586], 058, 066, 112, 121, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(169, this.NpcDictionary[586], 062, 068, 102, 107, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(170, this.NpcDictionary[587], 058, 066, 106, 116, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(171, this.NpcDictionary[587], 071, 078, 120, 125, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(172, this.NpcDictionary[587], 081, 086, 136, 145, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(173, this.NpcDictionary[586], 077, 087, 119, 126, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(174, this.NpcDictionary[586], 079, 089, 127, 132, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(175, this.NpcDictionary[586], 080, 087, 132, 138, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(176, this.NpcDictionary[586], 087, 095, 145, 148, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(177, this.NpcDictionary[586], 087, 097, 118, 122, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(178, this.NpcDictionary[587], 095, 106, 113, 119, 3); // Elemental Beast
++        yield return this.CreateMonsterSpawn(179, this.NpcDictionary[588], 105, 109, 110, 122, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(180, this.NpcDictionary[586], 106, 113, 102, 110, 3); // Devilfairy
++        yield return this.CreateMonsterSpawn(181, this.NpcDictionary[586], 100, 107, 088, 094, 3); // Devilfairy
++        yield return this.CreateMonsterSpawn(182, this.NpcDictionary[587], 106, 113, 094, 102, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(183, this.NpcDictionary[587], 088, 097, 081, 085, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(184, this.NpcDictionary[587], 068, 075, 071, 077, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(185, this.NpcDictionary[587], 053, 058, 074, 079, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(186, this.NpcDictionary[587], 057, 063, 064, 071, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(187, this.NpcDictionary[587], 155, 160, 027, 032, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(188, this.NpcDictionary[587], 171, 176, 007, 012, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(189, this.NpcDictionary[587], 169, 176, 019, 024, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(190, this.NpcDictionary[587], 185, 190, 016, 023, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(191, this.NpcDictionary[587], 195, 202, 026, 031, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(192, this.NpcDictionary[588], 176, 184, 017, 022, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(193, this.NpcDictionary[588], 163, 168, 024, 028, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(194, this.NpcDictionary[588], 063, 072, 064, 073, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(195, this.NpcDictionary[588], 083, 091, 083, 087, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(196, this.NpcDictionary[588], 041, 049, 052, 064, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(197, this.NpcDictionary[588], 034, 041, 038, 048, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(198, this.NpcDictionary[588], 043, 050, 018, 028, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(199, this.NpcDictionary[587], 050, 055, 019, 032, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(200, this.NpcDictionary[587], 039, 047, 028, 038, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(201, this.NpcDictionary[587], 042, 049, 043, 052, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(202, this.NpcDictionary[587], 050, 059, 034, 041, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(203, this.NpcDictionary[586], 043, 054, 039, 047, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(204, this.NpcDictionary[586], 035, 042, 052, 062, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(205, this.NpcDictionary[586], 064, 074, 035, 044, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(206, this.NpcDictionary[586], 070, 079, 046, 054, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(207, this.NpcDictionary[586], 081, 090, 054, 064, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(208, this.NpcDictionary[586], 104, 113, 028, 038, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(209, this.NpcDictionary[586], 105, 113, 073, 080, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(210, this.NpcDictionary[586], 115, 126, 076, 083, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(211, this.NpcDictionary[586], 130, 136, 059, 069, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(212, this.NpcDictionary[586], 139, 146, 039, 047, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(213, this.NpcDictionary[586], 124, 134, 024, 032, 1); // Devilfairy
++        yield return this.CreateMonsterSpawn(214, this.NpcDictionary[587], 129, 137, 041, 052, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(215, this.NpcDictionary[587], 114, 124, 065, 072, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(216, this.NpcDictionary[587], 096, 106, 055, 063, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(217, this.NpcDictionary[587], 074, 083, 020, 028, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(218, this.NpcDictionary[587], 080, 093, 036, 045, 1); // Elemental Beast
++        yield return this.CreateMonsterSpawn(219, this.NpcDictionary[588], 133, 144, 032, 042, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(220, this.NpcDictionary[588], 125, 134, 071, 080, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(221, this.NpcDictionary[588], 098, 108, 040, 047, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(222, this.NpcDictionary[588], 085, 095, 018, 030, 1); // Elemental Knight
++        yield return this.CreateMonsterSpawn(223, this.NpcDictionary[592], 075, 108, 030, 047, 3); // Undine
++        yield return this.CreateMonsterSpawn(224, this.NpcDictionary[593], 122, 142, 029, 039, 3); // Salamander
++        yield return this.CreateMonsterSpawn(225, this.NpcDictionary[588], 107, 124, 067, 080, 3); // Elemental Knight
++        yield return this.CreateMonsterSpawn(226, this.NpcDictionary[589], 183, 190, 145, 151, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(227, this.NpcDictionary[589], 184, 191, 152, 158, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(228, this.NpcDictionary[589], 191, 197, 147, 155, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(229, this.NpcDictionary[589], 190, 195, 156, 162, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(230, this.NpcDictionary[589], 236, 242, 224, 229, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(231, this.NpcDictionary[589], 242, 247, 226, 235, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(232, this.NpcDictionary[589], 233, 239, 230, 235, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(233, this.NpcDictionary[589], 240, 246, 231, 237, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(234, this.NpcDictionary[589], 235, 240, 201, 207, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(235, this.NpcDictionary[589], 232, 238, 209, 215, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(236, this.NpcDictionary[589], 242, 248, 204, 209, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(237, this.NpcDictionary[590], 239, 247, 197, 205, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(238, this.NpcDictionary[590], 238, 245, 209, 215, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(239, this.NpcDictionary[590], 232, 239, 167, 173, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(240, this.NpcDictionary[590], 230, 236, 175, 180, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(241, this.NpcDictionary[590], 240, 246, 163, 170, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(242, this.NpcDictionary[589], 236, 244, 165, 174, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(243, this.NpcDictionary[589], 236, 242, 175, 180, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(244, this.NpcDictionary[589], 195, 200, 053, 058, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(245, this.NpcDictionary[589], 199, 206, 048, 052, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(246, this.NpcDictionary[589], 202, 207, 058, 064, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(247, this.NpcDictionary[589], 204, 211, 053, 059, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(248, this.NpcDictionary[590], 200, 210, 053, 062, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(249, this.NpcDictionary[589], 195, 200, 053, 058, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(250, this.NpcDictionary[589], 199, 206, 048, 052, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(251, this.NpcDictionary[589], 202, 207, 058, 064, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(252, this.NpcDictionary[589], 204, 211, 053, 059, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(253, this.NpcDictionary[590], 200, 210, 053, 062, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(254, this.NpcDictionary[591], 227, 234, 087, 093, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(255, this.NpcDictionary[591], 231, 237, 077, 085, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(256, this.NpcDictionary[591], 241, 247, 090, 097, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(257, this.NpcDictionary[590], 231, 239, 085, 092, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(258, this.NpcDictionary[590], 238, 245, 084, 092, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(259, this.NpcDictionary[590], 207, 212, 209, 217, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(260, this.NpcDictionary[590], 212, 218, 217, 223, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(261, this.NpcDictionary[590], 218, 226, 210, 213, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(262, this.NpcDictionary[591], 212, 220, 212, 220, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(263, this.NpcDictionary[589], 212, 219, 205, 211, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(264, this.NpcDictionary[589], 213, 221, 138, 145, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(265, this.NpcDictionary[589], 219, 227, 151, 155, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(266, this.NpcDictionary[589], 225, 234, 130, 137, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(267, this.NpcDictionary[590], 226, 233, 145, 152, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(268, this.NpcDictionary[590], 217, 225, 142, 149, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(269, this.NpcDictionary[591], 222, 233, 137, 145, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(270, this.NpcDictionary[590], 201, 208, 177, 182, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(271, this.NpcDictionary[590], 188, 195, 182, 188, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(272, this.NpcDictionary[589], 188, 194, 168, 175, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(273, this.NpcDictionary[589], 193, 200, 176, 180, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(274, this.NpcDictionary[589], 210, 218, 170, 175, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(275, this.NpcDictionary[589], 208, 214, 178, 185, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(276, this.NpcDictionary[589], 153, 160, 185, 189, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(277, this.NpcDictionary[589], 150, 155, 190, 195, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(278, this.NpcDictionary[589], 150, 156, 200, 205, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(279, this.NpcDictionary[589], 162, 169, 203, 208, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(280, this.NpcDictionary[589], 165, 171, 210, 215, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(281, this.NpcDictionary[589], 169, 175, 201, 206, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(282, this.NpcDictionary[589], 168, 175, 219, 222, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(283, this.NpcDictionary[589], 181, 187, 215, 220, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(284, this.NpcDictionary[589], 183, 190, 220, 226, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(285, this.NpcDictionary[589], 190, 196, 217, 222, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(286, this.NpcDictionary[590], 176, 184, 217, 224, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(287, this.NpcDictionary[589], 164, 170, 174, 179, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(288, this.NpcDictionary[589], 172, 179, 171, 178, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(289, this.NpcDictionary[589], 177, 186, 164, 170, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(290, this.NpcDictionary[589], 158, 162, 180, 184, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(291, this.NpcDictionary[590], 180, 186, 183, 191, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(292, this.NpcDictionary[589], 173, 178, 193, 202, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(293, this.NpcDictionary[589], 208, 212, 195, 202, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(294, this.NpcDictionary[589], 201, 207, 188, 192, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(295, this.NpcDictionary[589], 204, 214, 172, 177, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(296, this.NpcDictionary[589], 204, 211, 070, 076, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(297, this.NpcDictionary[589], 213, 218, 070, 075, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(298, this.NpcDictionary[589], 219, 224, 066, 072, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(299, this.NpcDictionary[589], 214, 220, 054, 058, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(300, this.NpcDictionary[590], 221, 230, 051, 055, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(301, this.NpcDictionary[590], 220, 224, 056, 064, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(302, this.NpcDictionary[591], 209, 217, 065, 074, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(303, this.NpcDictionary[589], 215, 220, 098, 103, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(304, this.NpcDictionary[589], 221, 225, 096, 103, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(305, this.NpcDictionary[589], 218, 228, 105, 111, 1); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(306, this.NpcDictionary[591], 227, 232, 108, 118, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(307, this.NpcDictionary[590], 170, 178, 092, 098, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(308, this.NpcDictionary[590], 166, 173, 102, 110, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(309, this.NpcDictionary[590], 173, 182, 116, 121, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(310, this.NpcDictionary[590], 183, 188, 106, 114, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(311, this.NpcDictionary[590], 178, 185, 081, 088, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(312, this.NpcDictionary[590], 188, 197, 091, 100, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(313, this.NpcDictionary[590], 201, 210, 111, 119, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(314, this.NpcDictionary[590], 199, 208, 096, 105, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(315, this.NpcDictionary[590], 190, 199, 109, 116, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(316, this.NpcDictionary[590], 193, 202, 079, 086, 1); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(317, this.NpcDictionary[591], 179, 192, 094, 105, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(318, this.NpcDictionary[591], 195, 205, 120, 128, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(319, this.NpcDictionary[591], 202, 209, 088, 100, 1); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(320, this.NpcDictionary[594], 178, 196, 180, 189, 1); // Sylphid
++        yield return this.CreateMonsterSpawn(321, this.NpcDictionary[595], 228, 234, 110, 133, 3); // Gnome
++        yield return this.CreateMonsterSpawn(322, this.NpcDictionary[596], 179, 198, 090, 107, 3); // Hellraiser
++        yield return this.CreateMonsterSpawn(323, this.NpcDictionary[589], 235, 242, 046, 056, 3); // Ubaid Devilfairy
++        yield return this.CreateMonsterSpawn(324, this.NpcDictionary[590], 239, 246, 052, 057, 3); // Ubaid Elemental Beast
++        yield return this.CreateMonsterSpawn(325, this.NpcDictionary[591], 237, 245, 042, 050, 3); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(326, this.NpcDictionary[591], 242, 248, 044, 053, 3); // Ubaid Elemental Knight
++        yield return this.CreateMonsterSpawn(327, this.NpcDictionary[596], 093, 246, 007, 188, 3); // Hellraiser
++        yield return this.CreateMonsterSpawn(328, this.NpcDictionary[595], 056, 239, 014, 158, 3); // Gnome
++        yield return this.CreateMonsterSpawn(329, this.NpcDictionary[594], 099, 248, 010, 248, 3); // Sylphid
++        yield return this.CreateMonsterSpawn(330, this.NpcDictionary[593], 079, 248, 005, 183, 3); // Salamander
++        yield return this.CreateMonsterSpawn(331, this.NpcDictionary[592], 014, 242, 006, 151, 3); // Undine
++    }
++
++    /// <inheritdoc/>
++    protected override void CreateMonsters()
++    {
++        {
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(def);
++            def.Number = 581;
++            def.Designation = "Deruvish";
++            def.ObjectKind = NpcObjectKind.PassiveNpc;
++            def.SetGuid(def.Number);
++        }
++        {
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(def);
++            def.Number = 582;
++            def.Designation = "Adniel";
++            def.ObjectKind = NpcObjectKind.PassiveNpc;
++            def.SetGuid(def.Number);
++        }
++        {
++            var def = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(def);
++            def.Number = 583;
++            def.Designation = "Jin";
++            def.ObjectKind = NpcObjectKind.PassiveNpc;
++            def.SetGuid(def.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 586;
++            monster.Designation = "Devilfairy";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 88 },
++                { Stats.MaximumHealth, 29000 },
++                { Stats.MinimumPhysBaseDmg, 408 },
++                { Stats.MaximumPhysBaseDmg, 443 },
++                { Stats.DefenseBase, 315 },
++                { Stats.AttackRatePvm, 587 },
++                { Stats.DefenseRatePvm, 195 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 587;
++            monster.Designation = "Elemental Beast";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 91 },
++                { Stats.MaximumHealth, 32000 },
++                { Stats.MinimumPhysBaseDmg, 435 },
++                { Stats.MaximumPhysBaseDmg, 465 },
++                { Stats.DefenseBase, 340 },
++                { Stats.AttackRatePvm, 550 },
++                { Stats.DefenseRatePvm, 185 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 588;
++            monster.Designation = "Elemental Knight";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 93 },
++                { Stats.MaximumHealth, 33000 },
++                { Stats.MinimumPhysBaseDmg, 455 },
++                { Stats.MaximumPhysBaseDmg, 510 },
++                { Stats.DefenseBase, 370 },
++                { Stats.AttackRatePvm, 590 },
++                { Stats.DefenseRatePvm, 220 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 592;
++            monster.Designation = "Undine";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 113 },
++                { Stats.MaximumHealth, 11100 },
++                { Stats.MinimumPhysBaseDmg, 600 },
++                { Stats.MaximumPhysBaseDmg, 635 },
++                { Stats.DefenseBase, 515 },
++                { Stats.AttackRatePvm, 950 },
++                { Stats.DefenseRatePvm, 315 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 593;
++            monster.Designation = "Salamander";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1800 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 113 },
++                { Stats.MaximumHealth, 10000 },
++                { Stats.MinimumPhysBaseDmg, 620 },
++                { Stats.MaximumPhysBaseDmg, 655 },
++                { Stats.DefenseBase, 495 },
++                { Stats.AttackRatePvm, 1020 },
++                { Stats.DefenseRatePvm, 315 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 589;
++            monster.Designation = "Ubaid Devilfairy";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 99 },
++                { Stats.MaximumHealth, 35000 },
++                { Stats.MinimumPhysBaseDmg, 520 },
++                { Stats.MaximumPhysBaseDmg, 555 },
++                { Stats.DefenseBase, 395 },
++                { Stats.AttackRatePvm, 750 },
++                { Stats.DefenseRatePvm, 235 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 590;
++            monster.Designation = "Ubaid Elemental Beast";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 101 },
++                { Stats.MaximumHealth, 37500 },
++                { Stats.MinimumPhysBaseDmg, 540 },
++                { Stats.MaximumPhysBaseDmg, 575 },
++                { Stats.DefenseBase, 430 },
++                { Stats.AttackRatePvm, 830 },
++                { Stats.DefenseRatePvm, 240 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 591;
++            monster.Designation = "Ubaid Elemental Knight";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 103 },
++                { Stats.MaximumHealth, 38500 },
++                { Stats.MinimumPhysBaseDmg, 570 },
++                { Stats.MaximumPhysBaseDmg, 600 },
++                { Stats.DefenseBase, 455 },
++                { Stats.AttackRatePvm, 860 },
++                { Stats.DefenseRatePvm, 255 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 594;
++            monster.Designation = "Sylphid";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1800 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 113 },
++                { Stats.MaximumHealth, 9500 },
++                { Stats.MinimumPhysBaseDmg, 635 },
++                { Stats.MaximumPhysBaseDmg, 675 },
++                { Stats.DefenseBase, 475 },
++                { Stats.AttackRatePvm, 1020 },
++                { Stats.DefenseRatePvm, 315 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 595;
++            monster.Designation = "Gnome";
++            monster.MoveRange = 6;
++            monster.AttackRange = 1;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1700 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 113 },
++                { Stats.MaximumHealth, 12000 },
++                { Stats.MinimumPhysBaseDmg, 590 },
++                { Stats.MaximumPhysBaseDmg, 635 },
++                { Stats.DefenseBase, 545 },
++                { Stats.AttackRatePvm, 960 },
++                { Stats.DefenseRatePvm, 295 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 596;
++            monster.Designation = "Hellraiser";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1700 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 113 },
++                { Stats.MaximumHealth, 9000 },
++                { Stats.MinimumPhysBaseDmg, 600 },
++                { Stats.MaximumPhysBaseDmg, 630 },
++                { Stats.DefenseBase, 475 },
++                { Stats.AttackRatePvm, 1020 },
++                { Stats.DefenseRatePvm, 305 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++    }
++}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs
+new file mode 100644
+index 00000000..63892157
+--- /dev/null
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs
+@@ -0,0 +1,393 @@
++// <copyright file="Debenter.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Maps;
++
++using MUnique.OpenMU.AttributeSystem;
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.GameLogic.Attributes;
++
++/// <summary>
++/// The initialization for the Debenter map.
++/// </summary>
++internal class Debenter : BaseMapInitializer
++{
++    /// <summary>
++    /// The Number of the Map.
++    /// </summary>
++    internal const byte Number = 95;
++
++    /// <summary>
++    /// The Name of the Map.
++    /// </summary>
++    internal const string Name = "Debenter";
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="Debenter"/> class.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    public Debenter(IContext context, GameConfiguration gameConfiguration)
++        : base(context, gameConfiguration)
++    {
++    }
++
++    /// <inheritdoc/>
++    protected override byte MapNumber => Number;
++
++    /// <inheritdoc/>
++    protected override string MapName => Name;
++
++    /// <inheritdoc/>
++    protected override IEnumerable<MonsterSpawnArea> CreateNpcSpawns()
++    {
++        yield break;
++    }
++
++    /// <inheritdoc/>
++    protected override IEnumerable<MonsterSpawnArea> CreateMonsterSpawns()
++    {
++        yield return this.CreateMonsterSpawn(100, this.NpcDictionary[608], 027, 033, 052, 060, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(101, this.NpcDictionary[608], 031, 039, 062, 070, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(102, this.NpcDictionary[608], 024, 030, 020, 025, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(103, this.NpcDictionary[608], 028, 034, 025, 031, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(104, this.NpcDictionary[608], 033, 042, 014, 022, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(105, this.NpcDictionary[608], 055, 063, 008, 013, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(106, this.NpcDictionary[608], 079, 091, 022, 030, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(107, this.NpcDictionary[608], 083, 090, 030, 036, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(108, this.NpcDictionary[608], 078, 086, 097, 104, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(109, this.NpcDictionary[608], 072, 082, 090, 099, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(110, this.NpcDictionary[608], 061, 067, 012, 018, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(111, this.NpcDictionary[608], 047, 055, 044, 050, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(112, this.NpcDictionary[608], 044, 053, 029, 036, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(113, this.NpcDictionary[608], 056, 063, 029, 036, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(114, this.NpcDictionary[608], 064, 071, 037, 044, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(115, this.NpcDictionary[608], 049, 058, 063, 071, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(116, this.NpcDictionary[608], 058, 065, 076, 086, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(117, this.NpcDictionary[608], 117, 124, 007, 015, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(118, this.NpcDictionary[608], 113, 121, 015, 021, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(119, this.NpcDictionary[608], 135, 143, 013, 019, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(120, this.NpcDictionary[608], 118, 126, 027, 036, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(121, this.NpcDictionary[608], 082, 090, 056, 063, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(122, this.NpcDictionary[608], 090, 098, 059, 066, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(123, this.NpcDictionary[608], 113, 122, 057, 064, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(124, this.NpcDictionary[608], 109, 118, 044, 052, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(125, this.NpcDictionary[608], 118, 127, 085, 093, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(126, this.NpcDictionary[608], 128, 133, 090, 095, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(127, this.NpcDictionary[608], 123, 131, 080, 086, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(128, this.NpcDictionary[608], 162, 167, 100, 105, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(129, this.NpcDictionary[608], 167, 174, 095, 101, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(130, this.NpcDictionary[608], 185, 191, 092, 098, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(131, this.NpcDictionary[608], 191, 197, 091, 097, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(132, this.NpcDictionary[608], 235, 243, 077, 084, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(133, this.NpcDictionary[608], 230, 238, 084, 091, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(134, this.NpcDictionary[608], 239, 245, 037, 045, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(135, this.NpcDictionary[608], 231, 238, 044, 050, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(136, this.NpcDictionary[608], 202, 209, 013, 019, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(137, this.NpcDictionary[608], 174, 182, 014, 021, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(138, this.NpcDictionary[608], 181, 189, 018, 026, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(139, this.NpcDictionary[608], 146, 152, 041, 048, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(140, this.NpcDictionary[608], 143, 152, 064, 070, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(141, this.NpcDictionary[608], 152, 158, 061, 067, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(142, this.NpcDictionary[608], 174, 180, 044, 053, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(143, this.NpcDictionary[608], 180, 187, 040, 048, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(144, this.NpcDictionary[608], 152, 158, 046, 054, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(145, this.NpcDictionary[608], 164, 170, 061, 068, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(146, this.NpcDictionary[608], 155, 164, 022, 028, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(147, this.NpcDictionary[608], 184, 192, 066, 073, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(148, this.NpcDictionary[608], 187, 195, 073, 080, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(149, this.NpcDictionary[608], 207, 214, 052, 059, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(150, this.NpcDictionary[608], 206, 213, 035, 042, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(151, this.NpcDictionary[608], 210, 215, 042, 047, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(152, this.NpcDictionary[608], 145, 152, 090, 096, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(153, this.NpcDictionary[608], 138, 144, 091, 098, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(154, this.NpcDictionary[608], 197, 203, 025, 031, 1); // Debenter Devilfairy
++        yield return this.CreateMonsterSpawn(155, this.NpcDictionary[609], 034, 041, 021, 029, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(156, this.NpcDictionary[609], 034, 040, 056, 062, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(157, this.NpcDictionary[609], 033, 039, 050, 057, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(158, this.NpcDictionary[609], 049, 057, 075, 082, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(159, this.NpcDictionary[609], 076, 084, 092, 101, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(160, this.NpcDictionary[609], 090, 097, 054, 062, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(161, this.NpcDictionary[609], 075, 083, 028, 037, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(162, this.NpcDictionary[609], 057, 065, 015, 023, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(163, this.NpcDictionary[609], 060, 065, 049, 054, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(164, this.NpcDictionary[609], 059, 067, 042, 048, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(165, this.NpcDictionary[609], 112, 121, 008, 015, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(166, this.NpcDictionary[609], 113, 124, 033, 041, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(167, this.NpcDictionary[609], 119, 128, 047, 055, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(168, this.NpcDictionary[609], 118, 128, 079, 088, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(169, this.NpcDictionary[609], 139, 147, 083, 091, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(170, this.NpcDictionary[609], 167, 173, 099, 105, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(171, this.NpcDictionary[609], 167, 177, 081, 088, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(172, this.NpcDictionary[609], 155, 162, 088, 096, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(173, this.NpcDictionary[609], 146, 154, 047, 053, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(174, this.NpcDictionary[609], 147, 154, 058, 064, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(175, this.NpcDictionary[609], 169, 176, 046, 053, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(176, this.NpcDictionary[609], 181, 187, 046, 052, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(177, this.NpcDictionary[609], 177, 185, 020, 027, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(178, this.NpcDictionary[609], 204, 210, 003, 011, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(179, this.NpcDictionary[609], 199, 206, 008, 016, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(180, this.NpcDictionary[609], 212, 218, 037, 043, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(181, this.NpcDictionary[609], 199, 205, 032, 039, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(182, this.NpcDictionary[609], 195, 202, 043, 048, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(183, this.NpcDictionary[609], 200, 210, 053, 064, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(184, this.NpcDictionary[609], 201, 208, 070, 077, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(185, this.NpcDictionary[609], 206, 212, 070, 081, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(186, this.NpcDictionary[609], 230, 238, 076, 084, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(187, this.NpcDictionary[609], 233, 241, 049, 055, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(188, this.NpcDictionary[609], 212, 219, 087, 094, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(189, this.NpcDictionary[609], 192, 200, 094, 102, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(190, this.NpcDictionary[609], 082, 090, 083, 089, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(191, this.NpcDictionary[609], 136, 147, 022, 029, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(192, this.NpcDictionary[609], 148, 155, 014, 023, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(193, this.NpcDictionary[609], 160, 169, 053, 062, 1); // Deventer Elemental Beast
++        yield return this.CreateMonsterSpawn(194, this.NpcDictionary[610], 048, 055, 048, 055, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(195, this.NpcDictionary[610], 068, 075, 028, 036, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(196, this.NpcDictionary[610], 071, 080, 083, 092, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(197, this.NpcDictionary[610], 112, 122, 027, 034, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(198, this.NpcDictionary[610], 144, 152, 017, 027, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(199, this.NpcDictionary[610], 161, 169, 040, 049, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(200, this.NpcDictionary[610], 125, 133, 022, 030, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(201, this.NpcDictionary[610], 108, 122, 049, 057, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(202, this.NpcDictionary[610], 158, 168, 098, 107, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(203, this.NpcDictionary[610], 222, 229, 085, 092, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(204, this.NpcDictionary[610], 199, 208, 073, 081, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(205, this.NpcDictionary[610], 209, 222, 030, 036, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(206, this.NpcDictionary[610], 061, 068, 081, 091, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(207, this.NpcDictionary[610], 043, 048, 060, 067, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(208, this.NpcDictionary[610], 133, 145, 048, 054, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(209, this.NpcDictionary[610], 116, 126, 066, 074, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(210, this.NpcDictionary[610], 149, 155, 099, 103, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(211, this.NpcDictionary[610], 162, 167, 070, 075, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(212, this.NpcDictionary[610], 170, 180, 054, 061, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(213, this.NpcDictionary[610], 227, 236, 048, 056, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(214, this.NpcDictionary[610], 094, 104, 051, 059, 1); // Debenter Elemental Knight
++        yield return this.CreateMonsterSpawn(215, this.NpcDictionary[611], 033, 245, 002, 110, 1); // Sellihoden
++        yield return this.CreateMonsterSpawn(216, this.NpcDictionary[612], 039, 245, 003, 112, 1); // Ukanva
++        yield return this.CreateMonsterSpawn(217, this.NpcDictionary[613], 046, 241, 003, 113, 1); // Silla
++        yield return this.CreateMonsterSpawn(218, this.NpcDictionary[614], 051, 249, 002, 117, 1); // Normus
++        yield return this.CreateMonsterSpawn(219, this.NpcDictionary[615], 042, 239, 005, 115, 1); // Muff
++    }
++
++    /// <inheritdoc/>
++    protected override void CreateMonsters()
++    {
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 608;
++            monster.Designation = "Debenter Devilfairy";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 105 },
++                { Stats.MaximumHealth, 57000 },
++                { Stats.MinimumPhysBaseDmg, 590 },
++                { Stats.MaximumPhysBaseDmg, 620 },
++                { Stats.DefenseBase, 480 },
++                { Stats.AttackRatePvm, 890 },
++                { Stats.DefenseRatePvm, 270 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 609;
++            monster.Designation = "Deventer Elemental Beast";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 107 },
++                { Stats.MaximumHealth, 63000 },
++                { Stats.MinimumPhysBaseDmg, 610 },
++                { Stats.MaximumPhysBaseDmg, 640 },
++                { Stats.DefenseBase, 500 },
++                { Stats.AttackRatePvm, 920 },
++                { Stats.DefenseRatePvm, 285 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 610;
++            monster.Designation = "Debenter Elemental Knight";
++            monster.MoveRange = 3;
++            monster.AttackRange = 2;
++            monster.ViewRange = 7;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(10 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 109 },
++                { Stats.MaximumHealth, 70000 },
++                { Stats.MinimumPhysBaseDmg, 630 },
++                { Stats.MaximumPhysBaseDmg, 660 },
++                { Stats.DefenseBase, 520 },
++                { Stats.AttackRatePvm, 950 },
++                { Stats.DefenseRatePvm, 300 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 611;
++            monster.Designation = "Sellihoden";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1500 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 119 },
++                { Stats.MaximumHealth, 12210 },
++                { Stats.MinimumPhysBaseDmg, 630 },
++                { Stats.MaximumPhysBaseDmg, 666 },
++                { Stats.DefenseBase, 540 },
++                { Stats.AttackRatePvm, 997 },
++                { Stats.DefenseRatePvm, 346 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 612;
++            monster.Designation = "Ukanva";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1800 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 119 },
++                { Stats.MaximumHealth, 11000 },
++                { Stats.MinimumPhysBaseDmg, 651 },
++                { Stats.MaximumPhysBaseDmg, 687 },
++                { Stats.DefenseBase, 519 },
++                { Stats.AttackRatePvm, 1071 },
++                { Stats.DefenseRatePvm, 346 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 613;
++            monster.Designation = "Silla";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1800 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 119 },
++                { Stats.MaximumHealth, 10450 },
++                { Stats.MinimumPhysBaseDmg, 666 },
++                { Stats.MaximumPhysBaseDmg, 708 },
++                { Stats.DefenseBase, 498 },
++                { Stats.AttackRatePvm, 1071 },
++                { Stats.DefenseRatePvm, 346 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 614;
++            monster.Designation = "Normus";
++            monster.MoveRange = 6;
++            monster.AttackRange = 1;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1700 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 119 },
++                { Stats.MaximumHealth, 13200 },
++                { Stats.MinimumPhysBaseDmg, 619 },
++                { Stats.MaximumPhysBaseDmg, 666 },
++                { Stats.DefenseBase, 572 },
++                { Stats.AttackRatePvm, 1008 },
++                { Stats.DefenseRatePvm, 324 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++        {
++            var monster = this.Context.CreateNew<MonsterDefinition>();
++            this.GameConfiguration.Monsters.Add(monster);
++            monster.Number = 615;
++            monster.Designation = "Muff";
++            monster.MoveRange = 6;
++            monster.AttackRange = 2;
++            monster.ViewRange = 10;
++            monster.MoveDelay = new TimeSpan(400 * TimeSpan.TicksPerMillisecond);
++            monster.AttackDelay = new TimeSpan(1700 * TimeSpan.TicksPerMillisecond);
++            monster.RespawnDelay = new TimeSpan(3600 * TimeSpan.TicksPerSecond);
++            monster.Attribute = 2;
++            monster.NumberOfMaximumItemDrops = 1;
++            var attributes = new Dictionary<AttributeDefinition, float>
++            {
++                { Stats.Level, 119 },
++                { Stats.MaximumHealth, 10800 },
++                { Stats.MinimumPhysBaseDmg, 630 },
++                { Stats.MaximumPhysBaseDmg, 661 },
++                { Stats.DefenseBase, 498 },
++                { Stats.AttackRatePvm, 1071 },
++                { Stats.DefenseRatePvm, 324 },
++            };
++
++            monster.AddAttributes(attributes, this.Context, this.GameConfiguration);
++            monster.SetGuid(monster.Number);
++        }
++    }
++}

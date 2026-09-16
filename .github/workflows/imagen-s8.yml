@@ -1,0 +1,64 @@
+name: Imagen del servidor OpenMU con contenido Season 8
+
+# Compila la imagen en GitHub, nunca en la maquina de Mundy.
+# Deja la imagen como artefacto para bajarla y cargarla con docker load en el lab.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  imagen:
+    name: OpenMU + contenido S8 (Acheron y Debenter)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Receta y parche (este repositorio)
+        uses: actions/checkout@v4
+        with:
+          path: receta
+
+      - name: Codigo de OpenMU en el commit exacto del parche
+        uses: actions/checkout@v4
+        with:
+          repository: MUnique/OpenMU
+          ref: 9693f8f6cf037909c9dfd3a9a9438fffcabd9837
+          path: OpenMU
+
+      - name: Aplicar el parche
+        working-directory: OpenMU
+        run: |
+          echo "commit base: $(git rev-parse HEAD)"
+          git apply --check ../receta/s8-servidor.patch
+          git apply ../receta/s8-servidor.patch
+          git diff --stat
+          test -f src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs || { echo "falta Acheron.cs" >&2; exit 1; }
+          test -f src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs || { echo "falta Debenter.cs" >&2; exit 1; }
+          test -f src/Persistence/Initialization/Resources/Terrain92.att || { echo "falta el terreno de Acheron" >&2; exit 1; }
+          test -f src/Persistence/Initialization/Resources/Terrain96.att || { echo "falta el terreno de Debenter" >&2; exit 1; }
+          grep -q "typeof(Acheron)" src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs || { echo "los mapas no quedaron registrados" >&2; exit 1; }
+          grep -q "MaximumMasterLevel = 330" src/Persistence/Initialization/GameConfigurationInitializerBase.cs || { echo "falta el tope de master" >&2; exit 1; }
+
+      - name: Construir la imagen
+        working-directory: OpenMU/src
+        run: docker build -f Startup/Dockerfile -t openmu:s8-lab .
+
+      - name: Empaquetar la imagen
+        run: |
+          docker save openmu:s8-lab | gzip -9 > openmu-s8-lab.tar.gz
+          ls -lh openmu-s8-lab.tar.gz
+          sha256sum openmu-s8-lab.tar.gz | tee sha256.txt
+
+      - name: Guardar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: imagen-openmu-s8
+          path: |
+            openmu-s8-lab.tar.gz
+            sha256.txt
+          if-no-files-found: error
