@@ -461,7 +461,7 @@ index 00000000..782a25f3
 +}
 diff --git a/src/GameLogic/NPC/MiningZone.cs b/src/GameLogic/NPC/MiningZone.cs
 new file mode 100644
-index 00000000..6562a13e
+index 00000000..002d8265
 --- /dev/null
 +++ b/src/GameLogic/NPC/MiningZone.cs
 @@ -0,0 +1,160 @@
@@ -601,6 +601,17 @@ index 00000000..6562a13e
 +    /// </remarks>
 +    protected override Player? GetHitNotificationTarget(IAttacker attacker) => null;
 +
++    /// <inheritdoc />
++    protected override void OnRemoveFromMap()
++    {
++        lock (this._minerLock)
++        {
++            this._miner = null;
++        }
++
++        base.OnRemoveFromMap();
++    }
++
 +    /// <summary>
 +    /// Determines whether a reservation can be taken away from the player who holds it: when the
 +    /// player disconnected, or walked away to another map without closing the chain.
@@ -612,17 +623,6 @@ index 00000000..6562a13e
 +    {
 +        return miner.PlayerState.CurrentState == PlayerState.Disconnected
 +               || miner.CurrentMap != map;
-+    }
-+
-+    /// <inheritdoc />
-+    protected override void OnRemoveFromMap()
-+    {
-+        lock (this._minerLock)
-+        {
-+            this._miner = null;
-+        }
-+
-+        base.OnRemoveFromMap();
 +    }
 +}
 diff --git a/src/GameLogic/Player.cs b/src/GameLogic/Player.cs
@@ -3801,10 +3801,10 @@ index 0c5b94de..3796d390 100644
      IncreasesCritDamageChance = 610,
 diff --git a/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
 new file mode 100644
-index 00000000..31a84cb7
+index 00000000..43ef3293
 --- /dev/null
 +++ b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
-@@ -0,0 +1,263 @@
+@@ -0,0 +1,264 @@
 +﻿// <copyright file="AddPandoraMiningSystemUpdatePlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -3916,7 +3916,8 @@ index 00000000..31a84cb7
 +        (57, 2002, 605, 222, 208),
 +        (57, 2003, 606, 223, 203),
 +        (57, 2004, 606, 217, 208),
-+        (57, 2005, 607, 224, 221),    };
++        (57, 2005, 607, 224, 221),
++    };
 +
 +    /// <inheritdoc />
 +    public override string Name => PlugInName;
