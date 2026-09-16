@@ -52,6 +52,7 @@ jobs:
           # sin esto el terreno no se carga y todo lo que este en y >= 128 queda bloqueado
           grep -q "EmbeddedResource Include=\"Resources\\\\Terrain92.att\"" src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj || { echo "el terreno de Acheron no esta declarado como recurso" >&2; exit 1; }
           grep -q "EmbeddedResource Include=\"Resources\\\\Terrain96.att\"" src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj || { echo "el terreno de Debenter no esta declarado como recurso" >&2; exit 1; }
+          test "$(grep -c "maps\[9[15]\].EnterGates.Add" src/Persistence/Initialization/VersionSeasonSix/Gates.cs)" = "6" || { echo "faltan las puertas que se pisan de Acheron y Debenter" >&2; exit 1; }
 
       - name: Construir la imagen
         working-directory: OpenMU/src

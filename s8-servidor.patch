@@ -1045,7 +1045,7 @@ index c0d52d96..7c5d874a 100644
              yield return typeof(Vulcanus);
              yield return typeof(CrywolfFortress);
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Gates.cs b/src/Persistence/Initialization/VersionSeasonSix/Gates.cs
-index 6d14dcb3..b9657bb6 100644
+index 6d14dcb3..e10398dc 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Gates.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Gates.cs
 @@ -83,6 +83,8 @@ public class Gates : InitializerBase
@@ -1057,7 +1057,7 @@ index 6d14dcb3..b9657bb6 100644
      }
  
      private WarpInfo CreateWarpInfo(ushort index, string name, int costs, int levelRequirement, ExitGate gate)
-@@ -440,6 +442,17 @@ public class Gates : InitializerBase
+@@ -440,6 +442,27 @@ public class Gates : InitializerBase
          targetGates.Add(344, this.CreateExitGate(maps[81], 162, 16, 163, 17, 5));
          targetGates.Add(341, this.CreateExitGate(maps[81], 162, 12, 164, 14, 5));
  
@@ -1071,10 +1071,36 @@ index 6d14dcb3..b9657bb6 100644
 +        targetGates.Add(400, this.CreateExitGate(maps[91], 052, 190, 060, 194, 1, true));
 +        targetGates.Add(401, this.CreateExitGate(maps[95], 017, 103, 021, 107, 3));
 +
++        // Los destinos de los portales que se pisan dentro de Acheron y del que une Acheron con
++        // Debenter, tal cual estan en el paquete S8 (Data/Move/Gate.txt, puertas 419 a 438).
++        // Comprobado contra el terreno: las cinco zonas de destino son 100 % suelo caminable.
++        targetGates.Add(419, this.CreateExitGate(maps[91], 112, 161, 114, 166, 0));
++        targetGates.Add(421, this.CreateExitGate(maps[91], 033, 167, 037, 170, 0));
++        targetGates.Add(423, this.CreateExitGate(maps[91], 151, 198, 156, 200, 0));
++        targetGates.Add(425, this.CreateExitGate(maps[91], 081, 197, 083, 199, 0));
++        targetGates.Add(436, this.CreateExitGate(maps[95], 019, 104, 020, 105, 1));
++        targetGates.Add(438, this.CreateExitGate(maps[91], 054, 163, 055, 164, 5));
++
 +
          return targetGates;
      }
  
+@@ -585,6 +608,15 @@ public class Gates : InitializerBase
+         maps[50].EnterGates.Add(this.CreateEnterGate(248, targetGates[249], 173, 65, 174, 68, 0));
+         maps[50].EnterGates.Add(this.CreateEnterGate(250, targetGates[251], 186, 79, 189, 81, 0));
+         maps[50].EnterGates.Add(this.CreateEnterGate(252, targetGates[253], 186, 51, 188, 52, 0));
++
++        // Season 8: los cinco portales que se pisan en Acheron y el que vuelve desde Debenter.
++        // Sin esto, el jugador ve el circulo magico en el suelo y no pasa nada.
++        maps[91].EnterGates.Add(this.CreateEnterGate(418, targetGates[419], 026, 168, 028, 172, 0));
++        maps[91].EnterGates.Add(this.CreateEnterGate(420, targetGates[421], 115, 168, 118, 170, 0));
++        maps[91].EnterGates.Add(this.CreateEnterGate(422, targetGates[423], 082, 204, 086, 205, 0));
++        maps[91].EnterGates.Add(this.CreateEnterGate(424, targetGates[425], 147, 202, 148, 206, 0));
++        maps[91].EnterGates.Add(this.CreateEnterGate(435, targetGates[436], 052, 161, 053, 163, 0));
++        maps[95].EnterGates.Add(this.CreateEnterGate(437, targetGates[438], 017, 106, 018, 107, 0));
+         maps[50].EnterGates.Add(this.CreateEnterGate(254, targetGates[255], 202, 66, 203, 68, 0));
+         maps[2].EnterGates.Add(this.CreateEnterGate(259, targetGates[260], 161, 245, 166, 246, 15));
+         maps[51].EnterGates.Add(this.CreateEnterGate(261, targetGates[262], 24, 29, 25, 30, 15));
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs
 index e5aba3ce..ef14bf86 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs
