@@ -1,3 +1,250 @@
+diff --git a/src/GameServer/RemoteView/MasterSkillExtensions.cs b/src/GameServer/RemoteView/MasterSkillExtensions.cs
+index c6e115f1..8c04f26d 100644
+--- a/src/GameServer/RemoteView/MasterSkillExtensions.cs
++++ b/src/GameServer/RemoteView/MasterSkillExtensions.cs
+@@ -67,6 +67,33 @@ public static class MasterSkillExtensions
+                 { 403, 85 },
+                 { 404, 89 },
+                 { 405, 90 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 315, 23 },
++                { 316, 24 },
++                { 317, 25 },
++                { 318, 26 },
++                { 319, 27 },
++                { 320, 28 },
++                { 341, 59 },
++                { 366, 96 },
++                { 367, 98 },
++                { 368, 99 },
++                { 369, 100 },
++                { 370, 102 },
++                { 371, 106 },
++                { 372, 103 },
++                { 375, 30 },
++                { 377, 34 },
++                { 390, 57 },
++                { 391, 60 },
++                { 392, 62 },
++                { 393, 64 },
++                { 394, 65 },
++                { 406, 93 },
++                { 407, 94 },
++                { 495, 66 },
++                { 497, 70 },
+             }
+         },
+         {
+@@ -116,6 +143,33 @@ public static class MasterSkillExtensions
+                 { 360, 89 },
+                 { 361, 90 },
+                 { 362, 92 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 315, 23 },
++                { 316, 24 },
++                { 317, 25 },
++                { 318, 26 },
++                { 319, 27 },
++                { 320, 28 },
++                { 322, 30 },
++                { 324, 34 },
++                { 339, 57 },
++                { 340, 58 },
++                { 341, 59 },
++                { 342, 61 },
++                { 343, 62 },
++                { 344, 66 },
++                { 345, 65 },
++                { 346, 70 },
++                { 363, 93 },
++                { 364, 94 },
++                { 366, 96 },
++                { 367, 98 },
++                { 368, 99 },
++                { 369, 100 },
++                { 370, 102 },
++                { 371, 106 },
++                { 372, 103 },
+             }
+         },
+         {
+@@ -163,6 +217,36 @@ public static class MasterSkillExtensions
+                 { 440, 83 },
+                 { 441, 89 },
+                 { 442, 90 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 315, 23 },
++                { 316, 24 },
++                { 317, 25 },
++                { 318, 26 },
++                { 319, 27 },
++                { 320, 28 },
++                { 341, 60 },
++                { 366, 96 },
++                { 367, 98 },
++                { 368, 99 },
++                { 369, 100 },
++                { 370, 102 },
++                { 371, 106 },
++                { 372, 103 },
++                { 410, 30 },
++                { 411, 59 },
++                { 412, 34 },
++                { 425, 58 },
++                { 426, 61 },
++                { 427, 67 },
++                { 428, 64 },
++                { 429, 65 },
++                { 430, 66 },
++                { 431, 63 },
++                { 432, 68 },
++                { 433, 70 },
++                { 434, 71 },
++                { 443, 94 },
+             }
+         },
+         {
+@@ -212,6 +296,35 @@ public static class MasterSkillExtensions
+                 { 488, 51 },
+                 { 489, 53 },
+                 { 490, 54 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 315, 23 },
++                { 316, 24 },
++                { 317, 25 },
++                { 318, 26 },
++                { 319, 27 },
++                { 320, 28 },
++                { 341, 60 },
++                { 344, 66 },
++                { 346, 70 },
++                { 364, 94 },
++                { 366, 96 },
++                { 367, 98 },
++                { 368, 99 },
++                { 369, 100 },
++                { 370, 102 },
++                { 371, 106 },
++                { 372, 103 },
++                { 407, 93 },
++                { 476, 30 },
++                { 478, 34 },
++                { 491, 59 },
++                { 492, 57 },
++                { 493, 62 },
++                { 494, 61 },
++                { 495, 67 },
++                { 496, 63 },
++                { 497, 71 },
+             }
+         },
+         {
+@@ -261,6 +374,35 @@ public static class MasterSkillExtensions
+                 { 533, 84 },
+                 { 534, 89 },
+                 { 535, 90 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 315, 23 },
++                { 316, 24 },
++                { 317, 25 },
++                { 318, 26 },
++                { 319, 27 },
++                { 320, 28 },
++                { 341, 60 },
++                { 364, 95 },
++                { 366, 94 },
++                { 367, 99 },
++                { 368, 100 },
++                { 369, 98 },
++                { 370, 103 },
++                { 371, 107 },
++                { 372, 104 },
++                { 505, 30 },
++                { 506, 31 },
++                { 507, 34 },
++                { 519, 57 },
++                { 520, 59 },
++                { 521, 66 },
++                { 522, 62 },
++                { 523, 63 },
++                { 524, 70 },
++                { 536, 93 },
++                { 538, 97 },
++                { 539, 101 },
+             }
+         },
+         {
+@@ -306,6 +448,31 @@ public static class MasterSkillExtensions
+                 { 469, 85 },
+                 { 470, 89 },
+                 { 471, 90 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 315, 23 },
++                { 316, 24 },
++                { 317, 25 },
++                { 318, 26 },
++                { 319, 27 },
++                { 320, 28 },
++                { 341, 60 },
++                { 366, 96 },
++                { 367, 98 },
++                { 368, 99 },
++                { 369, 100 },
++                { 370, 102 },
++                { 371, 106 },
++                { 372, 103 },
++                { 446, 30 },
++                { 447, 34 },
++                { 459, 61 },
++                { 460, 58 },
++                { 461, 66 },
++                { 462, 63 },
++                { 463, 70 },
++                { 472, 93 },
++                { 473, 94 },
+             }
+         },
+         {
+@@ -348,6 +515,33 @@ public static class MasterSkillExtensions
+                 { 606, 88 },
+                 { 607, 90 },
+                 { 608, 92 },
++
++                // Season 8 master skill tree, ranks 6 to 9 (slots 21-36, 57-72 and 93-108)
++                { 549, 30 },
++                { 550, 34 },
++                { 561, 60 },
++                { 562, 61 },
++                { 563, 62 },
++                { 564, 63 },
++                { 565, 66 },
++                { 566, 67 },
++                { 567, 70 },
++                { 593, 23 },
++                { 594, 24 },
++                { 595, 25 },
++                { 596, 26 },
++                { 597, 27 },
++                { 598, 28 },
++                { 602, 59 },
++                { 609, 94 },
++                { 610, 96 },
++                { 611, 98 },
++                { 612, 99 },
++                { 613, 100 },
++                { 614, 102 },
++                { 615, 106 },
++                { 616, 103 },
++                { 617, 107 },
+             }
+         },
+     };
 diff --git a/src/Persistence/Initialization/GameConfigurationInitializerBase.cs b/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
 index b2d78ef9..ba3c42bd 100644
 --- a/src/Persistence/Initialization/GameConfigurationInitializerBase.cs
@@ -234,6 +481,534 @@ KzYrX}J>mcLA#*MO
 literal 0
 HcmV?d00001
 
+diff --git a/src/Persistence/Initialization/Skills/MagicEffectNumber.cs b/src/Persistence/Initialization/Skills/MagicEffectNumber.cs
+index 8742e32a..8b9c2e21 100644
+--- a/src/Persistence/Initialization/Skills/MagicEffectNumber.cs
++++ b/src/Persistence/Initialization/Skills/MagicEffectNumber.cs
+@@ -357,6 +357,80 @@ internal enum MagicEffectNumber : short
+     /// </summary>
+     IncreaseHealthStrengthener = 155,
+ 
++    #region Season 8 consumables (Data/Effect/Effect.txt of the Season 8 package, rows 166 to 180).
++
++    /// <summary>
++    /// The effect of the Talisman of Ascension I (13/177): +50 % experience for 30 minutes.
++    /// </summary>
++    TalismanOfAscension1 = 190,
++
++    /// <summary>
++    /// The effect of the Talisman of Ascension II (13/178): +100 % experience for 30 minutes.
++    /// </summary>
++    TalismanOfAscension2 = 191,
++
++    /// <summary>
++    /// The effect of the Talisman of Ascension III (13/179): +200 % experience for 30 minutes.
++    /// </summary>
++    TalismanOfAscension3 = 192,
++
++    /// <summary>
++    /// The effect of the Seal of Ascension II (13/180): +100 % experience for 30 minutes.
++    /// </summary>
++    SealOfAscension2 = 193,
++
++    /// <summary>
++    /// The effect of the Master Seal of Ascension II (13/181): +100 % experience for 30 minutes.
++    /// </summary>
++    MasterSealOfAscension2 = 194,
++
++    /// <summary>
++    /// The effect of the Blessing of Light (14/224): +200 % experience for 30 minutes.
++    /// </summary>
++    BlessingOfLight = 195,
++
++    /// <summary>
++    /// The effect of the Scroll Master of Defense (14/225): +120 defense for 30 minutes.
++    /// </summary>
++    MasterScrollOfDefense = 196,
++
++    /// <summary>
++    /// The effect of the Scroll Master of Wizardry (14/226): +60 wizardry damage for 30 minutes.
++    /// </summary>
++    MasterScrollOfWizardry = 197,
++
++    /// <summary>
++    /// The effect of the Scroll Master of Health (14/227): +400 maximum health for 30 minutes.
++    /// </summary>
++    MasterScrollOfHealth = 198,
++
++    /// <summary>
++    /// The effect of the Scroll Master of Mana (14/228): +600 maximum mana for 30 minutes.
++    /// </summary>
++    MasterScrollOfMana = 199,
++
++    //// 200 would be the Scroll Master of Wrath (14/229, +60 damage) and 201 the Scroll Master of
++    //// Recovery (14/230), but those two numbers are taken below by the internal ShieldSkill and
++    //// Alcohol effects. Left out until it's decided whether to renumber those; see
++    //// servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md.
++
++    /// <summary>
++    /// The effect of the Scroll Master of Battle (14/231): +25 attack rate for 30 minutes.
++    /// </summary>
++    MasterScrollOfBattle = 202,
++
++    /// <summary>
++    /// The effect of the Scroll Master of Strengthener (14/232): +25 defense rate for 30 minutes.
++    /// </summary>
++    MasterScrollOfStrengthener = 203,
++
++    /// <summary>
++    /// The effect of the Scroll Master of Quickness (14/235): +20 attack speed for 30 minutes.
++    /// </summary>
++    MasterScrollOfQuickness = 204,
++
++    #endregion
++
+     #region Artificial effects which are not sent to the client, starting at 200.
+ 
+     /// <summary>
+diff --git a/src/Persistence/Initialization/Skills/SkillNumber.cs b/src/Persistence/Initialization/Skills/SkillNumber.cs
+index 0c5b94de..3796d390 100644
+--- a/src/Persistence/Initialization/Skills/SkillNumber.cs
++++ b/src/Persistence/Initialization/Skills/SkillNumber.cs
+@@ -388,7 +388,22 @@ internal enum SkillNumber
+     DarkSpiritStr4 = 536,
+     DarkSpiritStr5 = 538,
+     SpiritLord = 539,
++    ReigningCloakDefPowUp = 549,
++    ReigningCloakAttPowUp = 550,
++    DragonRoarMastery = 561,
++    ChainDriveMastery = 562,
++    DarkSideMastery = 563,
++    DragonSlasherStr = 564,
++    BloodHowling = 565,
++    DragonSlasherMastery = 566,
++    BloodHowlingStr = 567,
+     CastInvincibilityFistMaster = 592,
++    ArmorSetBonusIncFistMaster = 593,
++    VengeanceFistMaster = 594,
++    EnergyIncreaseFistMaster = 595,
++    StaminaIncreaseFistMaster = 596,
++    AgilityIncreaseFistMaster = 597,
++    StrengthIncreaseFistMaster = 598,
+     IncreaseMaximumAg = 602,
+     IncreaseMaximumAttackPower = 609,
+     IncreasesCritDamageChance = 610,
+diff --git a/src/Persistence/Initialization/Updates/AddSeason8MasterSkillTreePlugIn.cs b/src/Persistence/Initialization/Updates/AddSeason8MasterSkillTreePlugIn.cs
+new file mode 100644
+index 00000000..3b6359fb
+--- /dev/null
++++ b/src/Persistence/Initialization/Updates/AddSeason8MasterSkillTreePlugIn.cs
+@@ -0,0 +1,93 @@
++﻿// <copyright file="AddSeason8MasterSkillTreePlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.Updates;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.GameLogic.Attributes;
++using MUnique.OpenMU.Persistence.Initialization.Skills;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Adds the ranks 6 to 9 of the master skill tree to an existing Season 6 database.
++/// </summary>
++/// <remarks>
++/// The tree up to rank 5 is created by <c>VersionSeasonSix.SkillsInitializer</c>, which only
++/// runs when a database is created from scratch. This update adds the 103 rows of the ranks 6 to 9
++/// (180 slots over the seven master classes, 15 of the skills did not exist in OpenMU at all)
++/// on top of a configuration which is already in use, so the characters which already spent master
++/// points keep them.
++/// It does not touch anything which is already there: it only adds skills, master skill definitions
++/// and the stat attributes those definitions need.
++/// </remarks>
++[PlugIn]
++[Display(Name = PlugInName, Description = PlugInDescription)]
++[Guid("BF246CCB-9060-4790-9DCD-21F142D2EBB2")]
++public class AddSeason8MasterSkillTreePlugIn : UpdatePlugInBase
++{
++    /// <summary>
++    /// The plug-in name.
++    /// </summary>
++    internal const string PlugInName = "Add Season 8 master skill tree (ranks 6 to 9)";
++
++    /// <summary>
++    /// The plug-in description.
++    /// </summary>
++    internal const string PlugInDescription = "This update adds the ranks 6 to 9 of the master skill tree, as the Season 8 client shows them.";
++
++    /// <inheritdoc />
++    public override string Name => PlugInName;
++
++    /// <inheritdoc />
++    public override string Description => PlugInDescription;
++
++    /// <inheritdoc />
++    public override UpdateVersion Version => UpdateVersion.AddSeason8MasterSkillTree;
++
++    /// <inheritdoc />
++    public override string DataInitializationKey => VersionSeasonSix.DataInitialization.Id;
++
++    /// <inheritdoc />
++    public override bool IsMandatory => false;
++
++    /// <inheritdoc />
++    public override DateTime CreatedAt => new(2026, 9, 16, 12, 0, 0, DateTimeKind.Utc);
++
++    /// <inheritdoc />
++    protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
++    {
++        // The 19 attributes the new definitions point at. A database which was created by an
++        // older version does not have all of them, and MasterSkillDefinition.TargetAttribute needs
++        // the persistent instance.
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.ComboBonus);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.CriticalDamageChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.DefenseIgnoreChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.DoubleDamageChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.DrainLifeStrBonusHealing);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.ExcellentDamageChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.ExtraProjectiles);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.FullyRecoverHealthAfterHitChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.FullyRecoverManaAfterHitChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.FullyReflectDamageAfterHitChance);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.MaximumAbility);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.MaximumPhysBaseDmg);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.MaximumWizBaseDmg);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.RavenAttackSpeed);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.TotalAgility);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.TotalEnergy);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.TotalLeadership);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.TotalStrength);
++        this.AddStatIfNotExists(context, gameConfiguration, Stats.TotalVitality);
++
++        if (gameConfiguration.Skills.Any(s => s.Number == (short)SkillNumber.ArmorSetBonusInc))
++        {
++            // The tree is already there; do not add it twice.
++            return ValueTask.CompletedTask;
++        }
++
++        new VersionSeasonSix.SkillsInitializer(context, gameConfiguration).AddSeason8MasterSkillTree();
++        return ValueTask.CompletedTask;
++    }
++}
+diff --git a/src/Persistence/Initialization/Updates/AddSeasonEightItemsAndDropsUpdatePlugIn.cs b/src/Persistence/Initialization/Updates/AddSeasonEightItemsAndDropsUpdatePlugIn.cs
+new file mode 100644
+index 00000000..cde4a174
+--- /dev/null
++++ b/src/Persistence/Initialization/Updates/AddSeasonEightItemsAndDropsUpdatePlugIn.cs
+@@ -0,0 +1,292 @@
++﻿// <copyright file="AddSeasonEightItemsAndDropsUpdatePlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.Updates;
++
++using System.Runtime.InteropServices;
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.DataModel.Configuration.Items;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Adds the Season 8 items which need no new system, and the drops of Acheron, to an existing
++/// Season 6 database.
++/// </summary>
++/// <remarks>
++/// All of this lives in the item initializers, which only run when a database is created from
++/// scratch. This update seeds the same content into a database which is already running:
++///   six premium wings (12/262 to 12/267),
++///   four transformation rings (13/77, 13/78, 13/163, 13/164),
++///   seven "unique" accessories (13/169 to 13/176),
++///   six crafting materials and thirteen boss materials,
++///   fifteen consumables with a timed effect,
++///   the four drop groups of Acheron, the global Spirit Map Fragment group and the nine boss
++///   material drop groups of Raklion.
++/// The reasoning and the sources for every number are in
++/// servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md.
++/// </remarks>
++[PlugIn]
++[Display(Name = PlugInName, Description = PlugInDescription)]
++[Guid("3F1C7A46-92D8-4B05-9E63-5A7D0C81E4B2")]
++public class AddSeasonEightItemsAndDropsUpdatePlugIn : UpdatePlugInBase
++{
++    /// <summary>
++    /// The plug-in name.
++    /// </summary>
++    internal const string PlugInName = "Add Season 8 items and drops";
++
++    /// <summary>
++    /// The plug-in description.
++    /// </summary>
++    internal const string PlugInDescription = "This update adds the Season 8 items which need no new system (premium wings, transformation rings, accessories, materials and timed-effect consumables), the drops of Acheron and the boss material drops of Raklion.";
++
++    /// <summary>
++    /// The number of the first premium wing; it is used to tell whether this update already ran.
++    /// </summary>
++    private const short CloakOfDeathNumber = 262;
++
++    /// <inheritdoc />
++    public override string Name => PlugInName;
++
++    /// <inheritdoc />
++    public override string Description => PlugInDescription;
++
++    /// <inheritdoc />
++    public override UpdateVersion Version => UpdateVersion.AddSeasonEightItemsAndDrops;
++
++    /// <inheritdoc />
++    public override string DataInitializationKey => VersionSeasonSix.DataInitialization.Id;
++
++    /// <inheritdoc />
++    public override bool IsMandatory => false;
++
++    /// <inheritdoc />
++    public override DateTime CreatedAt => new(2026, 09, 16, 2, 0, 0, DateTimeKind.Utc);
++
++    /// <inheritdoc />
++    protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
++    {
++        if (gameConfiguration.Items.Any(item => item.Group == 12 && item.Number == CloakOfDeathNumber))
++        {
++            // Already there, nothing to do.
++            return ValueTask.CompletedTask;
++        }
++
++        new WingsSeeder(context, gameConfiguration).Seed();
++        new JewelerySeeder(context, gameConfiguration).Seed();
++        new MiscSeeder(context, gameConfiguration).Seed();
++        new PotionsSeeder(context, gameConfiguration).Seed();
++
++        AddSpiritMapFragmentDropGroup(context, gameConfiguration);
++        AddAcheronDropGroups(context, gameConfiguration);
++        AddRaklionBossMaterialDropGroups(context, gameConfiguration);
++
++        return ValueTask.CompletedTask;
++    }
++
++    /// <summary>
++    /// Ties the nine boss materials to the Raklion bosses which drop them.
++    /// </summary>
++    /// <remarks>
++    /// Data/Item/ItemDrop.txt of the Season 8 package, the nine rows with a MonsterClass of 454 to
++    /// 458 and 562 to 565, all with DropRate 1000 (0.1 %). A monster bound group is read straight
++    /// from MonsterDefinition.DropItemGroups by the drop generator, so it only has to be hung on
++    /// the monster.
++    /// </remarks>
++    private static void AddRaklionBossMaterialDropGroups(IContext context, GameConfiguration gameConfiguration)
++    {
++        (short MonsterNumber, short ItemNumber, string Description)[] groups =
++        [
++            (454, 180, "Ice Walker's Mane"),
++            (455, 181, "Mammoth's Bundle of Fur"),
++            (456, 182, "Giant's Icicle"),
++            (457, 183, "Coolutin's Poison"),
++            (458, 184, "Iron Knight's Heart"),
++            (562, 185, "Dark Mammoth's Horn"),
++            (563, 186, "Dark Giant's Axe"),
++            (564, 187, "Dark Coolutin's Blood"),
++            (565, 188, "Dark Iron Knight's Sword"),
++        ];
++
++        foreach (var (monsterNumber, itemNumber, description) in groups)
++        {
++            var monster = gameConfiguration.Monsters.FirstOrDefault(m => m.Number == monsterNumber);
++            var item = gameConfiguration.Items.FirstOrDefault(i => i.Group == 14 && i.Number == itemNumber);
++            if (monster is null || item is null)
++            {
++                continue;
++            }
++
++            var groupId = GuidHelper.CreateGuid<DropItemGroup>(VersionSeasonSix.Maps.Raklion.Number, monsterNumber);
++            if (gameConfiguration.DropItemGroups.Any(g => g.GetId() == groupId))
++            {
++                continue;
++            }
++
++            var group = context.CreateNew<DropItemGroup>();
++            group.SetGuid(VersionSeasonSix.Maps.Raklion.Number, monsterNumber);
++            group.Chance = 0.001;
++            group.Description = description;
++            group.Monster = monster;
++            group.PossibleItems.Add(item);
++            monster.DropItemGroups.Add(group);
++            gameConfiguration.DropItemGroups.Add(group);
++        }
++    }
++
++    /// <summary>
++    /// Adds the global drop group of the Spirit Map Fragment to every map.
++    /// </summary>
++    /// <remarks>
++    /// <see cref="BaseMapInitializer.RegisterDefaultDropItemGroup"/> only fills a static list which
++    /// is read while a database is being created. On a running database the group has to be hung on
++    /// each existing map, because <c>DefaultDropGenerator</c> only looks at the drop groups of the
++    /// monster, the character and the map, never at the global list.
++    /// </remarks>
++    private static void AddSpiritMapFragmentDropGroup(IContext context, GameConfiguration gameConfiguration)
++    {
++        var fragment = gameConfiguration.Items.FirstOrDefault(item => item.Group == 13 && item.Number == 145);
++        if (fragment is null)
++        {
++            return;
++        }
++
++        var groupId = GuidHelper.CreateGuid<DropItemGroup>(13, 145);
++        var group = gameConfiguration.DropItemGroups.FirstOrDefault(g => g.GetId() == groupId);
++        if (group is null)
++        {
++            group = context.CreateNew<DropItemGroup>();
++            group.SetGuid(13, 145);
++            group.Chance = 0.003;
++            group.Description = "The drop item group for the Spirit Map Fragment";
++            group.MinimumMonsterLevel = 25;
++            group.MaximumMonsterLevel = 150;
++            group.PossibleItems.Add(fragment);
++            gameConfiguration.DropItemGroups.Add(group);
++        }
++
++        foreach (var map in gameConfiguration.Maps)
++        {
++            if (!map.DropItemGroups.Any(g => g.GetId() == groupId))
++            {
++                map.DropItemGroups.Add(group);
++            }
++        }
++    }
++
++    /// <summary>
++    /// Adds the four mix material drop groups of Acheron to the map which already exists.
++    /// </summary>
++    private static void AddAcheronDropGroups(IContext context, GameConfiguration gameConfiguration)
++    {
++        var map = gameConfiguration.Maps.FirstOrDefault(m => m.Number == VersionSeasonSix.Maps.Acheron.Number && m.Discriminator == 0);
++        if (map is null)
++        {
++            return;
++        }
++
++        (byte Number, byte ItemGroup, short ItemNumber, string Description, double Chance)[] groups =
++        [
++            (1, 12, 144, "Mithril Fragment", 0.02),
++            (2, 12, 146, "Elixir Fragment", 0.0025),
++            (3, 12, 150, "Jewel Combination Frame", 0.001),
++            (4, 12, 151, "Spirit Powder", 0.001),
++        ];
++
++        foreach (var (number, itemGroup, itemNumber, description, chance) in groups)
++        {
++            var item = gameConfiguration.Items.FirstOrDefault(i => i.Group == itemGroup && i.Number == itemNumber);
++            if (item is null)
++            {
++                continue;
++            }
++
++            var groupId = GuidHelper.CreateGuid<DropItemGroup>(VersionSeasonSix.Maps.Acheron.Number, number);
++            var group = gameConfiguration.DropItemGroups.FirstOrDefault(g => g.GetId() == groupId);
++            if (group is null)
++            {
++                group = context.CreateNew<DropItemGroup>();
++                group.SetGuid(VersionSeasonSix.Maps.Acheron.Number, number);
++                group.Chance = chance;
++                group.Description = description;
++                group.MinimumMonsterLevel = 88;
++                group.MaximumMonsterLevel = 150;
++                group.PossibleItems.Add(item);
++                gameConfiguration.DropItemGroups.Add(group);
++            }
++
++            if (!map.DropItemGroups.Any(g => g.GetId() == groupId))
++            {
++                map.DropItemGroups.Add(group);
++            }
++        }
++    }
++
++    /// <summary>
++    /// Creates the six premium wings through the initializer which also creates them from scratch.
++    /// </summary>
++    private sealed class WingsSeeder : VersionSeasonSix.Items.Wings
++    {
++        public WingsSeeder(IContext context, GameConfiguration gameConfiguration)
++            : base(context, gameConfiguration)
++        {
++        }
++
++        public void Seed()
++        {
++            // The wings reuse the "3rd Wing Options" definition, which has a deterministic id and
++            // is already in the database. Creating it again would collide.
++            var optionsId = GuidHelper.CreateGuid<ItemOptionDefinition>(ItemOptionDefinitionNumbers.Wing3rd);
++            var thirdWingOptions = this.GameConfiguration.ItemOptions.FirstOrDefault(o => o.GetId() == optionsId)
++                                   ?? this.CreateThirdClassWingOptions();
++            this.CreateSeasonEightWings(thirdWingOptions);
++        }
++    }
++
++    /// <summary>
++    /// Creates the transformation rings and the unique accessories.
++    /// </summary>
++    private sealed class JewelerySeeder : VersionSeasonSix.Items.Jewelery
++    {
++        public JewelerySeeder(IContext context, GameConfiguration gameConfiguration)
++            : base(context, gameConfiguration)
++        {
++        }
++
++        public void Seed()
++        {
++            // Neither of the two needs the state which Initialize would build: the transformation
++            // rings bring their own level bonus table, and the accessories are created without the
++            // jewelery health option and without a resistance.
++            this.CreateSeasonEightTransformationRings();
++            this.CreateSeasonEightAccessories();
++        }
++    }
++
++    /// <summary>
++    /// Creates the crafting and boss materials.
++    /// </summary>
++    private sealed class MiscSeeder : VersionSeasonSix.Items.Misc
++    {
++        public MiscSeeder(IContext context, GameConfiguration gameConfiguration)
++            : base(context, gameConfiguration)
++        {
++        }
++
++        public void Seed() => this.CreateSeasonEightMaterials();
++    }
++
++    /// <summary>
++    /// Creates the consumables with a timed effect and their magic effect definitions.
++    /// </summary>
++    private sealed class PotionsSeeder : VersionSeasonSix.Items.Potions
++    {
++        public PotionsSeeder(IContext context, GameConfiguration gameConfiguration)
++            : base(context, gameConfiguration)
++        {
++        }
++
++        public void Seed() => this.CreateSeasonEightConsumables();
++    }
++}
+diff --git a/src/Persistence/Initialization/Updates/UpdateVersion.cs b/src/Persistence/Initialization/Updates/UpdateVersion.cs
+index cab7f067..ead1605c 100644
+--- a/src/Persistence/Initialization/Updates/UpdateVersion.cs
++++ b/src/Persistence/Initialization/Updates/UpdateVersion.cs
+@@ -579,4 +579,14 @@ public enum UpdateVersion
+     /// The version of the <see cref="AddKanturuMapContentUpdatePlugIn"/>.
+     /// </summary>
+     AddKanturuMapContent = 114,
++
++    /// <summary>
++    /// The version of the <see cref="AddSeason8MasterSkillTreePlugIn"/>.
++    /// </summary>
++    AddSeason8MasterSkillTree = 115,
++
++    /// <summary>
++    /// The version of the <see cref="AddSeasonEightItemsAndDropsUpdatePlugIn"/>.
++    /// </summary>
++    AddSeasonEightItemsAndDrops = 116,
+ }
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
 index c0d52d96..7c5d874a 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
@@ -345,6 +1120,331 @@ index e5aba3ce..ef14bf86 100644
      }
  
      private void AddGuardianOptionsToSets()
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Jewelery.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Jewelery.cs
+index 01632f87..ac3e4b16 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Items/Jewelery.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Jewelery.cs
+@@ -102,19 +102,103 @@ internal class Jewelery : Version095d.Items.Jewelery
+             this.CreateItemOptionDefinition("Skeleton Transformation Ring", ItemOptionDefinitionNumbers.SkeletonTransformationRing,
+                 (Stats.BonusExperienceRate, 0, AggregateType.AddRaw, (Stats.IsPetSkeletonEquipped, 0.3f))));
+ 
+-        /* Next season xfm rings
+-        var robotKnightRing = this.CreateTransformationRing(163, "Robot Knight Transformation Ring", 1, 255, ??, (CharacterTransformationSkin)625,
++        this.CreateSeasonEightTransformationRings();
++
++        /* Great Heavenly Mage Transformation Ring (13/165). The Season 8 package defines it
++        (Data/Item/Item.txt section 13 and Data/Monster/Monster.txt monster type 642), but the
++        client Data has no Monster274.bmd, which is the model that type maps to, so the player
++        would transform into nothing. Left out on purpose; see
++        servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md.
++        var greatHeavenlyMageRing = this.CreateTransformationRing(165, "Great Heavenly Mage Transformation Ring", 1, 255, 0, (CharacterTransformationSkin)642,
++            (Stats.BaseDamageBonus, 40, AggregateType.AddRaw),
++            (Stats.CurseBaseDmg, 40, AggregateType.AddRaw),
++            (Stats.FinalDamageBonus, 30, AggregateType.AddRaw));*/
++#pragma warning restore SA1011
++
++        this.CreateSeasonEightAccessories();
++    }
++
++    /// <summary>
++    /// Creates the transformation rings which came with Season 8 and the two extra panda rings.
++    /// </summary>
++    /// <remarks>
++    /// Nothing new is needed: they are ordinary transformation rings in slot 10.
++    /// Sources (Season 8 server package, Data/Item/):
++    ///   Item.txt section 13         slot 10, item level 1, durability 255, all character classes.
++    ///   ItemOption.txt sections 9+  the fixed options. The OptionIndex meaning was decoded against
++    ///                               rings and pets which already exist here, so every value below
++    ///                               comes from a mapping with at least one control:
++    ///                                 123 -> BaseDamageBonus + CurseBaseDmg
++    ///                                        (13/76 Panda 30, 13/122 Skeleton 40, 13/41 Christmas 20)
++    ///                                 118 -> FinalDamageBonus      (13/76 Panda 30)
++    ///                                 117 -> BonusExperienceRate % (13/80 Pet Panda 50 -> 0.5,
++    ///                                                               13/123 Pet Skeleton 30 -> 0.3)
++    ///                                  97 -> AttackSpeedAny        (13/123 Pet Skeleton 10, 13/64 Demon 10)
++    ///                                  86 -> MoneyAmountRate %     (13/76 Panda 50 -> x1.5,
++    ///                                                               13/106 Pet Unicorn 50 -> x1.5)
++    ///                                  83 -> DefenseFinal          (13/80 Pet Panda 50, 13/106 Unicorn 50)
++    /// The transformation skins are monster types. 625 and 626 are registered in the client's
++    /// Data/Local/ExtraMonsters.txt (models Monster257.bmd and Monster258.bmd, both present) and
++    /// 503 is the panda the client already knows from 13/76.
++    /// </remarks>
++    protected void CreateSeasonEightTransformationRings()
++    {
++#pragma warning disable SA1117 // Parameters should be on same line or separete lines
++        this.CreateTransformationRing(77, "Brown Panda Transformation Ring", 1, 255, 0, CharacterTransformationSkin.Panda,
++            (Stats.BaseDamageBonus, 30, AggregateType.AddRaw),
++            (Stats.CurseBaseDmg, 30, AggregateType.AddRaw),
++            (Stats.FinalDamageBonus, 30, AggregateType.AddRaw),
++            (Stats.MoneyAmountRate, 1.5f, AggregateType.Multiplicate),
++            (Stats.BonusExperienceRate, 0.3f, AggregateType.AddRaw));
++        this.CreateTransformationRing(78, "Pink Panda Transformation Ring", 1, 255, 0, CharacterTransformationSkin.Panda,
+             (Stats.BaseDamageBonus, 30, AggregateType.AddRaw),
+             (Stats.CurseBaseDmg, 30, AggregateType.AddRaw),
++            (Stats.FinalDamageBonus, 30, AggregateType.AddRaw),
++            (Stats.MoneyAmountRate, 1.5f, AggregateType.Multiplicate),
++            (Stats.BonusExperienceRate, 0.5f, AggregateType.AddRaw));
++        this.CreateTransformationRing(163, "Robot Knight Transformation Ring", 1, 255, 0, (CharacterTransformationSkin)625,
++            (Stats.BaseDamageBonus, 30, AggregateType.AddRaw),
++            (Stats.CurseBaseDmg, 30, AggregateType.AddRaw),
++            (Stats.FinalDamageBonus, 30, AggregateType.AddRaw),
+             (Stats.DefenseFinal, 10, AggregateType.AddRaw));
+-        var miniRobotRing = this.CreateTransformationRing(164, "Mini Robot Transformation Ring", 1, 255, ??, (CharacterTransformationSkin)626,
++        this.CreateTransformationRing(164, "Mini Robot Transformation Ring", 1, 255, 0, (CharacterTransformationSkin)626,
+             (Stats.BaseDamageBonus, 30, AggregateType.AddRaw),
+             (Stats.CurseBaseDmg, 30, AggregateType.AddRaw),
++            (Stats.FinalDamageBonus, 30, AggregateType.AddRaw),
+             (Stats.AttackSpeedAny, 7, AggregateType.AddRaw));
+-        var greatHeavenlyMageRing = this.CreateTransformationRing(165, "Great Heavenly Mage Transformation Ring", 1, 255, ??, (CharacterTransformationSkin)642,
+-            (Stats.BaseDamageBonus, 40, AggregateType.AddRaw),
+-            (Stats.CurseBaseDmg, 40, AggregateType.AddRaw));*/
+-#pragma warning restore SA1011
++#pragma warning restore SA1117
++    }
++
++    /// <summary>
++    /// Creates the seven "unique" accessories which came with Season 8 (item group 13).
++    /// </summary>
++    /// <remarks>
++    /// Sources (Season 8 server package, Data/Item/):
++    ///   Item.txt section 13         slot, item level and durability of each one.
++    ///   ItemOption.txt sections 9+  the fixed options. Only OptionIndex 97 (AttackSpeedAny) could
++    ///                               be decoded with a control, and it only applies to 13/169 and
++    ///                               13/170.
++    /// NOT applied, because it can't be resolved from the package: the per-level random option
++    /// table of ItemOption.txt sections 3 to 8 (36 rows, OptionIndex 86 to 99). Only 86
++    /// (MoneyAmountRate) and 97 (AttackSpeedAny) have a control here; the names of the rest live in
++    /// the game client binary, not in any file of the package. The rows are listed verbatim in
++    /// servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md.
++    /// 13/175 "Protector Protection Ring" has neither an option nor a drop in the package: it is
++    /// only defined, and it is created here the same way, inert.
++    /// </remarks>
++    protected void CreateSeasonEightAccessories()
++    {
++        var decorationRing = this.CreateJewelery(169, 10, false, "Decoration Ring", 0, 30, null, null, null);
++        decorationRing.BasePowerUpAttributes.Add(this.CreateItemBasePowerUpDefinition(Stats.AttackSpeedAny, 10f, AggregateType.AddRaw));
++
++        var blessedDecorationRing = this.CreateJewelery(170, 10, false, "Blessed Decoration Ring", 0, 255, null, null, null);
++        blessedDecorationRing.BasePowerUpAttributes.Add(this.CreateItemBasePowerUpDefinition(Stats.AttackSpeedAny, 10f, AggregateType.AddRaw));
++
++        this.CreateJewelery(171, 9, false, "Necklace of Agony", 122, 60, null, null, null);
++        this.CreateJewelery(172, 9, false, "Solid Symbol", 110, 60, null, null, null);
++        this.CreateJewelery(173, 10, false, "Ring of Ultimatum", 98, 60, null, null, null);
++        this.CreateJewelery(175, 10, false, "Protector Protection Ring", 74, 60, null, null, null);
++        this.CreateJewelery(176, 10, false, "Protection Ring", 62, 60, null, null, null);
+     }
+ 
+     private ItemOptionDefinition CreateItemOptionDefinition(string name, short number, params (AttributeDefinition TargetOption, float Value, AggregateType AggregateType, (AttributeDefinition? SourceAttribute, float Multiplier))[] options)
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs
+index b0fc83a7..957e670d 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Misc.cs
+@@ -1,4 +1,4 @@
+-// <copyright file="Misc.cs" company="MUnique">
++﻿// <copyright file="Misc.cs" company="MUnique">
+ // Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ // </copyright>
+ 
+@@ -30,6 +30,100 @@ public class Misc : InitializerBase
+         this.CreateLostMap();
+         this.CreateSymbolOfKundun();
+         this.CreateRena();
++        this.CreateSeasonEightMaterials();
++        this.CreateSpiritMapFragmentDropGroup();
++    }
++
++    /// <summary>
++    /// Creates an item which is nothing but a name and a size in the inventory: crafting
++    /// materials, quest items, trophies.
++    /// </summary>
++    /// <param name="group">The item group.</param>
++    /// <param name="number">The item number inside the group.</param>
++    /// <param name="name">The name.</param>
++    /// <param name="width">The width in the inventory.</param>
++    /// <param name="height">The height in the inventory.</param>
++    /// <param name="durability">The durability, which is the stack size for these items.</param>
++    /// <returns>The created item definition.</returns>
++    public ItemDefinition CreateSimpleItem(byte group, short number, string name, byte width, byte height, byte durability = 1)
++    {
++        var itemDefinition = this.Context.CreateNew<ItemDefinition>();
++        itemDefinition.Name = name;
++        itemDefinition.Group = group;
++        itemDefinition.Number = number;
++        itemDefinition.Width = width;
++        itemDefinition.Height = height;
++        itemDefinition.Durability = durability;
++        itemDefinition.DropsFromMonsters = false;
++        itemDefinition.SetGuid(itemDefinition.Group, itemDefinition.Number);
++        this.GameConfiguration.Items.Add(itemDefinition);
++        return itemDefinition;
++    }
++
++    /// <summary>
++    /// Creates the Season 8 crafting materials which need no new system: they are inert items in
++    /// the inventory which only have to exist so that they can drop and be traded.
++    /// </summary>
++    /// <remarks>
++    /// Sizes and names come from the Season 8 server package, Data/Item/Item.txt sections 12
++    /// (numbers 144 to 151) and 14 (numbers 176 to 188). Every one of them was checked against the
++    /// client item table (Data/Local/Eng/item_eng.bmd) before being added; see
++    /// servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md.
++    /// Not added on purpose: 12/145 Mithril, 12/147 Elixir and the two "Bunch" items 12/148 and
++    /// 12/149, because they are only reachable through the 5-to-1 stacking rule of
++    /// Data/Item/ItemStack.txt, which OpenMU doesn't have; nothing would ever create them.
++    /// </remarks>
++    protected void CreateSeasonEightMaterials()
++    {
++        // Acheron mix materials. These four are the ones the map drops (Data/Item/ItemDrop.txt:11-14).
++        this.CreateSimpleItem(12, 144, "Mithril Fragment", 1, 1);
++        this.CreateSimpleItem(12, 146, "Elixir Fragment", 1, 1);
++        this.CreateSimpleItem(12, 150, "Jewel Combination Frame", 2, 1);
++        this.CreateSimpleItem(12, 151, "Spirit Powder", 1, 2);
++
++        // Access to Acheron. Both are inert for now: the 5 fragments to 1 map stacking rule and the
++        // NPC which takes the map don't exist yet.
++        this.CreateSimpleItem(13, 145, "Spirit Map Fragment", 1, 1);
++        this.CreateSimpleItem(13, 146, "Spirit Map", 1, 1);
++
++        // Boss materials. The package drops them from the Raklion bosses (Data/Item/ItemDrop.txt,
++        // monsters 454-458 and 562-565); those nine drop groups are NOT wired here, see the report.
++        this.CreateSimpleItem(14, 176, "Death King's Bone", 1, 1);
++        this.CreateSimpleItem(14, 177, "Hell Maine's Leather", 1, 1);
++        this.CreateSimpleItem(14, 178, "Dark Phoenix Flame", 1, 1);
++        this.CreateSimpleItem(14, 179, "Death Beam Knight Soul", 1, 1);
++        this.CreateSimpleItem(14, 180, "Ice Walker's Mane", 1, 1);
++        this.CreateSimpleItem(14, 181, "Mammoth's Bundle of Fur", 1, 1);
++        this.CreateSimpleItem(14, 182, "Giant's Icicle", 1, 2);
++        this.CreateSimpleItem(14, 183, "Coolutin's Poison", 1, 1);
++        this.CreateSimpleItem(14, 184, "Iron Knight's Heart", 1, 1);
++        this.CreateSimpleItem(14, 185, "Dark Mammoth's Horn", 1, 1);
++        this.CreateSimpleItem(14, 186, "Dark Giant's Axe", 1, 2);
++        this.CreateSimpleItem(14, 187, "Dark Coolutin's Blood", 1, 1);
++        this.CreateSimpleItem(14, 188, "Dark Iron Knight's Sword", 1, 4);
++    }
++
++    /// <summary>
++    /// Creates the global drop group of the Spirit Map Fragment, the entry ticket to Acheron.
++    /// </summary>
++    /// <remarks>
++    /// Data/Item/ItemDrop.txt: index 6801 (13/145), monster level 25 to 150, DropRate 3000. The
++    /// package's DropRate scale isn't documented anywhere in it; it is read here as parts per
++    /// million, which is the only reading that matches an anchor present in both sources (the Dark
++    /// Horse and Dark Raven spirits are 1000 there and 0.001 in Pets.cs). So 3000 -> 0.3 %.
++    /// </remarks>
++    private void CreateSpiritMapFragmentDropGroup()
++    {
++        var fragment = this.GameConfiguration.Items.First(item => item.Group == 13 && item.Number == 145);
++        var dropItemGroup = this.Context.CreateNew<DropItemGroup>();
++        dropItemGroup.SetGuid(13, 145);
++        dropItemGroup.PossibleItems.Add(fragment);
++        dropItemGroup.Chance = 0.003;
++        dropItemGroup.Description = "The drop item group for the Spirit Map Fragment";
++        dropItemGroup.MinimumMonsterLevel = 25;
++        dropItemGroup.MaximumMonsterLevel = 150;
++        this.GameConfiguration.DropItemGroups.Add(dropItemGroup);
++        BaseMapInitializer.RegisterDefaultDropItemGroup(dropItemGroup);
+     }
+ 
+     private void CreateLostMap()
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Potions.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Potions.cs
+index bfa2d41d..10cd7a52 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Items/Potions.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Potions.cs
+@@ -59,6 +59,94 @@ public class Potions : InitializerBase
+         this.GameConfiguration.Items.Add(this.CreateCherryBlossomWine());
+         this.GameConfiguration.Items.Add(this.CreateCherryBlossomRiceCake());
+         this.GameConfiguration.Items.Add(this.CreateCherryBlossomFlowerPetal());
++
++        this.CreateSeasonEightConsumables();
++    }
++
++    /// <summary>
++    /// Creates the Season 8 items which only give a timed buff when they're used: the ascension
++    /// talismans and seals, the Blessing of Light and the nine Master Scrolls.
++    /// </summary>
++    /// <remarks>
++    /// No new handler is needed; they all work through
++    /// <see cref="ItemDefinition.ConsumeEffect"/>, like the Jack O'Lantern items above.
++    /// Source: Data/Effect/Effect.txt of the Season 8 server package, rows 166 to 180 (effect
++    /// indexes 190 to 204). Every row gives ItemIndex (group * 512 + number), duration in seconds
++    /// and the values. The Index column of that file IS the effect number OpenMU sends to the
++    /// client: checked against <see cref="MagicEffectNumber"/> on 22 effects which already exist
++    /// (1-11, 29-32, 34-39, 44-49, 55, 56, 72, 73, 78-80, 129-131, 135, 148, 153-155), zero misses.
++    /// Two things are deliberately different from the package, both written up in
++    /// servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md:
++    ///   - Scroll Master of Wrath (14/229) and of Recovery (14/230) would need effect numbers 200
++    ///     and 201, which are already taken by the internal ShieldSkill and Alcohol effects. Two
++    ///     definitions with the same number would break the "First(e => e.Number == ...)" lookups
++    ///     which several initializers and update plug-ins use, so the two items are created here
++    ///     without an effect until it's decided whether to renumber the internal ones.
++    ///   - The SubType (which decides what cancels what) is not the package's Group value: 73 and
++    ///     74 are already used by the Increase Health and Increase Block skill effects. The twelve
++    ///     package groups are mapped onto the free band 80 to 91, keeping "same group, same
++    ///     SubType" so the three talismans still cancel each other and the scrolls still stack.
++    /// </remarks>
++    protected void CreateSeasonEightConsumables()
++    {
++        // Ascension talismans and seals: a flat experience bonus for 30 minutes. In OpenMU
++        // Stats.BonusExperienceRate is a fraction, so the package's 50 becomes 0.5 (same reading as
++        // the Demon pet, Pets.cs).
++        this.CreateSeasonEightConsumable(13, 177, "Talisman of Ascension I", 1, 1, 255, 80, MagicEffectNumber.TalismanOfAscension1, (Stats.BonusExperienceRate, 0.5f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(13, 178, "Talisman of Ascension II", 1, 1, 255, 80, MagicEffectNumber.TalismanOfAscension2, (Stats.BonusExperienceRate, 1.0f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(13, 179, "Talisman of Ascension III", 1, 1, 255, 80, MagicEffectNumber.TalismanOfAscension3, (Stats.BonusExperienceRate, 2.0f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(13, 180, "Seal of Ascension II", 1, 1, 1, 81, MagicEffectNumber.SealOfAscension2, (Stats.BonusExperienceRate, 1.0f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(13, 181, "Master Seal of Ascension II", 1, 1, 1, 81, MagicEffectNumber.MasterSealOfAscension2, (Stats.BonusExperienceRate, 1.0f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(14, 224, "Blessing of Light", 1, 1, 1, 82, MagicEffectNumber.BlessingOfLight, (Stats.BonusExperienceRate, 2.0f, AggregateType.AddRaw));
++
++        // Master Scrolls. The defense one gets the same treatment the Jack O'Lantern Cry got in
++        // FixDefenseCalcsPlugInSeason6: half the client value, added to DefenseFinal.
++        this.CreateSeasonEightConsumable(14, 225, "Scroll Master of Defense", 2, 2, 1, 84, MagicEffectNumber.MasterScrollOfDefense, (Stats.DefenseFinal, 120 / 2, AggregateType.AddFinal));
++        this.CreateSeasonEightConsumable(14, 226, "Scroll Master of Wizardry", 2, 2, 1, 86, MagicEffectNumber.MasterScrollOfWizardry, (Stats.WizardryBaseDmg, 60f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(14, 227, "Scroll Master of Health", 2, 2, 1, 87, MagicEffectNumber.MasterScrollOfHealth, (Stats.MaximumHealth, 400f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(14, 228, "Scroll Master of Mana", 2, 2, 1, 88, MagicEffectNumber.MasterScrollOfMana, (Stats.MaximumMana, 600f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(14, 231, "Scroll Master of Battle", 2, 2, 1, 89, MagicEffectNumber.MasterScrollOfBattle, (Stats.AttackRatePvm, 25f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(14, 232, "Scroll Master of Strengthener", 2, 2, 1, 90, MagicEffectNumber.MasterScrollOfStrengthener, (Stats.DefenseRatePvm, 25f, AggregateType.AddRaw));
++        this.CreateSeasonEightConsumable(14, 235, "Scroll Master of Quickness", 2, 2, 1, 83, MagicEffectNumber.MasterScrollOfQuickness, (Stats.AttackSpeedAny, 20f, AggregateType.AddRaw));
++
++        // These two exist but do nothing yet: their effect numbers (200 and 201) clash, see above.
++        this.CreateSeasonEightConsumable(14, 229, "Scroll Master of Wrath", 2, 2, 1, 85, null);
++        this.CreateSeasonEightConsumable(14, 230, "Scroll Master of Recovery", 2, 2, 1, 91, null);
++    }
++
++    /// <summary>
++    /// Creates one Season 8 consumable with its timed effect.
++    /// </summary>
++    /// <param name="group">The item group.</param>
++    /// <param name="number">The item number inside the group.</param>
++    /// <param name="name">The name.</param>
++    /// <param name="width">The width in the inventory.</param>
++    /// <param name="height">The height in the inventory.</param>
++    /// <param name="durability">The durability, which is the number of uses.</param>
++    /// <param name="subType">The effect sub type; effects of the same sub type cancel each other.</param>
++    /// <param name="effectNumber">The effect number, or <c>null</c> to create the item without an effect.</param>
++    /// <param name="boosts">The attributes the effect boosts while it lasts.</param>
++    /// <returns>The created item definition.</returns>
++    private ItemDefinition CreateSeasonEightConsumable(byte group, short number, string name, byte width, byte height, byte durability, byte subType, MagicEffectNumber? effectNumber, params (AttributeDefinition TargetAttribute, float BoostValue, AggregateType AggregateType)[] boosts)
++    {
++        var item = this.Context.CreateNew<ItemDefinition>();
++        item.Name = name;
++        item.Group = group;
++        item.Number = number;
++        item.Width = width;
++        item.Height = height;
++        item.Durability = durability;
++        item.DropsFromMonsters = false;
++        item.SetGuid(item.Group, item.Number);
++        this.GameConfiguration.Items.Add(item);
++
++        if (effectNumber is { } number2)
++        {
++            // Every one of these lasts 1800 seconds in Data/Effect/Effect.txt.
++            this.CreateConsumeEffect(item, subType, number2, TimeSpan.FromSeconds(1800), boosts);
++        }
++
++        return item;
+     }
+ 
+     private ItemDefinition CreateAlcohol()
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
 index 5eb9dcde..30fce844 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Items/Weapons.cs
@@ -378,13 +1478,122 @@ index 5eb9dcde..30fce844 100644
      }
  
      /// <summary>
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Wings.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Wings.cs
+index ca73adf7..914475cc 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Items/Wings.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Wings.cs
+@@ -18,6 +18,7 @@ using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
+ public class Wings : WingsInitializerBase
+ {
+     private ItemLevelBonusTable? _absorbByLevelTable;
++    private ItemLevelBonusTable? _absorbByLevelTableSlow;
+     private ItemLevelBonusTable? _defenseBonusByLevelTable;
+     private ItemLevelBonusTable? _damageIncreaseByLevelTable;
+     private ItemLevelBonusTable? _damageIncreaseByLevelTableSecond;
+@@ -102,6 +103,55 @@ public class Wings : WingsInitializerBase
+         this.CreateWing(40, 2, 3, "Cape of Emperor", 150, 45, 220, 400, 0, 0, 0, 0, 3, 0, 0, this.BuildOptions((0b00, OptionType.HealthRecover), (0b11, OptionType.PhysDamage), (0b10, OptionType.Defense)), 39, 24, this._damageIncreaseByLevelTable, thirdWingOptions);
+         this.CreateWing(43, 4, 3, "Wing of Dimension", 150, 45, 220, 400, 0, 0, 0, 0, 0, 3, 0, this.BuildOptions((0b00, OptionType.HealthRecover), (0b11, OptionType.WizDamage), (0b10, OptionType.CurseDamage)), 39, 39, this._damageIncreaseByLevelTable, thirdWingOptions);
+         this.CreateWing(50, 2, 3, "Cape of Overrule", 150, 45, 220, 400, 0, 0, 0, 0, 0, 0, 3, this.BuildOptions((0b00, OptionType.HealthRecover), (0b11, OptionType.PhysDamage), (0b10, OptionType.Defense)), 39, 39, this._damageIncreaseByLevelTable, thirdWingOptions);
++
++        this.CreateSeasonEightWings(thirdWingOptions);
++    }
++
++    /// <summary>
++    /// Creates the six premium wings which came with Season 8 (item group 12, numbers 262 to 267).
++    /// </summary>
++    /// <param name="thirdWingOptions">The "3rd Wing Options" definition, which these wings reuse.</param>
++    /// <remarks>
++    /// They need nothing new: they sit in the usual wing slot (7) and only carry defense, a damage
++    /// increase and a damage absorb, like every other wing.
++    /// Sources, all read from the Season 8 server package (Data/Item/):
++    ///   Item.txt section 12       size, name, drop level, defense, durability and level requirement.
++    ///   ItemOptionWing.txt:32-37  defense per level (3), damage increase (A) and its percent per
++    ///                             level (B), damage absorb (A) and its percent per level (B).
++    ///   ItemOption.txt section 2  the "Jewel of Life" options with their option numbers. The mapping
++    ///                             OptionIndex -> option was decoded against the wings which already
++    ///                             exist here: 85 = HealthRecover (12/0), 80 = PhysDamage (12/2),
++    ///                             81 = WizDamage (12/1, 12/6), 83 = Defense (12/36), 113 =
++    ///                             CurseDamage (12/43); the ItemNewOption flag '*' is number 0,
++    ///                             32 is number 2 and 16 is number 3.
++    /// Two deliberate deviations from the package, both noted in
++    /// servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md:
++    ///   - Wings of Conqueror require level 400, not the 280 of the package. 400 is what the
++    ///     official source (muonlinefanz) says, and it is also the value CreateWing uses to pick
++    ///     the third-wing defense table, so they now gain +4 defense per item level instead of the
++    ///     +3 the package asked for: 281 defense at +15 instead of 266.
++    ///   - Wings of Angel and Devil has "Level 350" in Item.txt, which doesn't fit into the byte of
++    ///     ItemDefinition.DropLevel. Clamped to 255; wings never drop from monsters anyway.
++    /// </remarks>
++    protected void CreateSeasonEightWings(ItemOptionDefinition thirdWingOptions)
++    {
++        // The update plug-in calls this without running Initialize first, so the shared tables
++        // may still be missing.
++        this._defenseBonusByLevelTable ??= this.CreateBonusDefensePerLevel();
++        this._defenseBonusByLevelTableThird ??= this.CreateBonusDefensePerLevelThirdWings();
++        this._damageIncreaseByLevelTable ??= this.CreateDamageIncreaseBonusPerLevelFirstAndThirdWings();
++        this._absorbByLevelTable ??= this.CreateAbsorbBonusPerLevel();
++        this._absorbByLevelTableSlow ??= this.CreateItemBonusTable(
++            Enumerable.Range(0, this.MaximumItemLevel + 1).Select(level => -0.01f * level).ToArray(),
++            "Wing absorb (slow)",
++            "The damage absorb of the Season 8 premium wings per item level, 1 % less damage per level.");
++
++        this.CreateWing(262, 2, 3, "Cloak of Death", 150, 27, 210, 290, 0, 0, 0, 0, 1, 0, 1, this.BuildOptions((0b00, OptionType.HealthRecover), (0b11, OptionType.PhysDamage)), 21, 13, this._damageIncreaseByLevelTable!, thirdWingOptions);
++        this.CreateWing(263, 4, 3, "Wings of Chaos", 150, 46, 210, 290, 0, 2, 0, 1, 0, 0, 0, this.BuildOptions((0b00, OptionType.HealthRecover), (0b11, OptionType.PhysDamage)), 33, 30, this._damageIncreaseByLevelTable!, thirdWingOptions);
++        this.CreateWing(264, 4, 3, "Wings of Magic", 150, 37, 210, 290, 2, 0, 0, 1, 0, 2, 0, this.BuildOptions((0b00, OptionType.CurseDamage), (0b11, OptionType.WizDamage)), 35, 29, this._damageIncreaseByLevelTable!, thirdWingOptions);
++        this.CreateWing(265, 4, 3, "Wings of Life", 150, 37, 210, 290, 0, 0, 2, 0, 0, 0, 0, this.BuildOptions((0b00, OptionType.HealthRecover), (0b11, OptionType.PhysDamage)), 35, 29, this._damageIncreaseByLevelTable!, thirdWingOptions);
++        this.CreateWing(266, 4, 3, "Wings of Conqueror", 150, 200, 220, 400, 2, 2, 2, 1, 0, 2, 0, this.BuildOptions((0b00, OptionType.HealthRecover)), 71, 71, this._damageIncreaseByLevelTable!, thirdWingOptions, absorbPerLevel: this._absorbByLevelTableSlow);
++        this.CreateWing(267, 4, 3, "Wings of Angel and Devil", 255, 160, 220, 350, 2, 2, 2, 1, 0, 2, 0, this.BuildOptions((0b00, OptionType.HealthRecover)), 60, 60, this._damageIncreaseByLevelTable!, thirdWingOptions, absorbPerLevel: this._absorbByLevelTableSlow);
+     }
+ 
+     private void CreateFeather()
+@@ -149,7 +199,7 @@ public class Wings : WingsInitializerBase
+         this.GameConfiguration.Items.Add(feather);
+     }
+ 
+-    private ItemDefinition CreateWing(byte number, byte width, byte height, string name, byte dropLevel, int defense, byte durability, int levelRequirement, int darkWizardClassLevel, int darkKnightClassLevel, int elfClassLevel, int magicGladiatorClassLevel, int darkLordClassLevel, int summonerClassLevel, int ragefighterClassLevel, IEnumerable<IncreasableItemOption> possibleOptions, int damageIncreaseInitial, int damageAbsorbInitial, ItemLevelBonusTable damageIncreasePerLevel, ItemOptionDefinition? wingOptionDefinition, float movementSpeed = MovementSpeedConstants.DefaultWingMovementSpeed)
++    private ItemDefinition CreateWing(short number, byte width, byte height, string name, byte dropLevel, int defense, byte durability, int levelRequirement, int darkWizardClassLevel, int darkKnightClassLevel, int elfClassLevel, int magicGladiatorClassLevel, int darkLordClassLevel, int summonerClassLevel, int ragefighterClassLevel, IEnumerable<IncreasableItemOption> possibleOptions, int damageIncreaseInitial, int damageAbsorbInitial, ItemLevelBonusTable damageIncreasePerLevel, ItemOptionDefinition? wingOptionDefinition, float movementSpeed = MovementSpeedConstants.DefaultWingMovementSpeed, ItemLevelBonusTable? absorbPerLevel = null)
+     {
+         var wing = this.CreateWing(number, width, height, name, dropLevel, defense, durability, levelRequirement, darkWizardClassLevel, darkKnightClassLevel, elfClassLevel, magicGladiatorClassLevel, darkLordClassLevel, summonerClassLevel, ragefighterClassLevel, movementSpeed);
+         if (wingOptionDefinition != null)
+@@ -160,7 +210,7 @@ public class Wings : WingsInitializerBase
+         if (damageAbsorbInitial > 0)
+         {
+             var powerUp = this.CreateItemBasePowerUpDefinition(Stats.DamageReceiveDecrement, 1f - (damageAbsorbInitial / 100f), AggregateType.Multiplicate);
+-            powerUp.BonusPerLevelTable = this._absorbByLevelTable;
++            powerUp.BonusPerLevelTable = absorbPerLevel ?? this._absorbByLevelTable;
+             wing.BasePowerUpAttributes.Add(powerUp);
+         }
+ 
+@@ -192,7 +242,7 @@ public class Wings : WingsInitializerBase
+         return wing;
+     }
+ 
+-    private ItemDefinition CreateWing(byte number, byte width, byte height, string name, byte dropLevel, int defense, byte durability, int levelRequirement, int darkWizardClassLevel, int darkKnightClassLevel, int elfClassLevel, int magicGladiatorClassLevel, int darkLordClassLevel, int summonerClassLevel, int ragefighterClassLevel, float movementSpeed = MovementSpeedConstants.DefaultWingMovementSpeed)
++    private ItemDefinition CreateWing(short number, byte width, byte height, string name, byte dropLevel, int defense, byte durability, int levelRequirement, int darkWizardClassLevel, int darkKnightClassLevel, int elfClassLevel, int magicGladiatorClassLevel, int darkLordClassLevel, int summonerClassLevel, int ragefighterClassLevel, float movementSpeed = MovementSpeedConstants.DefaultWingMovementSpeed)
+     {
+         var wing = this.Context.CreateNew<ItemDefinition>();
+         this.GameConfiguration.Items.Add(wing);
+@@ -269,7 +319,12 @@ public class Wings : WingsInitializerBase
+         return definition;
+     }
+ 
+-    private ItemOptionDefinition CreateThirdClassWingOptions()
++    /// <summary>
++    /// Creates the option definition of the third class wings, which the Season 8 premium
++    /// wings reuse.
++    /// </summary>
++    /// <returns>The created option definition.</returns>
++    protected ItemOptionDefinition CreateThirdClassWingOptions()
+     {
+         var definition = this.Context.CreateNew<ItemOptionDefinition>();
+         definition.SetGuid(ItemOptionDefinitionNumbers.Wing3rd);
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
 new file mode 100644
-index 00000000..f2c852ad
+index 00000000..bb8106a4
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Acheron.cs
-@@ -0,0 +1,615 @@
-+// <copyright file="Acheron.cs" company="MUnique">
+@@ -0,0 +1,656 @@
++﻿// <copyright file="Acheron.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
 +
@@ -998,6 +2207,47 @@ index 00000000..f2c852ad
 +            monster.SetGuid(monster.Number);
 +        }
 +    }
++
++    /// <inheritdoc/>
++    protected override void InitializeDropItemGroups()
++    {
++        base.InitializeDropItemGroups();
++
++        // The four mix materials the Season 8 package drops on this map, from
++        // Data/Item/ItemDrop.txt rows 11 to 14: map 91, monster level 88 to 150.
++        // The package's DropRate scale isn't documented in any of its files. It is read here as
++        // parts per million, which is the only reading that matches an anchor present in both
++        // sources (the Dark Horse and Dark Raven spirits are 1000 there and 0.001 in Pets.cs).
++        // The other two candidate anchors would make it 3 and 10 times higher, so this is the
++        // conservative end on purpose.
++        this.CreateMaterialDropGroup(1, 12, 144, "Mithril Fragment", 0.02);      // DropRate 20000
++        this.CreateMaterialDropGroup(2, 12, 146, "Elixir Fragment", 0.0025);     // DropRate 2500
++        this.CreateMaterialDropGroup(3, 12, 150, "Jewel Combination Frame", 0.001);
++        this.CreateMaterialDropGroup(4, 12, 151, "Spirit Powder", 0.001);
++    }
++
++    /// <summary>
++    /// Creates one drop item group for a single material and hangs it on this map.
++    /// </summary>
++    /// <param name="number">The number of the group inside this map, for its deterministic id.</param>
++    /// <param name="itemGroup">The group of the item which drops.</param>
++    /// <param name="itemNumber">The number of the item which drops.</param>
++    /// <param name="description">The description of the group.</param>
++    /// <param name="chance">The drop chance.</param>
++    private void CreateMaterialDropGroup(byte number, byte itemGroup, short itemNumber, string description, double chance)
++    {
++        var item = this.GameConfiguration.Items.First(i => i.Group == itemGroup && i.Number == itemNumber);
++        var dropItemGroup = this.Context.CreateNew<DropItemGroup>();
++        dropItemGroup.SetGuid(this.MapNumber, number);
++        dropItemGroup.Chance = chance;
++        dropItemGroup.Description = description;
++        dropItemGroup.MinimumMonsterLevel = 88;
++        dropItemGroup.MaximumMonsterLevel = 150;
++        dropItemGroup.PossibleItems.Add(item);
++
++        this.MapDefinition!.DropItemGroups.Add(dropItemGroup);
++        this.GameConfiguration.DropItemGroups.Add(dropItemGroup);
++    }
 +}
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Debenter.cs
 new file mode 100644
@@ -1398,3 +2648,436 @@ index 00000000..63892157
 +        }
 +    }
 +}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
+index 85f95903..2f42065f 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Raklion.cs
+@@ -466,4 +466,57 @@ internal class Raklion : BaseMapInitializer
+             monster.SetGuid(monster.Number);
+         }
+     }
+-}
+\ No newline at end of file
++
++    /// <inheritdoc/>
++    protected override void InitializeDropItemGroups()
++    {
++        base.InitializeDropItemGroups();
++
++        // The boss materials of Data/Item/ItemDrop.txt: nine rows which each tie one material to
++        // one boss of this map, all with DropRate 1000. The package's DropRate scale is read as
++        // parts per million (the only reading which matches an anchor present in both sources: the
++        // Dark Horse and Dark Raven spirits are 1000 there and 0.001 in Pets.cs), so 1000 -> 0.1 %.
++        // Measured before applying: the chance sum of a monster of this map stays at 0.8701, below
++        // 1, so the groups which were already there are not diluted at all (see
++        // servidor/estudios/conversor-s8/lo-que-falta/5-items-y-drops-hechos.md).
++        this.CreateBossMaterialDropGroup(454, 180, "Ice Walker's Mane");
++        this.CreateBossMaterialDropGroup(455, 181, "Mammoth's Bundle of Fur");
++        this.CreateBossMaterialDropGroup(456, 182, "Giant's Icicle");
++        this.CreateBossMaterialDropGroup(457, 183, "Coolutin's Poison");
++        this.CreateBossMaterialDropGroup(458, 184, "Iron Knight's Heart");
++        this.CreateBossMaterialDropGroup(562, 185, "Dark Mammoth's Horn");
++        this.CreateBossMaterialDropGroup(563, 186, "Dark Giant's Axe");
++        this.CreateBossMaterialDropGroup(564, 187, "Dark Coolutin's Blood");
++        this.CreateBossMaterialDropGroup(565, 188, "Dark Iron Knight's Sword");
++    }
++
++    /// <summary>
++    /// Ties one boss material to the monster which drops it.
++    /// </summary>
++    /// <param name="monsterNumber">The number of the monster which drops it.</param>
++    /// <param name="itemNumber">The number of the material inside item group 14.</param>
++    /// <param name="description">The description of the group.</param>
++    /// <remarks>
++    /// It quietly does nothing if the monster or the item isn't there, so that a partially
++    /// initialized configuration can't make the map initializer throw.
++    /// </remarks>
++    private void CreateBossMaterialDropGroup(short monsterNumber, short itemNumber, string description)
++    {
++        var monster = this.GameConfiguration.Monsters.FirstOrDefault(m => m.Number == monsterNumber);
++        var item = this.GameConfiguration.Items.FirstOrDefault(i => i.Group == 14 && i.Number == itemNumber);
++        if (monster is null || item is null)
++        {
++            return;
++        }
++
++        var dropItemGroup = this.Context.CreateNew<DropItemGroup>();
++        dropItemGroup.SetGuid(Number, monsterNumber);
++        dropItemGroup.Chance = 0.001;
++        dropItemGroup.Description = description;
++        dropItemGroup.Monster = monster;
++        dropItemGroup.PossibleItems.Add(item);
++
++        monster.DropItemGroups.Add(dropItemGroup);
++        this.GameConfiguration.DropItemGroups.Add(dropItemGroup);
++    }
++}
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs
+index 7ba9bcfb..d31eba68 100644
+--- a/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs
++++ b/src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs
+@@ -16,6 +16,21 @@ using MUnique.OpenMU.Persistence.Initialization.Skills;
+ /// </summary>
+ internal class SkillsInitializer : SkillsInitializerBase
+ {
++    /// <summary>
++    /// The name of the left master skill root, as it is stored in the database.
++    /// </summary>
++    internal const string LeftRootName = "Left (Common Skills)";
++
++    /// <summary>
++    /// The name of the middle master skill root, as it is stored in the database.
++    /// </summary>
++    internal const string MiddleRootName = "Middle Root";
++
++    /// <summary>
++    /// The name of the right master skill root, as it is stored in the database.
++    /// </summary>
++    internal const string RightRootName = "Right Root";
++
+ #pragma warning disable SA1600 // formula constants are documented by their name and inline skill number comment
+     internal const string Formula1204 = "(1 + (((((((level - 30) ^ 3) + 25000) / 499) / 6)))) * 10"; // 17
+     internal const string Formula61408 = "(1 + (((((((level - 30) ^ 3) + 25000) / 499) / 50) * 100) / 12)) * 85 * 6"; // 12
+@@ -49,6 +64,20 @@ internal class SkillsInitializer : SkillsInitializerBase
+     internal const string Formula1806 = "(1 + (((((((level - 30) ^ 3) + 25000) / 499) / 6)))) * 15"; // 15
+     internal const string Formula32751 = "(1 + ( ( ( ( ( ( (level - 30) ^ 3) + 25000) / 499) / 50) * 100) / 12)) * 85 * 3.2"; // 31
+     internal const string Formula5418 = "(1 + ( ( ( ( ( ( (level - 30) ^ 3) + 25000) / 499) / 50) * 100) / 12)) * 45"; // 34
++
++    // Ranks 6 to 9 (Season 8 master skill tree). Values read from Data/Skill/MasterSkillTree.txt
++    // of the Season 8 Update 32 server package; the first four constants above name themselves
++    // after the value at level 1, so these do too.
++    internal const string Formula2769 = "(0.95 + (((((((level - 30) ^ 3) + 25000) / 499) / 6)))) * 24"; // 8    // 27.69 to 215.18 (maximum AG), factor 24 read from the table
++    internal const string Formula005 = "0.05 * level"; // 0.05 to 1.00, exact, same style as Formula1
++    internal const string Formula100To334 = // 1.00 to 3.34, written out because no member of the usual family gets closer than 0.012 to the table
++        "if(level < 2; 1.00; if(level < 3; 1.25; if(level < 4; 1.47; if(level < 5; 1.67; " +
++        "if(level < 6; 1.86; if(level < 7; 2.04; if(level < 8; 2.21; if(level < 9; 2.37; " +
++        "if(level < 10; 2.51; if(level < 11; 2.64; if(level < 12; 2.76; if(level < 13; 2.86; " +
++        "if(level < 14; 2.95; if(level < 15; 3.03; if(level < 16; 3.10; if(level < 17; 3.16; " +
++        "if(level < 18; 3.21; if(level < 19; 3.26; if(level < 20; 3.30; 3.34)))))))))))))))))))";
++    internal const string Formula100To800 = "if(level < 9; 0.5 + (level * 0.5); if(level < 13; 2.5 + (level * 0.25); 3 + (level * 0.25)))"; // hand-made staircase of Death Stab Mastery, exact
++    internal const string FormulaSinValor = "0"; // the table ships all twenty values of Dark Side Mastery as zero
+ #pragma warning restore SA1600
+ 
+     private static readonly IDictionary<SkillNumber, MagicEffectNumber> EffectsOfSkills = new Dictionary<SkillNumber, MagicEffectNumber>
+@@ -442,6 +471,8 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.IncreaseMinimumAttackPower, "Increase Minimum Attack Power", CharacterClasses.FistMaster, damage: 22, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.RecoverManaMonsterKills, "Recover Mana Monster Kills", CharacterClasses.FistMaster, damage: 6, skillType: SkillType.PassiveBoost);
+ 
++        this.CreateSeason8MasterSkills();
++
+         this.InitializeEffects();
+         this.MapSkillsToEffects();
+         this.InitializeMasterSkillData();
+@@ -450,11 +481,39 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.InitializeSkillAttributes();
+     }
+ 
+-    // ReSharper disable once UnusedMember.Local
+-    private void InitializeNextSeasonMasterSkills()
++    /// <summary>
++    /// Adds the skills and master skill definitions of the ranks 6 to 9 to a configuration
++    /// which already exists in a database, without touching anything else.
++    /// </summary>
++    /// <remarks>
++    /// Used by the configuration update plug-in. On a fresh initialization the same two methods
++    /// are called from <see cref="Initialize"/> and <see cref="InitializeMasterSkillData"/>.
++    /// </remarks>
++    internal void AddSeason8MasterSkillTree()
++    {
++        this._masterSkillRoots.Clear();
++        this._masterSkillRoots.Add(1, this.GameConfiguration.MasterSkillRoots.First(r => r.Name == LeftRootName));
++        this._masterSkillRoots.Add(2, this.GameConfiguration.MasterSkillRoots.First(r => r.Name == MiddleRootName));
++        this._masterSkillRoots.Add(3, this.GameConfiguration.MasterSkillRoots.First(r => r.Name == RightRootName));
++
++        this.CreateSeason8MasterSkills();
++        this.AddSeason8MasterSkillDefinitions();
++    }
++
++    /// <summary>
++    /// Creates the <see cref="Skill"/>s which the ranks 6 to 9 of the Season 8 master skill tree need.
++    /// </summary>
++    /// <remarks>
++    /// The numbers come from <c>Data/Skill/Skill.txt</c> and <c>Data/Skill/MasterSkillTree.txt</c> of the
++    /// Season 8 Update 32 server package. Careful with <c>damage</c>: on a master skill it is not the
++    /// attack damage but the formula index of the client, which is why it matches the <c>// N</c> comment
++    /// of the formula constants above. Where the master definition replaces another skill, the real
++    /// attack damage is copied from that one in <see cref="AddMasterSkillDefinition"/>.
++    /// </remarks>
++    private void CreateSeason8MasterSkills()
+     {
+         // Common:
+-        this.CreateSkill(SkillNumber.CastInvincibility, "Cast Invincibility", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.CastInvincibility, "Cast Invincibility", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.ArmorSetBonusInc, "Armor Set Bonus Inc", CharacterClasses.AllMastersExceptFistMaster, damage: 3, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.Vengeance, "Vengeance", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.EnergyIncrease, "Energy Increase", CharacterClasses.AllMastersExceptFistMaster, damage: 17, skillType: SkillType.PassiveBoost);
+@@ -470,12 +529,12 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.Incdoubledamagerate, "Inc double damage rate", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IncchanceofignoreDef, "Inc chance of ignore Def", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.RestoresallSd, "Restores all SD", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
+-        this.CreateSkill(SkillNumber.Inctripledamagerate, "Inc triple damage rate", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.Inctripledamagerate, "Inc triple damage rate", CharacterClasses.AllMastersExceptFistMaster, damage: 1, skillType: SkillType.PassiveBoost);
+ 
+         // Blade Master:
+-        this.CreateSkill(SkillNumber.WingofStormAbsPowUp, "Wing of Storm Abs PowUp", CharacterClasses.BladeMaster, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.WingofStormAbsPowUp, "Wing of Storm Abs PowUp", CharacterClasses.BladeMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.WingofStormDefPowUp, "Wing of Storm Def PowUp", CharacterClasses.BladeMaster, damage: 17, skillType: SkillType.PassiveBoost);
+-        this.CreateSkill(SkillNumber.IronDefense, "Iron Defense", CharacterClasses.AllMasters, damage: 1);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.IronDefense, "Iron Defense", CharacterClasses.AllMasters, damage: 1);
+         this.CreateSkill(SkillNumber.WingofStormAttPowUp, "Wing of Storm Att PowUp", CharacterClasses.BladeMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.DeathStabProficiency, "Death Stab Proficiency", CharacterClasses.BladeMaster, DamageType.Physical, 7, 2, 26, 30, 160, elementalModifier: ElementalType.Wind);
+         this.CreateSkill(SkillNumber.StrikeofDestrProf, "Strike of Destr Prof", CharacterClasses.BladeMaster, DamageType.Physical, 7, 5, 24, 30, 100, elementalModifier: ElementalType.Ice);
+@@ -484,10 +543,10 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.StrikeofDestrMast, "Strike of Destr Mast", CharacterClasses.BladeMaster, DamageType.Physical, 1, 5, 24, 30, 100, elementalModifier: ElementalType.Ice);
+         this.CreateSkill(SkillNumber.BloodStorm, "Blood Storm", CharacterClasses.BladeMaster | CharacterClasses.DuelMaster, DamageType.Physical, 25, 3, 29, 87);
+         this.CreateSkill(SkillNumber.ComboStrengthener, "Combo Strengthener", CharacterClasses.BladeMaster, DamageType.Physical, 7, skillType: SkillType.PassiveBoost);
+-        this.CreateSkill(SkillNumber.BloodStormStrengthener, "Blood Storm Strengthener", CharacterClasses.BladeMaster | CharacterClasses.DuelMaster, DamageType.Physical, 22, 3, 29, 87);
++        this.CreateSkill(SkillNumber.BloodStormStrengthener, "Blood Storm Strengthener", CharacterClasses.BladeMaster | CharacterClasses.DuelMaster, DamageType.Physical, 22, 3, 31, 95);   // BP and MP from the S8 package (31/95); they were copied from Blood Storm (29/87)
+ 
+         // Grand Master:
+-        this.CreateSkill(SkillNumber.EternalWingsAbsPowUp, "Eternal Wings Abs PowUp", CharacterClasses.GrandMaster, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.EternalWingsAbsPowUp, "Eternal Wings Abs PowUp", CharacterClasses.GrandMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.EternalWingsDefPowUp, "Eternal Wings Def PowUp", CharacterClasses.GrandMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.EternalWingsAttPowUp, "Eternal Wings Att PowUp", CharacterClasses.GrandMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.MeteorStrengthener, "Meteor Strengthener", CharacterClasses.GrandMaster, DamageType.Wizardry, 4, 6, manaConsumption: 13, levelRequirement: 21, energyRequirement: 100, elementalModifier: ElementalType.Earth);
+@@ -495,12 +554,12 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.NovaStrengthener, "Nova Strengthener", CharacterClasses.GrandMaster, DamageType.Wizardry, 22, 6, 49, 198, 100, 258, elementalModifier: ElementalType.Fire);
+         this.CreateSkill(SkillNumber.IceStormMastery, "Ice Storm Mastery", CharacterClasses.GrandMaster, DamageType.Wizardry, 1, 6, 5, 110, 93, 223, elementalModifier: ElementalType.Ice);
+         this.CreateSkill(SkillNumber.MeteorMastery, "Meteor Mastery", CharacterClasses.GrandMaster, DamageType.Wizardry, 1, 6, manaConsumption: 14, levelRequirement: 21, energyRequirement: 100, elementalModifier: ElementalType.Earth);
+-        this.CreateSkill(SkillNumber.NovaCastStrengthener, "Nova Cast Strengthener", CharacterClasses.GrandMaster, DamageType.Wizardry, 22, 6, 49, 198, 100, 258, elementalModifier: ElementalType.Fire);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.NovaCastStrengthener, "Nova Cast Strengthener", CharacterClasses.GrandMaster, DamageType.Wizardry, 22, 6, 49, 198, 100, 258, elementalModifier: ElementalType.Fire);
+         this.CreateSkill(SkillNumber.SoulBarrierMastery, "Soul Barrier Mastery", CharacterClasses.GrandMaster, damage: 7, distance: 6, abilityConsumption: 28, manaConsumption: 92, levelRequirement: 77, energyRequirement: 126);
+         this.CreateSkill(SkillNumber.MaximumWizardryInc, "Maximum Wizardry Inc", CharacterClasses.GrandMaster | CharacterClasses.DuelMaster, damage: 3, skillType: SkillType.PassiveBoost);
+ 
+         // High Elf:
+-        this.CreateSkill(SkillNumber.IllusionWingsAbsPowUp, "Illusion Wings Abs PowUp", CharacterClasses.HighElf, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.IllusionWingsAbsPowUp, "Illusion Wings Abs PowUp", CharacterClasses.HighElf, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IllusionWingsDefPowUp, "Illusion Wings Def PowUp", CharacterClasses.HighElf, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.MultiShotStreng, "Multi-Shot Streng", CharacterClasses.HighElf, DamageType.Physical, 22, 6, 7, 11, 100, skillType: SkillType.AreaSkillAutomaticHits);
+         this.CreateSkill(SkillNumber.IllusionWingsAttPowUp, "Illusion Wings Att PowUp", CharacterClasses.HighElf, damage: 17, skillType: SkillType.PassiveBoost);
+@@ -512,12 +571,12 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.Bless, "Bless", CharacterClasses.HighElf, distance: 6, abilityConsumption: 18, manaConsumption: 108, energyRequirement: 100);
+         this.CreateSkill(SkillNumber.MultiShotMastery, "Multi-Shot Mastery", CharacterClasses.HighElf, DamageType.Physical, 1, 6, 8, 12, 100, skillType: SkillType.AreaSkillAutomaticHits);
+         this.CreateSkill(SkillNumber.SummonSatyros, "Summon Satyros", CharacterClasses.HighElf, abilityConsumption: 52, manaConsumption: 525, energyRequirement: 280);
+-        this.CreateSkill(SkillNumber.BlessStrengthener, "Bless Strengthener", CharacterClasses.HighElf, damage: 10, distance: 6, abilityConsumption: 20, manaConsumption: 118, energyRequirement: 100);
++        this.CreateSkill(SkillNumber.BlessStrengthener, "Bless Strengthener", CharacterClasses.HighElf, distance: 6, abilityConsumption: 20, manaConsumption: 118, energyRequirement: 100);   // no damage: it replaces no skill, so the 10 (a formula index) would have become real attack damage; Skill.txt says 0
+         this.CreateSkill(SkillNumber.PoisonArrowStr, "Poison Arrow Str", CharacterClasses.HighElf, DamageType.Physical, 22, 6, 29, 24, elementalModifier: ElementalType.Poison);
+         this.CreateSkill(SkillNumber.MaximumAttPowerInc, "Maximum Att Power Inc", CharacterClasses.HighElf, DamageType.Physical, 3, skillType: SkillType.PassiveBoost);
+ 
+         // Dimension Master (Summoner):
+-        this.CreateSkill(SkillNumber.DimensionWingsAbsPowUp, "DimensionWings Abs PowUp", CharacterClasses.DimensionMaster, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.DimensionWingsAbsPowUp, "DimensionWings Abs PowUp", CharacterClasses.DimensionMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.DimensionWingsDefPowUp, "DimensionWings Def PowUp", CharacterClasses.DimensionMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.DimensionWingsAttPowUp, "DimensionWings Att PowUp", CharacterClasses.DimensionMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.WeaknessStrengthener, "Weakness Strengthener", CharacterClasses.DimensionMaster, DamageType.Curse, 3, 6, 17, 55, 93, 173);
+@@ -529,7 +588,7 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.MaximumWizCurseInc, "Maximum Wiz/Curse Inc", CharacterClasses.DimensionMaster, damage: 3, skillType: SkillType.PassiveBoost);
+ 
+         // Duel Master (MG):
+-        this.CreateSkill(SkillNumber.WingofRuinAbsPowUp, "Wing of Ruin Abs PowUp", CharacterClasses.DuelMaster, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.WingofRuinAbsPowUp, "Wing of Ruin Abs PowUp", CharacterClasses.DuelMaster, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.WingofRuinDefPowUp, "Wing of Ruin Def PowUp", CharacterClasses.DuelMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.WingofRuinAttPowUp, "Wing of Ruin Att PowUp", CharacterClasses.DuelMaster, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IceMasteryDuelMaster, "Ice Mastery", CharacterClasses.DuelMaster, DamageType.Physical, 1, 6, manaConsumption: 46, levelRequirement: 25, energyRequirement: 100, elementalModifier: ElementalType.Ice);
+@@ -541,13 +600,13 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.EarthPrisonStr, "Earth Prison Str", CharacterClasses.GrandMaster | CharacterClasses.DuelMaster, DamageType.Physical, 22, 3, 17, 198, energyRequirement: 127, elementalModifier: ElementalType.Earth);
+ 
+         // Lord Emperor (DL):
+-        this.CreateSkill(SkillNumber.EmperorCapeAbsPowUp, "Emperor Cape Abs PowUp", CharacterClasses.LordEmperor, damage: 1, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.EmperorCapeAbsPowUp, "Emperor Cape Abs PowUp", CharacterClasses.LordEmperor, damage: 1, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.EmperorCapeDefPowUp, "Emperor Cape Def PowUp", CharacterClasses.LordEmperor, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.AddsCommandStat, "Adds Command Stat", CharacterClasses.LordEmperor, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.EmperorCapeAttPowUp, "Emperor Cape Att PowUp", CharacterClasses.LordEmperor, damage: 17, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.ElectricSparkStreng, "Electric Spark Streng", CharacterClasses.LordEmperor, DamageType.Physical, 3, 10, 150, levelRequirement: 92, energyRequirement: 29, leadershipRequirement: 340, skillType: SkillType.AreaSkillAutomaticHits);
+         this.CreateSkill(SkillNumber.FireScreamMastery, "Fire Scream Mastery", CharacterClasses.LordEmperor, DamageType.Physical, 5, 6, 12, 49, 102, 32, 70);
+-        this.CreateSkill(SkillNumber.IronDefenseLordEmperor, "Iron Defense", CharacterClasses.LordEmperor, damage: 28, abilityConsumption: 29, manaConsumption: 64);
++        this.CreateSkill(SkillNumber.IronDefenseLordEmperor, "Iron Defense", CharacterClasses.LordEmperor, abilityConsumption: 29, manaConsumption: 64);   // no damage, same reason as Bless Strengthener; Skill.txt says 0
+         this.CreateSkill(SkillNumber.CriticalDamageIncM, "Critical Damage Inc M", CharacterClasses.LordEmperor, damage: 1, abilityConsumption: 110, manaConsumption: 110, levelRequirement: 82, energyRequirement: 25, leadershipRequirement: 300);
+         this.CreateSkill(SkillNumber.ChaoticDiseierStr, "Chaotic Diseier Str", CharacterClasses.LordEmperor, DamageType.Physical, 22, 6, 22, 75, 100, 16, skillType: SkillType.AreaSkillAutomaticHits);
+         this.CreateSkill(SkillNumber.IronDefenseStr, "Iron Defense Str", CharacterClasses.LordEmperor, damage: 3, abilityConsumption: 31, manaConsumption: 70);
+@@ -556,7 +615,7 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.SpiritLord, "Spirit Lord", CharacterClasses.LordEmperor, damage: 1, skillType: SkillType.PassiveBoost);
+ 
+         // Fist Master (Rage Fighter):
+-        this.CreateSkill(SkillNumber.CastInvincibilityFistMaster, "Cast Invincibility", CharacterClasses.FistMaster, damage: 38, skillType: SkillType.PassiveBoost);
++        ////  no row in the Season 8 master skill tree and no entry in its Skill.txt: this.CreateSkill(SkillNumber.CastInvincibilityFistMaster, "Cast Invincibility", CharacterClasses.FistMaster, damage: 38, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IncreaseMaximumAg, "Increase Maximum AG", CharacterClasses.FistMaster, damage: 37, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IncreaseMaximumAttackPower, "Increase Maximum Attack Power", CharacterClasses.FistMaster, damage: 3, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IncreasesCritDamageChance, "Increases Crit Damage Chance", CharacterClasses.FistMaster, damage: 38, skillType: SkillType.PassiveBoost);
+@@ -567,6 +626,23 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.CreateSkill(SkillNumber.IncreaseIgnoreDefChance, "Increase Ignore Def Chance", CharacterClasses.FistMaster, damage: 38, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.RecoversSdFully, "Recovers SD Fully", CharacterClasses.FistMaster, damage: 38, skillType: SkillType.PassiveBoost);
+         this.CreateSkill(SkillNumber.IncreaseTripleDamageChance, "Increase Triple Damage Chance", CharacterClasses.FistMaster, damage: 38, skillType: SkillType.PassiveBoost);
++
++        // The fifteen the Rage Fighter needs in the ranks 6 to 9 and OpenMU did not have.
++        this.CreateSkill(SkillNumber.ReigningCloakDefPowUp, "Reigning Cloak Def PowUp", CharacterClasses.FistMaster, damage: 17, skillType: SkillType.PassiveBoost);   // Skill.txt 549 "Add RF Wing Defense": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.ReigningCloakAttPowUp, "Reigning Cloak Att PowUp", CharacterClasses.FistMaster, damage: 17, skillType: SkillType.PassiveBoost);   // Skill.txt 550 "Add RF Wing Damage": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.DragonRoarMastery, "Dragon Roar Mastery", CharacterClasses.FistMaster, DamageType.Physical, 1, 3, 36, 66, 150, elementalModifier: ElementalType.Earth, skillType: SkillType.AreaSkillExplicitTarget, hitsPerAttack: 4);   // Skill.txt 561 "Add Dragon Lore Enhanced": MP 66, BP 36, range 3
++        this.CreateSkill(SkillNumber.ChainDriveMastery, "Chain Drive Mastery", CharacterClasses.FistMaster, DamageType.Physical, 1, 4, 22, 24, 150, elementalModifier: ElementalType.Ice, hitsPerAttack: 4);   // Skill.txt 562 "Add Chain Driver Enhanced": MP 24, BP 22, range 4
++        this.CreateSkill(SkillNumber.DarkSideMastery, "Dark Side Mastery", CharacterClasses.FistMaster, DamageType.Physical, 0, 4, manaConsumption: 92, levelRequirement: 180, elementalModifier: ElementalType.Wind);   // Skill.txt 563 "Add Dark Side Enhanced": MP 92, BP 0, range 4
++        this.CreateSkill(SkillNumber.DragonSlasherStr, "Dragon Slasher Str", CharacterClasses.FistMaster, DamageType.Physical, 1, 4, 110, 110, 200, elementalModifier: ElementalType.Wind);   // Skill.txt 564 "Add Dragon Slayer Improved": MP 110, BP 110, range 4
++        this.CreateSkill(SkillNumber.BloodHowling, "Blood Howling", CharacterClasses.FistMaster, abilityConsumption: 200, manaConsumption: 100, distance: 4);   // Skill.txt 565 "Add Blood Howling": MP 100, BP 200, range 4
++        this.CreateSkill(SkillNumber.DragonSlasherMastery, "Dragon Slasher Mastery", CharacterClasses.FistMaster, DamageType.Physical, 0, 4, 121, 121, 200, elementalModifier: ElementalType.Wind);   // Skill.txt 566 "Add Dragon Slayer Enhanced": MP 121, BP 121, range 4
++        this.CreateSkill(SkillNumber.BloodHowlingStr, "Blood Howling Str", CharacterClasses.FistMaster, abilityConsumption: 220, manaConsumption: 110, distance: 4);   // Skill.txt 567 "Add Blood Howling Improved": MP 110, BP 220, range 4
++        this.CreateSkill(SkillNumber.ArmorSetBonusIncFistMaster, "Armor Set Bonus Inc", CharacterClasses.FistMaster, damage: 3, skillType: SkillType.PassiveBoost);   // Skill.txt 593 "Add Armor Set Bonus": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.VengeanceFistMaster, "Vengeance", CharacterClasses.FistMaster, skillType: SkillType.PassiveBoost);   // Skill.txt 594 "Add Reflect Damage": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.EnergyIncreaseFistMaster, "Energy Increase", CharacterClasses.FistMaster, damage: 17, skillType: SkillType.PassiveBoost);   // Skill.txt 595 "Add Energy": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.StaminaIncreaseFistMaster, "Stamina Increase", CharacterClasses.FistMaster, damage: 17, skillType: SkillType.PassiveBoost);   // Skill.txt 596 "Add Vitality": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.AgilityIncreaseFistMaster, "Agility Increase", CharacterClasses.FistMaster, damage: 17, skillType: SkillType.PassiveBoost);   // Skill.txt 597 "Add Agility": MP 0, BP 0, range 0
++        this.CreateSkill(SkillNumber.StrengthIncreaseFistMaster, "Strength Increase", CharacterClasses.FistMaster, damage: 17, skillType: SkillType.PassiveBoost);   // Skill.txt 598 "Add Strength": MP 0, BP 0, range 0
+     }
+ 
+     private void CreateSkillCombos()
+@@ -750,15 +826,15 @@ internal class SkillsInitializer : SkillsInitializerBase
+     {
+         // Roots:
+         var leftRoot = this.Context.CreateNew<MasterSkillRoot>();
+-        leftRoot.Name = "Left (Common Skills)";
++        leftRoot.Name = LeftRootName;
+         this._masterSkillRoots.Add(1, leftRoot);
+         this.GameConfiguration.MasterSkillRoots.Add(leftRoot);
+         var middleRoot = this.Context.CreateNew<MasterSkillRoot>();
+-        middleRoot.Name = "Middle Root";
++        middleRoot.Name = MiddleRootName;
+         this._masterSkillRoots.Add(2, middleRoot);
+         this.GameConfiguration.MasterSkillRoots.Add(middleRoot);
+         var rightRoot = this.Context.CreateNew<MasterSkillRoot>();
+-        rightRoot.Name = "Right Root";
++        rightRoot.Name = RightRootName;
+         this._masterSkillRoots.Add(3, rightRoot);
+         this.GameConfiguration.MasterSkillRoots.Add(rightRoot);
+ 
+@@ -949,6 +1025,133 @@ internal class SkillsInitializer : SkillsInitializerBase
+         this.AddPassiveMasterSkillDefinition(SkillNumber.RecoverHPfromMonsterKills, Stats.HealthAfterMonsterKillMultiplier, AggregateType.AddFinal, Formula4319, 4, 3);
+         this.AddPassiveMasterSkillDefinition(SkillNumber.IncreaseMinimumAttackPower, Stats.MinimumPhysBaseDmg, AggregateType.AddRaw, Formula502, 5, 3);
+         this.AddPassiveMasterSkillDefinition(SkillNumber.RecoverManaMonsterKills, Stats.ManaAfterMonsterKillMultiplier, AggregateType.AddFinal, Formula4319, 5, 3, SkillNumber.RecoverHPfromMonsterKills);
++
++        this.AddSeason8MasterSkillDefinitions();
++    }
++
++    /// <summary>
++    /// Adds the master skill definitions of the ranks 6 to 9, as the Season 8 client shows them.
++    /// </summary>
++    /// <remarks>
++    /// One line per row of <c>Data/Skill/MasterSkillTree.txt</c> of the Season 8 Update 32 server
++    /// package: 103 rows, 180 slots over the seven master classes. Root, rank, minimum and maximum
++    /// level, required skills, replaced skill and the twenty values per level are all read from
++    /// that file; the formula constants reproduce those twenty values.
++    /// The rows marked <c>muda</c> get no target attribute on purpose: the attribute or the active
++    /// skill they would need does not exist in OpenMU yet, so they are visible in the tree and
++    /// consume master points, but they do nothing. See
++    /// <c>servidor/estudios/conversor-s8/lo-que-falta/4-arbol-maestro-hecho.md</c> for the full list.
++    /// </remarks>
++    private void AddSeason8MasterSkillDefinitions()
++    {
++        // Root 1 (common) · ranks 6 to 9 of the Season 8 tree
++        this.AddMasterSkillDefinition(SkillNumber.ArmorSetBonusInc, SkillNumber.Undefined, SkillNumber.Undefined, 1, 6, SkillNumber.Undefined, 20, Formula632);  // 315 Add Armor Set Bonus: 6.32 to 53.2 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.Vengeance, SkillNumber.ArmorSetBonusInc, SkillNumber.Undefined, 1, 6, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.FullyReflectDamageAfterHitChance, AggregateType.AddRaw);  // 316 Add Reflect Damage: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.ArmorSetBonusIncFistMaster, SkillNumber.Undefined, SkillNumber.Undefined, 1, 6, SkillNumber.Undefined, 20, Formula632);  // 593 Add Armor Set Bonus: 6.32 to 53.2 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.VengeanceFistMaster, SkillNumber.ArmorSetBonusIncFistMaster, SkillNumber.Undefined, 1, 6, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.FullyReflectDamageAfterHitChance, AggregateType.AddRaw);  // 594 Add Reflect Damage: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.EnergyIncrease, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalEnergy, AggregateType.AddFinal);  // 317 Add Energy: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.StaminaIncrease, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalVitality, AggregateType.AddFinal);  // 318 Add Vitality: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.AgilityIncrease, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalAgility, AggregateType.AddFinal);  // 319 Add Agility: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.StrengthIncrease, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalStrength, AggregateType.AddFinal);  // 320 Add Strength: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.EnergyIncreaseFistMaster, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalEnergy, AggregateType.AddFinal);  // 595 Add Energy: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.StaminaIncreaseFistMaster, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalVitality, AggregateType.AddFinal);  // 596 Add Vitality: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.AgilityIncreaseFistMaster, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalAgility, AggregateType.AddFinal);  // 597 Add Agility: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.StrengthIncreaseFistMaster, SkillNumber.Undefined, SkillNumber.Undefined, 1, 7, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalStrength, AggregateType.AddFinal);  // 598 Add Strength: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.WingofStormDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 322 Add DK Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.EternalWingsDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 375 Add DW Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.IllusionWingsDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 410 Add FE Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.DimensionWingsDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 446 Add SU Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.WingofRuinDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 476 Add MG Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.EmperorCapeDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 505 Add DL Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.AddsCommandStat, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204, Formula1204, Stats.TotalLeadership, AggregateType.AddFinal);  // 506 Add Leadership: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.ReigningCloakDefPowUp, SkillNumber.Undefined, SkillNumber.Undefined, 1, 8, SkillNumber.Undefined, 20, Formula1204);  // 549 Add RF Wing Defense: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.WingofStormAttPowUp, SkillNumber.WingofStormDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 324 Add DK Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.EternalWingsAttPowUp, SkillNumber.EternalWingsDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 377 Add DW Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.IllusionWingsAttPowUp, SkillNumber.IllusionWingsDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 412 Add FE Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.DimensionWingsAttPowUp, SkillNumber.DimensionWingsDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 447 Add SU Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.WingofRuinAttPowUp, SkillNumber.WingofRuinDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 478 Add MG Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.EmperorCapeAttPowUp, SkillNumber.EmperorCapeDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 507 Add DL Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.ReigningCloakAttPowUp, SkillNumber.ReigningCloakDefPowUp, SkillNumber.Undefined, 1, 9, SkillNumber.Undefined, 20, Formula1204);  // 550 Add RF Wing Damage: 12.04 to 90.16 · mute: no such attribute in OpenMU
++
++        // Root 2 (attack) · ranks 6 to 9 of the Season 8 tree
++        this.AddMasterSkillDefinition(SkillNumber.DeathStabProficiency, SkillNumber.DeathStabStrengthener, SkillNumber.Undefined, 2, 6, SkillNumber.DeathStabStrengthener, 20, Formula181);  // 339 Add Death Stab Enhanced: 1.81 to 13.52
++        this.AddMasterSkillDefinition(SkillNumber.StrikeofDestrProf, SkillNumber.StrikeofDestrStr, SkillNumber.Undefined, 2, 6, SkillNumber.StrikeofDestrStr, 20, Formula181);  // 340 Add Frozen Stab Enhanced: 1.81 to 13.52
++        this.AddMasterSkillDefinition(SkillNumber.MaximumAgIncrease, SkillNumber.MaximumManaIncrease, SkillNumber.Undefined, 2, 6, SkillNumber.Undefined, 20, Formula2769, Formula2769, Stats.MaximumAbility, AggregateType.AddRaw);  // 341 Add Max BP: 27.69 to 215.18
++        this.AddMasterSkillDefinition(SkillNumber.MeteorStrengthener, SkillNumber.Undefined, SkillNumber.Undefined, 2, 6, SkillNumber.Meteorite, 20, Formula883);  // 390 Add Meteorite Improved: 8.83 to 71.33
++        this.AddMasterSkillDefinition(SkillNumber.IceStormStrengthener, SkillNumber.IceStrengthener, SkillNumber.Undefined, 2, 6, SkillNumber.IceStorm, 20, Formula502);  // 391 Add Ice Storm Improved: 5.02 to 44.08
++        this.AddMasterSkillDefinition(SkillNumber.MultiShotStreng, SkillNumber.Undefined, SkillNumber.Undefined, 2, 6, SkillNumber.MultiShot, 20, Formula502);  // 411 Add Five Shot Improved: 5.02 to 44.08
++        this.AddMasterSkillDefinition(SkillNumber.Cure, SkillNumber.DefenseIncreaseMastery, SkillNumber.Undefined, 2, 6, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 425 Add Cure: 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.InnovationStrengthener, SkillNumber.Undefined, SkillNumber.Undefined, 2, 6, SkillNumber.Innovation, 20, Formula632);  // 460 Add Lesser Defense Improved: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.IceMasteryDuelMaster, SkillNumber.IceStrengthenerDuelMaster, SkillNumber.Undefined, 2, 6, SkillNumber.IceStrengthenerDuelMaster, 20, Formula120);  // 491 Add Ice Enhanced: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.FlameStrikeStrengthen, SkillNumber.Undefined, SkillNumber.Undefined, 2, 6, SkillNumber.FlameStrike, 20, Formula502);  // 492 Add Sword Slash Improved: 5.02 to 44.08
++        this.AddMasterSkillDefinition(SkillNumber.ElectricSparkStreng, SkillNumber.Undefined, SkillNumber.Undefined, 2, 6, SkillNumber.ElectricSpike, 20, Formula632);  // 519 Add Electric Spark Improved: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.FireScreamMastery, SkillNumber.FireScreamStren, SkillNumber.Undefined, 2, 6, SkillNumber.FireScreamStren, 20, Formula1154);  // 520 Add Fire Scream Enhanced: 11.54 to 89.66
++        this.AddMasterSkillDefinition(SkillNumber.DragonRoarMastery, SkillNumber.DragonRoarStrengthener, SkillNumber.Undefined, 2, 6, SkillNumber.DragonRoarStrengthener, 20, Formula120);  // 561 Add Dragon Lore Enhanced: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.IncreaseMaximumAg, SkillNumber.IncreaseMaximumMana, SkillNumber.Undefined, 2, 6, SkillNumber.Undefined, 20, Formula2769, Formula2769, Stats.MaximumAbility, AggregateType.AddRaw);  // 602 Add Max BP: 27.69 to 215.18
++        this.AddMasterSkillDefinition(SkillNumber.DeathStabMastery, SkillNumber.DeathStabProficiency, SkillNumber.Undefined, 2, 7, SkillNumber.DeathStabProficiency, 20, Formula100To800);  // 342 Add Death Stab Mastered: 1 to 8
++        this.AddMasterSkillDefinition(SkillNumber.StrikeofDestrMast, SkillNumber.StrikeofDestrProf, SkillNumber.Undefined, 2, 7, SkillNumber.StrikeofDestrProf, 20, Formula120);  // 343 Add Frozen Stab Mastered: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.NovaStrengthener, SkillNumber.HellfireStrengthener, SkillNumber.Undefined, 2, 7, SkillNumber.Nova, 20, Formula502);  // 392 Add Nova Improved: 5.02 to 44.08
++        this.AddMasterSkillDefinition(SkillNumber.IceStormMastery, SkillNumber.IceStormStrengthener, SkillNumber.Undefined, 2, 7, SkillNumber.IceStormStrengthener, 20, Formula120);  // 393 Add Ice Storm Enhanced: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.PartyHealing, SkillNumber.Undefined, SkillNumber.Undefined, 2, 7, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 426 Add Party Healing: 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.SummonedMonsterStr3, SkillNumber.Undefined, SkillNumber.Undefined, 2, 7, SkillNumber.Undefined, 20, Formula6020);  // 428 Add Summon Damage: 60.02 to 450.8 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.MultiShotMastery, SkillNumber.MultiShotStreng, SkillNumber.Undefined, 2, 7, SkillNumber.MultiShotStreng, 20, Formula005, Formula005, Stats.ExtraProjectiles, AggregateType.AddRaw);  // 431 Add Five Shot Enhanced: 0.05 to 1
++        this.AddMasterSkillDefinition(SkillNumber.WeaknessStrengthener, SkillNumber.Undefined, SkillNumber.Undefined, 2, 7, SkillNumber.Weakness, 20, Formula632);  // 459 Add Lesser Damage Improved: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.DrainLifeMastery, SkillNumber.DrainLifeStrengthener, SkillNumber.Undefined, 2, 7, SkillNumber.DrainLifeStrengthener, 20, Formula1204, Formula1204, Stats.DrainLifeStrBonusHealing, AggregateType.AddRaw);  // 462 Add Drain Life Enhanced: 12.04 to 90.16
++        this.AddMasterSkillDefinition(SkillNumber.FireSlashMastery, SkillNumber.BloodAttackStrengthen, SkillNumber.Undefined, 2, 7, SkillNumber.BloodAttackStrengthen, 20, Formula181);  // 493 Add Fire Slash Enhanced: 1.81 to 13.52
++        this.AddMasterSkillDefinition(SkillNumber.FlameStrikeMastery, SkillNumber.FlameStrikeStrengthen, SkillNumber.Undefined, 2, 7, SkillNumber.FlameStrikeStrengthen, 20, Formula181);  // 494 Add Sword Slash Enhanced: 1.81 to 13.52
++        this.AddMasterSkillDefinition(SkillNumber.GiganticStormStr, SkillNumber.Undefined, SkillNumber.Undefined, 2, 7, SkillNumber.GiganticStorm, 20, Formula502);  // 496 Add Lightning Storm Improved: 5.02 to 44.08
++        this.AddMasterSkillDefinition(SkillNumber.CriticalDamageIncM, SkillNumber.CritDmgIncPowUp3, SkillNumber.Undefined, 2, 7, SkillNumber.CritDmgIncPowUp3, 20, $"{Formula120} / 100", Formula120, Stats.CriticalDamageChance, AggregateType.AddRaw);  // 522 Add Greater C. D. Extended: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.ChaoticDiseierStr, SkillNumber.Undefined, SkillNumber.Undefined, 2, 7, SkillNumber.ChaoticDiseier, 20, Formula502);  // 523 Add Birds Improved: 5.02 to 44.08
++        this.AddMasterSkillDefinition(SkillNumber.ChainDriveMastery, SkillNumber.ChainDriveStrengthener, SkillNumber.Undefined, 2, 7, SkillNumber.ChainDriveStrengthener, 20, Formula120);  // 562 Add Chain Driver Enhanced: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.DarkSideMastery, SkillNumber.DarkSideStrengthener, SkillNumber.Undefined, 2, 7, SkillNumber.DarkSideStrengthener, 20, FormulaSinValor);  // 563 Add Dark Side Enhanced: 0 to 0 · mute: the S8 table has no value
++        this.AddMasterSkillDefinition(SkillNumber.DragonSlasherStr, SkillNumber.Undefined, SkillNumber.Undefined, 2, 7, SkillNumber.DragonSlasher, 20, Formula120);  // 564 Add Dragon Slayer Improved: 1.2 to 9.02
++        this.AddMasterSkillDefinition(SkillNumber.BloodStorm, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 344 Add Blood Storm: 0 to 0 · partial
++        this.AddMasterSkillDefinition(SkillNumber.ComboStrengthener, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 20, Formula181, Formula181, Stats.ComboBonus, AggregateType.AddRaw);  // 345 Add Combo Damage: 1.81 to 13.52
++        this.AddMasterSkillDefinition(SkillNumber.MeteorMastery, SkillNumber.MeteorStrengthener, SkillNumber.Undefined, 2, 8, SkillNumber.MeteorStrengthener, 20, Formula005);  // 394 Add Meteorite Enhanced: 0.05 to 1 · partial
++        this.AddMasterSkillDefinition(SkillNumber.PoisonArrow, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 427 Add Poison Arrow: 0 to 0 · partial
++        this.AddMasterSkillDefinition(SkillNumber.PartyHealingStr, SkillNumber.PartyHealing, SkillNumber.Undefined, 2, 8, SkillNumber.PartyHealing, 20, Formula502);  // 429 Add Party Healing Improved: 5.02 to 44.08 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.Bless, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 430 Add Bless: 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.SummonSatyros, SkillNumber.SummonedMonsterStr3, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 432 Add Summon Satyros: 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.Blind, SkillNumber.WeaknessStrengthener, SkillNumber.InnovationStrengthener, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 461 Add Blind: 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.EarthPrison, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 495 Add Earth Prison: 0 to 0 · partial
++        this.AddMasterSkillDefinition(SkillNumber.IronDefenseLordEmperor, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 521 Add Iron Defense : 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.BloodHowling, SkillNumber.Undefined, SkillNumber.Undefined, 2, 8, SkillNumber.Undefined, 10, Formula1WhenComplete);  // 565 Add Blood Howling: 0 to 0 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.DragonSlasherMastery, SkillNumber.DragonSlasherStr, SkillNumber.Undefined, 2, 8, SkillNumber.DragonSlasherStr, 20, Formula100To334);  // 566 Add Dragon Slayer Enhanced: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.BloodStormStrengthener, SkillNumber.BloodStorm, SkillNumber.Undefined, 2, 9, SkillNumber.BloodStorm, 20, Formula502);  // 346 Add Blood Storm Improved: 5.02 to 44.08 · partial
++        this.AddMasterSkillDefinition(SkillNumber.BlessStrengthener, SkillNumber.Bless, SkillNumber.Undefined, 2, 9, SkillNumber.Undefined, 20, Formula803);  // 433 Add Bless Improved: 8.03 to 70.53 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.PoisonArrowStr, SkillNumber.PoisonArrow, SkillNumber.Undefined, 2, 9, SkillNumber.PoisonArrow, 20, Formula502);  // 434 Add Poison Arrow Improved: 5.02 to 44.08 · partial
++        this.AddMasterSkillDefinition(SkillNumber.BlindStrengthener, SkillNumber.Blind, SkillNumber.Undefined, 2, 9, SkillNumber.Blind, 20, Formula120);  // 463 Add Blind Improved: 1.2 to 9.02 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.EarthPrisonStr, SkillNumber.EarthPrison, SkillNumber.Undefined, 2, 9, SkillNumber.EarthPrison, 20, Formula502);  // 497 Add Earth Prison Improved: 5.02 to 44.08 · partial
++        this.AddMasterSkillDefinition(SkillNumber.IronDefenseStr, SkillNumber.IronDefenseLordEmperor, SkillNumber.Undefined, 2, 9, SkillNumber.IronDefenseLordEmperor, 20, Formula632);  // 524 Add Iron Defense Improved: 6.32 to 53.2 · mute: the active skill is not implemented
++        this.AddMasterSkillDefinition(SkillNumber.BloodHowlingStr, SkillNumber.BloodHowling, SkillNumber.Undefined, 2, 9, SkillNumber.BloodHowling, 20, Formula100To334);  // 567 Add Blood Howling Improved: 1 to 3.34 · mute: the active skill is not implemented
++
++        // Root 3 (defense and passives) · ranks 6 to 9 of the Season 8 tree
++        this.AddMasterSkillDefinition(SkillNumber.SwellLifeMastery, SkillNumber.SwellLifeProficiency, SkillNumber.Undefined, 3, 6, SkillNumber.SwellLifeProficiency, 20, Formula181);  // 363 Add Greater Life Mastered: 1.81 to 13.52 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.MaximumAttackPowerInc, SkillNumber.MinimumAttackPowerInc, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, Formula632, Formula632, Stats.MaximumPhysBaseDmg, AggregateType.AddRaw);  // 364 Add Max Physi Damage: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.Inccritdamagerate, SkillNumber.Undefined, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.CriticalDamageChance, AggregateType.AddRaw);  // 366 Add Critical Damage Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.SoulBarrierMastery, SkillNumber.SoulBarrierProficie, SkillNumber.Undefined, 3, 6, SkillNumber.SoulBarrierProficie, 20, Formula181);  // 406 Add Mana Shield Mastered: 1.81 to 13.52 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.MaximumWizardryInc, SkillNumber.MinimumWizardryInc, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, Formula632, Formula632, Stats.MaximumWizBaseDmg, AggregateType.AddRaw);  // 407 Add Max Magic Damage: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.MaximumAttPowerInc, SkillNumber.MinimumAttPowerInc, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, Formula632, Formula632, Stats.MaximumPhysBaseDmg, AggregateType.AddRaw);  // 443 Add Max Physi Damage: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.BerserkerMastery, SkillNumber.BerserkerProficiency, SkillNumber.Undefined, 3, 6, SkillNumber.BerserkerProficiency, 20, Formula803);  // 472 Add Sword Power Mastered: 8.03 to 70.53 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.MaximumWizCurseInc, SkillNumber.MinimumWizCurseInc, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, Formula632);  // 473 Add Max Magic Damage: 6.32 to 53.2 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.DarkSpiritStr4, SkillNumber.Undefined, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, Formula181, Formula181, Stats.RavenAttackSpeed, AggregateType.AddRaw);  // 536 Add Dark Spirit Attack Speed: 1.81 to 13.52
++        this.AddMasterSkillDefinition(SkillNumber.IncreaseMaximumAttackPower, SkillNumber.IncreaseMinimumAttackPower, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, Formula632, Formula632, Stats.MaximumPhysBaseDmg, AggregateType.AddRaw);  // 609 Add Max Physi Damage: 6.32 to 53.2
++        this.AddMasterSkillDefinition(SkillNumber.IncreasesCritDamageChance, SkillNumber.Undefined, SkillNumber.Undefined, 3, 6, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.CriticalDamageChance, AggregateType.AddRaw);  // 610 Add Critical Damage Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.RestoresallMana, SkillNumber.Undefined, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.FullyRecoverManaAfterHitChance, AggregateType.AddRaw);  // 367 Add Restore MP Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.RestoresallHp, SkillNumber.Undefined, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, $"{Formula005} / 100", Formula005, Stats.FullyRecoverHealthAfterHitChance, AggregateType.AddRaw);  // 368 Add Restore HP Rate: 0.05 to 1
++        this.AddMasterSkillDefinition(SkillNumber.Incexcdamagerate, SkillNumber.Inccritdamagerate, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.ExcellentDamageChance, AggregateType.AddRaw);  // 369 Add Excellent Damage Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.DarkSpiritStr5, SkillNumber.Undefined, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, Formula120);  // 538 Add Dark Spirit D. D. Rate: 1.2 to 9.02 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.RecoverManaFully, SkillNumber.Undefined, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.FullyRecoverManaAfterHitChance, AggregateType.AddRaw);  // 611 Add Restore MP Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.RecoversHpFully, SkillNumber.Undefined, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, $"{Formula005} / 100", Formula005, Stats.FullyRecoverHealthAfterHitChance, AggregateType.AddRaw);  // 612 Add Restore HP Rate: 0.05 to 1
++        this.AddMasterSkillDefinition(SkillNumber.IncreaseExcDamageChance, SkillNumber.IncreasesCritDamageChance, SkillNumber.Undefined, 3, 7, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.ExcellentDamageChance, AggregateType.AddRaw);  // 613 Add Excellent Damage Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.Incdoubledamagerate, SkillNumber.Undefined, SkillNumber.Undefined, 3, 8, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.DoubleDamageChance, AggregateType.AddRaw);  // 370 Add Double Damage Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.RestoresallSd, SkillNumber.RestoresallHp, SkillNumber.Undefined, 3, 8, SkillNumber.Undefined, 20, Formula005);  // 372 Add Restore SD Rate: 0.05 to 1 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.SpiritLord, SkillNumber.DarkSpiritStr5, SkillNumber.Undefined, 3, 8, SkillNumber.Undefined, 20, Formula120);  // 539 Add Dark Spirit I. D. Rate: 1.2 to 9.02 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.IncreaseDoubleDamageChance, SkillNumber.Undefined, SkillNumber.Undefined, 3, 8, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.DoubleDamageChance, AggregateType.AddRaw);  // 614 Add Double Damage Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.RecoversSdFully, SkillNumber.RecoversHpFully, SkillNumber.Undefined, 3, 8, SkillNumber.Undefined, 20, Formula005);  // 616 Add Restore SD Rate: 0.05 to 1 · mute: no such attribute in OpenMU
++        this.AddMasterSkillDefinition(SkillNumber.IncchanceofignoreDef, SkillNumber.Incdoubledamagerate, SkillNumber.Undefined, 3, 9, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.DefenseIgnoreChance, AggregateType.AddRaw);  // 371 Add Ignore Defense Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.IncreaseIgnoreDefChance, SkillNumber.IncreaseDoubleDamageChance, SkillNumber.Undefined, 3, 9, SkillNumber.Undefined, 20, $"{Formula100To334} / 100", Formula100To334, Stats.DefenseIgnoreChance, AggregateType.AddRaw);  // 615 Add Ignore Defense Rate: 1 to 3.34
++        this.AddMasterSkillDefinition(SkillNumber.IncreaseTripleDamageChance, SkillNumber.Undefined, SkillNumber.Undefined, 3, 9, SkillNumber.Undefined, 20, Formula100To334);  // 617 Add Triple Damage Rate: 1 to 3.34 · mute: no such attribute in OpenMU
+     }
+ 
+     private void AddPassiveMasterSkillDefinition(SkillNumber skillNumber, AttributeDefinition targetAttribute, AggregateType aggregateType, string valueFormula, string displayValueFormula, byte rank, byte root, SkillNumber requiredSkill1 = SkillNumber.Undefined, SkillNumber requiredSkill2 = SkillNumber.Undefined, byte maximumLevel = 20)
