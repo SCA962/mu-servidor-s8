@@ -810,10 +810,10 @@ index 9d520d45..650da09b 100644
          var priceCalculator = new ItemPriceCalculator();
 diff --git a/src/GameLogic/PlayerActions/Mining/MiningAction.cs b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
 new file mode 100644
-index 00000000..9152912a
+index 00000000..d4cfffc2
 --- /dev/null
 +++ b/src/GameLogic/PlayerActions/Mining/MiningAction.cs
-@@ -0,0 +1,309 @@
+@@ -0,0 +1,334 @@
 +﻿// <copyright file="MiningAction.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1103,10 +1103,35 @@ index 00000000..9152912a
 +        return null;
 +    }
 +
++    /// <summary>
++    /// Gets the Pandora Pick which the player has equipped in a hand, if there is one.
++    /// </summary>
++    /// <param name="player">The player.</param>
++    /// <returns>The pick, or <see langword="null"/> when there is none equipped.</returns>
++    /// <remarks>
++    /// Both hand slots are checked on purpose, and this is worth knowing: the game client and
++    /// OpenMU name the hands the other way round. The client has
++    /// <c>EQUIPMENT_WEAPON_RIGHT = 0</c> and <c>EQUIPMENT_WEAPON_LEFT = 1</c>, while
++    /// <see cref="InventoryConstants"/> has <c>LeftHandSlot = 0</c> and <c>RightHandSlot = 1</c>.
++    /// The pick is defined with slot 0, so it equips into inventory slot 0, which OpenMU calls the
++    /// left hand and the client calls the right hand. Looking only at
++    /// <see cref="InventoryConstants.RightHandSlot"/> meant never finding it, and the player got
++    /// "not enough durability" with a brand new pick at 255 out of 255.
++    /// </remarks>
 +    private Item? GetEquippedPick(Player player)
 +    {
-+        if (player.Inventory?.GetItem(InventoryConstants.RightHandSlot) is not { } item
-+            || item.Definition is not { } definition
++        if (player.Inventory is not { } inventory)
++        {
++            return null;
++        }
++
++        return IsPandoraPick(inventory.GetItem(InventoryConstants.LeftHandSlot))
++               ?? IsPandoraPick(inventory.GetItem(InventoryConstants.RightHandSlot));
++    }
++
++    private static Item? IsPandoraPick(Item? item)
++    {
++        if (item?.Definition is not { } definition
 +            || definition.Group != ItemConstants.PandoraPick.Group
 +            || definition.Number != ItemConstants.PandoraPick.Number)
 +        {
