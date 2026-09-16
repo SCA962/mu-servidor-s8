@@ -107,9 +107,17 @@ jobs:
           test "$(grep -c "this.CreateErrtel(" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "5" || { echo "no son 5 errtels" >&2; exit 1; }
           test "$(grep -c "this.CreateErrtelOption(" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "60" || { echo "no son 60 filas de opcion de errtel" >&2; exit 1; }
           # los atributos: 283 de OpenMU + 38 del sistema elemental, y ninguno con GUID repetido
-          test "$(grep -c "public static AttributeDefinition" src/GameLogic/Attributes/Stats.cs)" = "321" || { echo "el numero de atributos no es el esperado" >&2; exit 1; }
+          test "$(grep -c "public static AttributeDefinition" src/GameLogic/Attributes/Stats.cs)" = "322" || { echo "el numero de atributos no es el esperado" >&2; exit 1; }
           grep -q "AttributeDefinition DarkResistance" src/GameLogic/Attributes/Stats.cs || { echo "falta la resistencia a la oscuridad" >&2; exit 1; }
           test -z "$(grep -oE 'new Guid\("[0-9A-Fa-f-]+"\)' src/GameLogic/Attributes/Stats.cs | sort | uniq -d)" || { echo "hay GUID repetidos en Stats.cs" >&2; exit 1; }
+          # el canal de dano en los dos sentidos, y los valores elementales de los bichos
+          test -f src/GameLogic/ElementalCombat.cs || { echo "falta el motor de dano elemental" >&2; exit 1; }
+          grep -q "ElementalCombat.CalculateDamage" src/GameLogic/AttackableExtensions.cs || { echo "el dano elemental no esta enganchado al calculo de dano" >&2; exit 1; }
+          grep -q "ElementalCombat.IsImmuneToPhysicalDamage" src/GameLogic/AttackableExtensions.cs || { echo "los jefes elementales siguen recibiendo dano fisico" >&2; exit 1; }
+          test -f src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "faltan los valores elementales de los bichos" >&2; exit 1; }
+          grep -q "new ElementalSystem(this.Context" src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs || { echo "el sistema elemental no esta registrado" >&2; exit 1; }
+          # 39 bichos con elemento propio (el 657 queda fuera: sus cifras del paquete estan toqueteadas)
+          test "$(grep -cE "^        [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, [0-9]+, //" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs)" = "39" || { echo "no son 39 bichos elementales" >&2; exit 1; }
 
       - name: Construir la imagen
         working-directory: OpenMU/src

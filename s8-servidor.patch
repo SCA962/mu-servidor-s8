@@ -95,8 +95,40 @@ index 75908b19..443fc4c4 100644
      /// <summary>
      /// The number of personal store rows.
      /// </summary>
+diff --git a/src/GameLogic/AttackableExtensions.cs b/src/GameLogic/AttackableExtensions.cs
+index f5bb5592..d914b321 100644
+--- a/src/GameLogic/AttackableExtensions.cs
++++ b/src/GameLogic/AttackableExtensions.cs
+@@ -303,6 +303,27 @@ public static class AttackableExtensions
+             }
+         }
+ 
++        // ---- canal elemental de la Season 8 ----
++        // Va aqui, al final, porque el dano elemental no es un modificador del fisico: es su propio
++        // golpe, con su propia tasa de acierto y su propia defensa. Se suma al mismo numero porque
++        // el cliente de Season 6 no conoce el paquete 0xD8 con el que el original lo pinta aparte.
++        if (ElementalCombat.IsImmuneToPhysicalDamage(defender))
++        {
++            dmg = 0;
++        }
++
++        var isRangedAttack = attacker.Attributes[Stats.IsBowEquipped] > 0 || attacker.Attributes[Stats.IsCrossBowEquipped] > 0;
++        var elementalDamage = ElementalCombat.CalculateDamage(attacker, defender, isPvp, isRangedAttack);
++        if (elementalDamage > 0)
++        {
++            dmg += elementalDamage;
++        }
++
++        if (dmg < 0)
++        {
++            dmg = 0;
++        }
++
+         return defender.GetHitInfo((uint)dmg, attributes, attacker, (uint)manaToll);
+     }
+ 
 diff --git a/src/GameLogic/Attributes/Stats.cs b/src/GameLogic/Attributes/Stats.cs
-index 7f0fa702..8d59be38 100644
+index 7f0fa702..173cbc0d 100644
 --- a/src/GameLogic/Attributes/Stats.cs
 +++ b/src/GameLogic/Attributes/Stats.cs
 @@ -1069,6 +1069,16 @@ public class Stats
@@ -116,7 +148,7 @@ index 7f0fa702..8d59be38 100644
      /// <summary>
      /// Gets the poison resistance attribute definition. Value range from 0 to 1.
      /// </summary>
-@@ -1738,4 +1748,205 @@ public class Stats
+@@ -1738,4 +1748,216 @@ public class Stats
          /// </summary>
          public int HiatusThreshold { get; init; } = 10;
      }
@@ -303,6 +335,17 @@ index 7f0fa702..8d59be38 100644
 +    public static AttributeDefinition Element { get; } = new(new Guid("8698B85E-4CD5-46AA-B0B6-0B74D7ADCA90"), "Elemental Attribute", string.Empty);
 +
 +    /// <summary>
++    /// Gets the elemental pattern attribute definition: 0 normal, 1 elemental monster, 2 boss that
++    /// can only be hurt with elemental damage.
++    /// </summary>
++    /// <remarks>
++    /// Sale de la columna ElementalPattern de Monster.txt. El 2 es el que importa: la guia de
++    /// Webzen dice que a los jefes elementales "se los puede danar solo con dano elemental", y en
++    /// la tabla del paquete son exactamente los diez que llevan un 2.
++    /// </remarks>
++    public static AttributeDefinition ElementalPattern { get; } = new(new Guid("A523863E-33E5-4313-9F3E-B9F418AD64C6"), "Elemental Pattern", string.Empty);
++
++    /// <summary>
 +    /// Gets the minimum elemental damage attribute definition.
 +    /// </summary>
 +    public static AttributeDefinition ElementalDamageMin { get; } = new(new Guid("C2EB5FE4-3659-43CC-8103-12FE44A4CCB0"), "Elemental Damage (Minimum)", string.Empty);
@@ -322,6 +365,251 @@ index 7f0fa702..8d59be38 100644
 +    /// </summary>
 +    public static AttributeDefinition ElementalDefenseSuccessRate { get; } = new(new Guid("5BB392DF-97F5-406A-BD3B-F871CCA758FA"), "Elemental Defense Success Rate", string.Empty);
  }
+diff --git a/src/GameLogic/ElementalCombat.cs b/src/GameLogic/ElementalCombat.cs
+new file mode 100644
+index 00000000..f9246cd5
+--- /dev/null
++++ b/src/GameLogic/ElementalCombat.cs
+@@ -0,0 +1,239 @@
++﻿// <copyright file="ElementalCombat.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic;
++
++using MUnique.OpenMU.AttributeSystem;
++using MUnique.OpenMU.GameLogic.Attributes;
++
++/// <summary>
++/// El canal de dano elemental de la Season 8, en los dos sentidos: lo que el jugador con pentagrama
++/// le hace al bicho y lo que el bicho elemental le hace al jugador.
++/// </summary>
++/// <remarks>
++/// <para>
++/// <b>Cinco elementos, no siete</b>: fuego, agua, tierra, viento y oscuridad, mas el 0 de quien no
++/// lleva pentagrama. La rueda es circular: cada uno le pega fuerte al siguiente.
++/// </para>
++/// <para>
++/// <b>Son dos tablas, no una.</b> La tabla que publica Webzen (100/120/110/90/80) es el EFECTO NETO,
++/// no la tabla de dano. Debajo hay una de dano y otra de defensa, y el neto sale de dividirlas:
++/// 110/90 = 122% que Webzen redondea a 120%, 105/95 = 110,5% que publica como 110%, y asi las cinco.
++/// Las dos tablas salen de codigo de servidor (samik3k/mu_online_lgnd, Game/PentagramSystem.h) y
++/// coinciden con la descompilacion del binario oficial que trae IGCN marcada "1.1.0.4 decompilation".
++/// </para>
++/// <para>
++/// <b>Aviso sobre la tabla oficial:</b> la que Webzen publico en la guia EX700 esta rota. La columna
++/// del viento es una copia exacta de la de la tierra en las cinco filas, y se delata sola porque
++/// dice viento contra viento 120%, que es imposible. Media internet la copia rota. La reconstruccion
++/// correcta se comprueba contra la propia guia de Webzen (detail/43): "con un pentagrama de fuego
++/// equipado, agua y tierra, que son mas fuertes que el fuego, apareceran arriba, y viento y
++/// oscuridad, que son mas debiles, abajo". Con la tabla rota el viento saldria mas fuerte que el
++/// fuego, contradiciendo a Webzen en su propia guia.
++/// </para>
++/// <para>
++/// <b>Que no se pudo verificar en fuente oficial</b>: Webzen nunca publico ni la formula de dano ni
++/// la de la tasa de acierto elemental. El orden de operaciones de aqui sale de codigo de servidor
++/// privado mas la descompilacion. El bono de PvP es el de la epoca (+30%); el x2 adicional que se
++/// ve hoy es de temporadas posteriores.
++/// </para>
++/// </remarks>
++internal static class ElementalCombat
++{
++    /// <summary>
++    /// Indices: 0 ninguno, 1 fuego, 2 agua, 3 tierra, 4 viento, 5 oscuridad.
++    /// </summary>
++    private const int ElementCount = 6;
++
++    /// <summary>
++    /// Tabla de dano, indexada [atacante, defensor].
++    /// </summary>
++    private static readonly int[,] DamageRelation =
++    {
++        //         nin  fue  agu  tie  vie  osc
++        /* nin */ { 100, 100, 100, 100, 100, 100 },
++        /* fue */ { 090, 100, 090, 095, 105, 110 },
++        /* agu */ { 090, 110, 100, 090, 095, 105 },
++        /* tie */ { 090, 105, 110, 100, 090, 095 },
++        /* vie */ { 090, 095, 105, 110, 100, 090 },
++        /* osc */ { 090, 090, 095, 105, 110, 100 },
++    };
++
++    /// <summary>
++    /// Tabla de defensa, indexada [defensor, atacante].
++    /// </summary>
++    private static readonly int[,] DefenseRelation =
++    {
++        //         nin  fue  agu  tie  vie  osc
++        /* nin */ { 100, 080, 080, 080, 080, 080 },
++        /* fue */ { 100, 100, 090, 095, 105, 110 },
++        /* agu */ { 100, 110, 100, 090, 095, 105 },
++        /* tie */ { 100, 105, 110, 100, 090, 095 },
++        /* vie */ { 100, 095, 105, 110, 100, 090 },
++        /* osc */ { 100, 090, 095, 105, 110, 100 },
++    };
++
++    /// <summary>
++    /// Gets a value indicating whether the defender can only be hurt with elemental damage.
++    /// </summary>
++    /// <param name="defender">The defender.</param>
++    /// <returns><c>true</c>, if only elemental damage hurts it.</returns>
++    /// <remarks>
++    /// Son los diez jefes elementales, los que llevan un 2 en la columna ElementalPattern de
++    /// Monster.txt. La guia EX700 de Webzen lo dice con todas las letras: "Boss monsters can be
++    /// harmed only through elemental damages".
++    /// </remarks>
++    public static bool IsImmuneToPhysicalDamage(IAttackable defender)
++    {
++        return defender.Attributes[Stats.ElementalPattern] >= 2;
++    }
++
++    /// <summary>
++    /// Calculates the elemental damage of one hit.
++    /// </summary>
++    /// <param name="attacker">The attacker.</param>
++    /// <param name="defender">The defender.</param>
++    /// <param name="isPvp">If set to <c>true</c>, both sides are players.</param>
++    /// <param name="isRanged">If set to <c>true</c>, the attack comes from a distance.</param>
++    /// <returns>The elemental damage, zero if there is none or if it missed.</returns>
++    public static int CalculateDamage(IAttacker attacker, IAttackable defender, bool isPvp, bool isRanged)
++    {
++        var attackerElement = GetElement(attacker.Attributes, attacker.Id);
++        if (attackerElement == 0)
++        {
++            // Sin pentagrama (o sin elemento) no hay dano elemental. Es la puerta de entrada.
++            return 0;
++        }
++
++        var minimum = attacker.Attributes[Stats.ElementalDamageMin];
++        var maximum = attacker.Attributes[Stats.ElementalDamageMax];
++        if (maximum <= 0)
++        {
++            return 0;
++        }
++
++        var hitFactor = GetHitFactor(attacker, defender);
++        if (hitFactor <= 0)
++        {
++            return 0;
++        }
++
++        var defenderElement = GetElement(defender.Attributes, defender.Id);
++
++        float damage = Rand.NextInt((int)minimum, (int)maximum + 1);
++        damage += attacker.Attributes[Stats.ElementalDamageBonus];
++        damage += isPvp ? attacker.Attributes[Stats.ElementalDamageBonusPvp] : attacker.Attributes[Stats.ElementalDamageBonusPvm];
++        damage += isRanged ? attacker.Attributes[Stats.ElementalDamageBonusRanged] : attacker.Attributes[Stats.ElementalDamageBonusMelee];
++
++        var damageMultiplier = 1f
++            + GetVersusMultiplier(attacker.Attributes, defenderElement, true)
++            + (isPvp ? attacker.Attributes[Stats.ElementalDamageMultiplierPvp] : attacker.Attributes[Stats.ElementalDamageMultiplierPvm]);
++        damage *= damageMultiplier;
++
++        var criticalChance = isPvp ? attacker.Attributes[Stats.ElementalCriticalDamageChancePvp] : attacker.Attributes[Stats.ElementalCriticalDamageChancePvm];
++        var excellentChance = isPvp ? attacker.Attributes[Stats.ElementalExcellentDamageChancePvp] : attacker.Attributes[Stats.ElementalExcellentDamageChancePvm];
++        if (Rand.NextRandomBool(excellentChance))
++        {
++            damage = maximum * 1.2f * damageMultiplier;
++        }
++        else if (Rand.NextRandomBool(criticalChance))
++        {
++            damage = maximum * damageMultiplier;
++        }
++        else
++        {
++            // Nada que hacer: se queda con el aleatorio.
++        }
++
++        damage = damage * DamageRelation[attackerElement, defenderElement] / 100f;
++
++        var defense = defender.Attributes[Stats.ElementalDefense];
++        defense += isPvp ? defender.Attributes[Stats.ElementalDefenseBonusPvp] : defender.Attributes[Stats.ElementalDefenseBonusPvm];
++        defense += isRanged ? defender.Attributes[Stats.ElementalDefenseBonusRanged] : defender.Attributes[Stats.ElementalDefenseBonusMelee];
++        defense *= 1f + GetVersusMultiplier(defender.Attributes, attackerElement, false);
++        defense = defense * DefenseRelation[defenderElement, attackerElement] / 100f;
++
++        damage -= defense;
++        if (damage <= 0)
++        {
++            return 0;
++        }
++
++        if (isPvp)
++        {
++            // La nota de la guia EX700: "In PVP, elemental damage is increased by 30%". El x2 que se
++            // ve en los servidores de hoy es de temporadas posteriores, no de esta.
++            damage *= 1.3f;
++        }
++
++        var reduction = isPvp ? defender.Attributes[Stats.ElementalDamageReductionPvp] : defender.Attributes[Stats.ElementalDamageReductionPvm];
++        damage *= 1f - Math.Clamp(reduction, 0f, 0.9f);
++
++        damage *= hitFactor;
++
++        return damage > 0 ? (int)damage : 0;
++    }
++
++    /// <summary>
++    /// Devuelve el elemento, resolviendo el 6 de Monster.txt, que no es un sexto elemento sino
++    /// "al azar entre los cinco". Se reparte por el identificador del bicho, asi que cada uno que
++    /// aparece se queda con su color mientras vive y cambia al reaparecer.
++    /// </summary>
++    private static int GetElement(IAttributeSystem attributes, ushort id)
++    {
++        var element = (int)attributes[Stats.Element];
++        if (element == 6)
++        {
++            return (id % 5) + 1;
++        }
++
++        return element > 0 && element < ElementCount ? element : 0;
++    }
++
++    private static float GetVersusMultiplier(IAttributeSystem attributes, int otherElement, bool isDamage)
++    {
++        return otherElement switch
++        {
++            1 => attributes[isDamage ? Stats.ElementalDamageMultiplierVsFire : Stats.ElementalDefenseMultiplierVsFire],
++            2 => attributes[isDamage ? Stats.ElementalDamageMultiplierVsWater : Stats.ElementalDefenseMultiplierVsWater],
++            3 => attributes[isDamage ? Stats.ElementalDamageMultiplierVsEarth : Stats.ElementalDefenseMultiplierVsEarth],
++            4 => attributes[isDamage ? Stats.ElementalDamageMultiplierVsWind : Stats.ElementalDefenseMultiplierVsWind],
++            5 => attributes[isDamage ? Stats.ElementalDamageMultiplierVsDark : Stats.ElementalDefenseMultiplierVsDark],
++            _ => 0f,
++        };
++    }
++
++    /// <summary>
++    /// Acierto o fallo del golpe elemental. Devuelve 0 si fallo, 1 si entro entero y 0,3 si entro
++    /// de refilon.
++    /// </summary>
++    /// <remarks>
++    /// De la descompilacion: si la tasa de ataque del atacante es menor que la de defensa del
++    /// objetivo, falla el 95% de las veces y el 5% restante entra al 30%. Si es mayor o igual, la
++    /// probabilidad de fallo es defensa dividido ataque.
++    /// </remarks>
++    private static float GetHitFactor(IAttacker attacker, IAttackable defender)
++    {
++        var attackRate = attacker.Attributes[Stats.ElementalAttackSuccessRate]
++            * (1f + attacker.Attributes[Stats.ElementalAttackSuccessRateMultiplier]);
++        if (attackRate <= 0)
++        {
++            return 0f;
++        }
++
++        var defenseRate = defender.Attributes[Stats.ElementalDefenseSuccessRate]
++            * (1f + defender.Attributes[Stats.ElementalDefenseSuccessRateMultiplier]);
++        if (defenseRate <= 0)
++        {
++            return 1f;
++        }
++
++        if (attackRate < defenseRate)
++        {
++            return Rand.NextRandomBool(0.95f) ? 0f : 0.3f;
++        }
++
++        return Rand.NextRandomBool(defenseRate / attackRate) ? 0f : 1f;
++    }
++}
 diff --git a/src/GameLogic/InventoryStorage.cs b/src/GameLogic/InventoryStorage.cs
 index 9925b53f..8821943a 100644
 --- a/src/GameLogic/InventoryStorage.cs
@@ -5537,8 +5825,262 @@ index ec5714c0..d66d3af7 100644
          var ring = this.Context.CreateNew<ItemSlotType>();
          ring.SetGuid(10);
          ring.Description = "Ring";
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs b/src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs
+new file mode 100644
+index 00000000..3ae9afa0
+--- /dev/null
++++ b/src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs
+@@ -0,0 +1,248 @@
++﻿// <copyright file="ElementalSystem.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
++
++using MUnique.OpenMU.AttributeSystem;
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.GameLogic.Attributes;
++using MUnique.OpenMU.Persistence.Initialization.CharacterClasses;
++
++/// <summary>
++/// Cierra el sistema elemental: le pone a cada bicho sus valores y a cada clase de personaje sus
++/// tasas de acierto y de defensa elemental.
++/// </summary>
++/// <remarks>
++/// Todo sale de Data/Monster/Monster.txt del paquete Season 8 (Update 32), que trae siete columnas
++/// elementales al final de cada fila: ElementalAttribute, ElementalPattern, ElementalDefense,
++/// ElementalDamageMin, ElementalDamageMax, ElementalAttackRate y ElementalDefenseRate.
++/// <para>
++/// Ojo con ese fichero: quien armo el paquete toqueteo columnas normales de algunos bichos (al Bull
++/// Fighter le puso 991.100.000 de vida y 15.515 de defensa). Las columnas ELEMENTALES si estan
++/// sanas, y se comprueba solo: la defensa elemental del Bull Fighter es 4, que es exactamente
++/// floor(6 * 0,75) sobre la defensa de verdad, la que tiene OpenMU. Por eso aqui se copian las
++/// columnas elementales y NO se toca ninguna otra.
++/// </para>
++/// <para>
++/// Se deja fuera el bicho 657 (Golden Kundun), cuyas cifras del paquete (65.000 de defensa
++/// elemental, 165.000 de dano) son del mismo toqueteo. Tampoco existe en esta configuracion.
++/// </para>
++/// <para>
++/// Elemento 6 no es un sexto elemento: significa "al azar entre los cinco". Los bichos de Acheron y
++/// Debenter salen de los cinco colores, y quien reparte el color es <c>Monster</c> al aparecer.
++/// Patron 2 son los diez jefes elementales, a los que solo se les puede hacer dano elemental.
++/// </para>
++/// </remarks>
++internal class ElementalSystem : InitializerBase
++{
++    /// <summary>
++    /// Pares (numero de bicho, defensa elemental) de la columna ElementalDefense.
++    /// </summary>
++    private static readonly int[] ElementalDefenses =
++    {
++        0, 4, 1, 6, 2, 2, 4, 9, 5, 41, 6, 10, 7, 13, 8, 56, 9, 52, 10, 60,
++        11, 30, 12, 23, 13, 45, 14, 16, 15, 33, 16, 48, 17, 26, 18, 75, 19, 27, 20, 37,
++        21, 24, 22, 20, 23, 21, 24, 18, 25, 67, 26, 1, 27, 3, 28, 7, 29, 9, 30, 11,
++        31, 12, 32, 15, 33, 6, 34, 71, 35, 97, 36, 58, 37, 86, 38, 120, 39, 63, 40, 90,
++        41, 82, 42, 172, 43, 33, 44, 90, 45, 48, 46, 52, 47, 56, 48, 135, 49, 150, 51, 112,
++        52, 127, 53, 78, 54, 56, 55, 90, 56, 21, 57, 161, 58, 187, 59, 300, 60, 150, 61, 206,
++        62, 142, 63, 315, 64, 127, 65, 142, 66, 262, 67, 165, 69, 146, 70, 172, 71, 157, 72, 318,
++        73, 228, 74, 270, 75, 371, 76, 435, 77, 450, 78, 37, 79, 172, 80, 180, 81, 82, 82, 225,
++        83, 172, 84, 41, 85, 48, 86, 56, 87, 63, 88, 71, 89, 86, 90, 67, 91, 75, 92, 86,
++        93, 97, 94, 127, 95, 142, 96, 82, 97, 90, 98, 112, 99, 135, 111, 142, 112, 180, 113, 112,
++        114, 127, 115, 142, 116, 157, 117, 217, 118, 270, 119, 138, 120, 142, 121, 165, 122, 225, 123, 300,
++        124, 337, 125, 157, 126, 202, 127, 270, 128, 300, 129, 337, 130, 375, 135, 300, 136, 135, 137, 142,
++        138, 255, 139, 285, 140, 300, 141, 330, 142, 367, 143, 412, 144, 22, 145, 37, 146, 18, 147, 12,
++        148, 15, 149, 28, 150, 75, 151, 82, 160, 49, 161, 67, 162, 22, 163, 30, 164, 56, 165, 67,
++        166, 78, 167, 90, 168, 108, 169, 120, 170, 127, 171, 142, 172, 161, 173, 180, 174, 42, 175, 60,
++        176, 37, 177, 31, 178, 33, 179, 51, 180, 75, 181, 105, 182, 78, 183, 112, 184, 67, 185, 54,
++        186, 60, 187, 94, 188, 135, 189, 191, 190, 138, 191, 191, 192, 123, 193, 105, 194, 112, 195, 161,
++        196, 225, 197, 375, 204, 52, 205, 52, 206, 52, 207, 52, 208, 52, 209, 52, 215, 52, 216, 52,
++        217, 52, 218, 52, 219, 52, 220, 52, 221, 52, 222, 52, 223, 52, 224, 52, 226, 52, 229, 52,
++        230, 52, 231, 52, 232, 52, 233, 52, 234, 52, 235, 52, 236, 52, 237, 52, 238, 52, 239, 52,
++        240, 52, 241, 52, 242, 52, 243, 52, 244, 52, 245, 52, 246, 52, 247, 52, 248, 52, 249, 52,
++        250, 52, 251, 52, 253, 52, 254, 52, 255, 52, 256, 52, 257, 52, 258, 52, 259, 52, 260, 236,
++        261, 322, 262, 210, 263, 172, 264, 187, 265, 277, 266, 386, 267, 510, 268, 375, 269, 465, 270, 345,
++        271, 307, 272, 324, 273, 412, 274, 532, 275, 1125, 277, 52, 278, 52, 283, 52, 284, 52, 285, 52,
++        286, 255, 287, 285, 288, 375, 290, 157, 291, 412, 292, 270, 293, 206, 294, 146, 295, 750, 300, 285,
++        301, 540, 302, 292, 303, 412, 304, 267, 305, 207, 306, 166, 307, 147, 308, 140, 309, 390, 310, 315,
++        311, 315, 312, 315, 313, 510, 314, 555, 315, 600, 316, 663, 317, 736, 331, 438, 332, 461, 333, 495,
++        334, 540, 335, 587, 336, 648, 337, 744, 338, 669, 340, 675, 341, 375, 344, 375, 345, 375, 348, 630,
++        349, 600, 350, 332, 351, 172, 352, 187, 353, 210, 354, 236, 355, 277, 356, 322, 357, 386, 358, 461,
++        359, 648, 360, 587, 361, 750, 362, 236, 363, 600, 364, 438, 365, 75, 367, 52, 368, 52, 369, 52,
++        370, 52, 371, 52, 372, 7, 373, 7, 374, 7, 375, 7, 376, 52, 377, 52, 378, 7, 379, 7,
++        380, 7, 381, 7, 382, 7, 383, 7, 384, 7, 385, 7, 386, 112, 387, 127, 388, 142, 389, 157,
++        390, 172, 391, 187, 392, 210, 393, 225, 394, 240, 395, 270, 396, 285, 397, 300, 398, 337, 399, 352,
++        400, 367, 401, 412, 402, 427, 403, 442, 404, 7, 405, 7, 406, 7, 407, 7, 408, 7, 409, 360,
++        410, 367, 411, 375, 412, 675, 413, 75, 414, 7, 415, 7, 416, 7, 417, 7, 418, 2, 419, 16,
++        420, 22, 421, 9, 422, 24, 423, 37, 424, 48, 425, 60, 426, 183, 427, 210, 428, 330, 429, 360,
++        430, 375, 431, 405, 432, 450, 433, 510, 434, 270, 435, 307, 436, 345, 437, 382, 438, 420, 439, 457,
++        440, 517, 441, 277, 442, 281, 443, 352, 444, 322, 445, 341, 446, 375, 447, 296, 448, 401, 449, 397,
++        450, 7, 451, 7, 452, 7, 453, 7, 454, 461, 455, 438, 456, 465, 457, 487, 458, 495, 459, 937,
++        460, 307, 461, 307, 462, 307, 463, 75, 464, 7, 465, 300, 466, 142, 467, 7, 468, 7, 469, 7,
++        470, 7, 471, 7, 472, 7, 473, 7, 474, 7, 475, 7, 476, 300, 478, 7, 479, 7, 480, 150,
++        481, 157, 482, 165, 483, 172, 484, 202, 485, 210, 486, 356, 487, 367, 488, 375, 489, 390, 490, 401,
++        491, 408, 492, 7, 493, 86, 494, 142, 495, 206, 496, 270, 497, 450, 498, 648, 499, 487, 500, 438,
++        501, 495, 502, 45, 503, 7, 504, 26, 505, 22, 506, 21, 507, 21, 508, 20, 509, 20, 510, 20,
++        511, 20, 512, 16, 513, 16, 514, 16, 515, 16, 516, 16, 517, 16, 518, 15, 519, 11, 520, 12,
++        521, 13, 522, 7, 529, 62, 530, 54, 531, 45, 532, 41, 533, 33, 534, 22, 535, 22, 536, 22,
++        537, 22, 538, 41, 539, 22, 540, 7, 541, 7, 542, 7, 543, 7, 544, 7, 545, 7, 546, 7,
++        547, 7, 548, 7, 549, 315, 550, 345, 551, 352, 552, 360, 553, 407, 554, 427, 555, 472, 556, 536,
++        557, 502, 558, 547, 559, 525, 560, 555, 561, 1087, 562, 588, 563, 615, 564, 637, 565, 645, 566, 7,
++        567, 7, 568, 7, 569, 333, 570, 363, 571, 388, 572, 408, 573, 420, 574, 431, 575, 457, 576, 480,
++        577, 7, 578, 7, 579, 7, 580, 7, 581, 7, 582, 7, 583, 7, 584, 7, 585, 75, 586, 216,
++        587, 245, 588, 277, 589, 306, 590, 336, 591, 351, 592, 240, 593, 255, 594, 275, 595, 225, 596, 235,
++        597, 93, 603, 3, 604, 3, 605, 3, 606, 3, 607, 3, 608, 371, 609, 391, 610, 411, 611, 252,
++        612, 267, 613, 288, 614, 236, 615, 246, 616, 7, 617, 7, 625, 7, 626, 7, 627, 200, 628, 200,
++        629, 200, 630, 200, 631, 200, 632, 302, 633, 320, 634, 345, 635, 283, 636, 295, 637, 362, 638, 384,
++        639, 414, 640, 339, 641, 354, 642, 7, 643, 7, 644, 183, 645, 210, 647, 75, 648, 75, 649, 75,
++        650, 75, 651, 7, 652, 100, 653, 300, 654, 700, 655, 700, 656, 800, 658, 7, 659, 7, 660, 7,
++        661, 7, 662, 7, 663, 7, 664, 7, 665, 7, 666, 7, 667, 7, 668, 7, 674, 75, 675, 75,
++        676, 75, 677, 75,
++    };
++
++    /// <summary>
++    /// Los bichos con elemento propio: numero, elemento, patron, dano minimo, dano maximo,
++    /// tasa de ataque elemental y tasa de defensa elemental.
++    /// </summary>
++    private static readonly int[] ElementalMonsters =
++    {
++        586, 6, 1, 318, 342, 587, 195, // Devilfairy
++        587, 6, 1, 345, 368, 550, 185, // Elemental Beast
++        588, 6, 1, 365, 389, 590, 220, // Elemental Knight
++        589, 6, 1, 385, 417, 750, 235, // Ubaid Devilfairy
++        590, 6, 1, 422, 446, 830, 240, // Ubaid Elemental Beast
++        591, 6, 1, 456, 481, 860, 255, // Ubaid Elemental Knight
++        592, 2, 2, 472, 10499, 65950, 315, // Undine
++        593, 1, 2, 463, 486, 950, 315, // Salamander
++        594, 4, 2, 495, 512, 950, 315, // Sylphid
++        595, 3, 2, 458, 485, 950, 315, // Gnome
++        596, 5, 2, 467, 483, 950, 315, // Hellraiser
++        608, 6, 1, 486, 511, 890, 270, // Debenter Devilfairy
++        609, 6, 1, 516, 541, 920, 285, // Deventer Elemental Beast
++        610, 6, 1, 546, 571, 950, 300, // Debenter Elemental Knight
++        611, 1, 2, 495, 523, 997, 330, // Sellihoden
++        612, 2, 2, 486, 510, 997, 330, // Ukanva
++        613, 4, 2, 519, 537, 997, 330, // Silla
++        614, 3, 2, 480, 509, 997, 330, // Normus
++        615, 5, 2, 490, 507, 997, 330, // Muff
++        627, 1, 1, 0, 0, 0, 0, // Cursed Fire Tower
++        628, 2, 1, 0, 0, 0, 0, // Cursed Water Tower
++        629, 3, 1, 0, 0, 0, 0, // Cursed Earth Tower
++        630, 4, 1, 0, 0, 0, 0, // Cursed Wind Tower
++        631, 5, 1, 0, 0, 0, 0, // Cursed Darkness Tower
++        632, 2, 2, 594, 627, 1196, 396, // Cursed Undine
++        633, 1, 2, 583, 612, 1196, 396, // Cursed Salamander
++        634, 4, 2, 622, 644, 1196, 396, // Cursed Sylphid
++        635, 3, 2, 576, 610, 1196, 396, // Cursed Gnome
++        636, 5, 2, 588, 608, 1196, 396, // Cursed Hellraiser
++        637, 1, 2, 712, 752, 1435, 475, // Cursed Sellihoden
++        638, 2, 2, 699, 734, 1435, 475, // Cursed Ukanva
++        639, 4, 2, 746, 772, 1435, 475, // Cursed Silla
++        640, 3, 2, 691, 732, 1435, 475, // Cursed Normus
++        641, 5, 2, 705, 729, 1435, 475, // Cursed Muff
++        652, 6, 1, 100, 200, 500, 300, // Golden Goblin
++        653, 6, 1, 200, 500, 1000, 500, // Golden Titan
++        654, 6, 1, 400, 600, 1500, 700, // Golden Tantalose
++        655, 6, 1, 500, 650, 1500, 800, // Golden Erohim
++        656, 6, 1, 550, 750, 1500, 1000, // Golden Hell Maine
++    };
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="ElementalSystem"/> class.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    public ElementalSystem(IContext context, GameConfiguration gameConfiguration)
++        : base(context, gameConfiguration)
++    {
++    }
++
++    /// <inheritdoc />
++    public override void Initialize()
++    {
++        var byNumber = new Dictionary<short, MonsterDefinition>();
++        foreach (var monster in this.GameConfiguration.Monsters)
++        {
++            byNumber[monster.Number] = monster;
++        }
++
++        var values = new Dictionary<short, Dictionary<AttributeDefinition, float>>();
++
++        for (var i = 0; i < ElementalDefenses.Length; i += 2)
++        {
++            var number = (short)ElementalDefenses[i];
++            if (byNumber.ContainsKey(number))
++            {
++                GetOrAdd(values, number)[Stats.ElementalDefense] = ElementalDefenses[i + 1];
++            }
++        }
++
++        for (var i = 0; i < ElementalMonsters.Length; i += 7)
++        {
++            var number = (short)ElementalMonsters[i];
++            if (!byNumber.ContainsKey(number))
++            {
++                continue;
++            }
++
++            var attributes = GetOrAdd(values, number);
++            attributes[Stats.Element] = ElementalMonsters[i + 1];
++            attributes[Stats.ElementalPattern] = ElementalMonsters[i + 2];
++            attributes[Stats.ElementalDamageMin] = ElementalMonsters[i + 3];
++            attributes[Stats.ElementalDamageMax] = ElementalMonsters[i + 4];
++            attributes[Stats.ElementalAttackSuccessRate] = ElementalMonsters[i + 5];
++            attributes[Stats.ElementalDefenseSuccessRate] = ElementalMonsters[i + 6];
++        }
++
++        foreach (var (number, attributes) in values)
++        {
++            byNumber[number].AddAttributes(attributes, this.Context, this.GameConfiguration);
++        }
++
++        this.AddElementalRatesToCharacterClasses();
++    }
++
++    /// <summary>
++    /// Le da a cada clase su tasa de acierto y de defensa elemental.
++    /// </summary>
++    /// <remarks>
++    /// La descompilacion del binario oficial calcula la tasa de acierto elemental asi:
++    /// <c>(3 * Agilidad / 2) + (5 * Nivel) + (Fuerza / 4)</c>, y la de defensa como la agilidad
++    /// partida por un divisor que depende de la clase. Eso es, caracter por caracter, la misma
++    /// formula que OpenMU ya usa para <see cref="Stats.AttackRatePvm"/> y
++    /// <see cref="Stats.DefenseRatePvm"/>. Asi que en vez de repetirla (y arriesgarse a que las dos
++    /// copias se separen con el tiempo) se cuelga de la que ya hay: cada clase mantiene sus propios
++    /// numeros y el sistema elemental los hereda.
++    /// </remarks>
++    private void AddElementalRatesToCharacterClasses()
++    {
++        foreach (var characterClass in this.GameConfiguration.CharacterClasses)
++        {
++            characterClass.AttributeCombinations.Add(CharacterClassHelper.CreateAttributeRelationship(
++                this.Context,
++                this.GameConfiguration,
++                Stats.ElementalAttackSuccessRate,
++                1.0f,
++                Stats.AttackRatePvm));
++            characterClass.AttributeCombinations.Add(CharacterClassHelper.CreateAttributeRelationship(
++                this.Context,
++                this.GameConfiguration,
++                Stats.ElementalDefenseSuccessRate,
++                1.0f,
++                Stats.DefenseRatePvm));
++        }
++    }
++
++    private static Dictionary<AttributeDefinition, float> GetOrAdd(Dictionary<short, Dictionary<AttributeDefinition, float>> values, short number)
++    {
++        if (!values.TryGetValue(number, out var attributes))
++        {
++            attributes = new Dictionary<AttributeDefinition, float>();
++            values[number] = attributes;
++        }
++
++        return attributes;
++    }
++}
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs
-index ee29fe43..72064672 100644
+index ee29fe43..112bc1a3 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs
 @@ -75,6 +75,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
@@ -5549,6 +6091,17 @@ index ee29fe43..72064672 100644
          this.CreateJewelMixes();
          new NpcInitialization(this.Context, this.GameConfiguration).Initialize();
          new InvasionMobsInitialization(this.Context, this.GameConfiguration).Initialize();
+@@ -91,6 +92,10 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
+         new ChaosCastleInitializer(this.Context, this.GameConfiguration).Initialize();
+         new CastleSiegeInitializer(this.Context, this.GameConfiguration).Initialize();
+         new KanturuInitializer(this.Context, this.GameConfiguration).Initialize();
++
++        // Va al final a proposito: necesita que TODOS los bichos esten ya creados, los de los
++        // mapas normales y los de los eventos.
++        new ElementalSystem(this.Context, this.GameConfiguration).Initialize();
+     }
+ 
+     /// <summary>
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
 index c0d52d96..96427297 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs
@@ -5952,10 +6505,10 @@ index b0fc83a7..0e9391d8 100644
      private void CreateLostMap()
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs
 new file mode 100644
-index 00000000..34288f53
+index 00000000..a51f4eb9
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs
-@@ -0,0 +1,334 @@
+@@ -0,0 +1,335 @@
 +﻿// <copyright file="Pentagrams.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -5963,6 +6516,7 @@ index 00000000..34288f53
 +namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
 +
 +using MUnique.OpenMU.AttributeSystem;
++using MUnique.OpenMU.DataModel.Attributes;
 +using MUnique.OpenMU.DataModel.Configuration;
 +using MUnique.OpenMU.DataModel.Configuration.Items;
 +using MUnique.OpenMU.GameLogic.Attributes;
