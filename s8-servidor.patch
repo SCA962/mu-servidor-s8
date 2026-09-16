@@ -128,27 +128,10 @@ index f5bb5592..d914b321 100644
      }
  
 diff --git a/src/GameLogic/Attributes/Stats.cs b/src/GameLogic/Attributes/Stats.cs
-index 7f0fa702..173cbc0d 100644
+index 7f0fa702..974ce79d 100644
 --- a/src/GameLogic/Attributes/Stats.cs
 +++ b/src/GameLogic/Attributes/Stats.cs
-@@ -1069,6 +1069,16 @@ public class Stats
-     /// </summary>
-     public static AttributeDefinition WindResistance { get; } = new(new Guid("03A29C46-7B7E-424D-8325-8390692570C3"), "Wind Resistance", string.Empty);
- 
-+    /// <summary>
-+    /// Gets the dark resistance attribute definition. Value range from 0 to 1.
-+    /// </summary>
-+    /// <remarks>
-+    /// El quinto elemento del sistema de pentagramas de la Season 8. Es el unico de los cinco que
-+    /// OpenMU no tenia: los otros cuatro (fuego, agua, tierra, viento) ya existian como resistencia
-+    /// de siempre.
-+    /// </remarks>
-+    public static AttributeDefinition DarkResistance { get; } = new(new Guid("9F33E85E-C9AA-4903-B46E-C0811202E556"), "Dark Resistance", string.Empty);
-+
-     /// <summary>
-     /// Gets the poison resistance attribute definition. Value range from 0 to 1.
-     /// </summary>
-@@ -1738,4 +1748,216 @@ public class Stats
+@@ -1738,4 +1738,228 @@ public class Stats
          /// </summary>
          public int HiatusThreshold { get; init; } = 10;
      }
@@ -317,11 +300,23 @@ index 7f0fa702..173cbc0d 100644
 +    /// <summary>
 +    /// Gets the chance that an elemental hit slows the target.
 +    /// </summary>
++    /// <remarks>
++    /// OJO: hoy NADIE lee este atributo. Lo escribe el rango 1 del Errtel of Gale, pero el efecto
++    /// (ralentizar / aplicar el debuff del elemento) no esta implementado. O sea que esa opcion
++    /// del errtel no hace nada. Se deja porque es la opcion garantizada de ese rango y quitarla
++    /// dejaria al errtel sin ninguna. Anotado en `9-elemental-hecho.md`.
++    /// </remarks>
 +    public static AttributeDefinition ElementalSlowChance { get; } = new(new Guid("5AAA440F-2264-40B4-A2A9-57CFCAA73A4E"), "Elemental Slow Chance", string.Empty);
 +
 +    /// <summary>
 +    /// Gets the chance that an elemental hit applies its element's debuff.
 +    /// </summary>
++    /// <remarks>
++    /// OJO: hoy NADIE lee este atributo. Lo escribe el rango 5 del Errtel of Gale, pero el efecto
++    /// (ralentizar / aplicar el debuff del elemento) no esta implementado. O sea que esa opcion
++    /// del errtel no hace nada. Se deja porque es la opcion garantizada de ese rango y quitarla
++    /// dejaria al errtel sin ninguna. Anotado en `9-elemental-hecho.md`.
++    /// </remarks>
 +    public static AttributeDefinition ElementalDebuffChance { get; } = new(new Guid("75BF5EAD-DA3A-4B70-B595-E8F6C7ED931C"), "Elemental Debuff Chance", string.Empty);
 +
 +    /// <summary>
