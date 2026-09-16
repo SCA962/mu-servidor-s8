@@ -138,6 +138,13 @@ jobs:
           grep -q "EnsureElement" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "un pentagrama creado por comando se quedaria sin elemento" >&2; exit 1; }
           # los drops
           grep -q "Pentagrams (elemental bosses)" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "faltan los drops de pentagrama" >&2; exit 1; }
+          # --- la apuesta de Moss el Mercader ---
+          test -f src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs || { echo "falta MossGamble" >&2; exit 1; }
+          # tiene que ir DESPUES de NpcInitialization o no encuentra a Moss para colgarle la tienda
+          test "$(grep -n 'new MossGamble(this.Context' src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs | cut -d: -f1)" -gt "$(grep -n 'new NpcInitialization(this.Context' src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs | cut -d: -f1)" || { echo "MossGamble corre antes que NpcInitialization" >&2; exit 1; }
+          # las 65 armas del paquete, repartidas en los cinco boletos, y una rara por boleto
+          test "$(grep -c "this.AddDropItem(" src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs)" = "65" || { echo "no son 65 armas en la apuesta de Moss" >&2; exit 1; }
+          test "$(grep -c "RareChance)" src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs)" = "5" || { echo "no hay una rara por boleto" >&2; exit 1; }
           # y el plugin para la base que ya existe, sin chocar de version
           test -f src/Persistence/Initialization/Updates/AddElementalSystemUpdatePlugIn.cs || { echo "falta el plugin de actualizacion del sistema elemental" >&2; exit 1; }
           grep -q "AddElementalSystem = 118" src/Persistence/Initialization/Updates/UpdateVersion.cs || { echo "la version del plugin elemental choca" >&2; exit 1; }

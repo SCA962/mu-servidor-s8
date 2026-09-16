@@ -7023,18 +7023,24 @@ index 00000000..c031dd5c
 +    }
 +}
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs b/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs
-index ee29fe43..112bc1a3 100644
+index ee29fe43..8796ecfb 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/GameConfigurationInitializer.cs
-@@ -75,6 +75,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
+@@ -75,8 +75,13 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
          new Jewelery(this.Context, this.GameConfiguration).Initialize();
          new AncientSets(this.Context, this.GameConfiguration).Initialize();
          new BoxOfLuck(this.Context, this.GameConfiguration).Initialize();
 +        new Pentagrams(this.Context, this.GameConfiguration).Initialize();
          this.CreateJewelMixes();
          new NpcInitialization(this.Context, this.GameConfiguration).Initialize();
++
++        // DESPUES de NpcInitialization a proposito: necesita a Moss ya definido para colgarle la
++        // tienda, y las 65 armas ya creadas (Weapons corre mucho antes).
++        new MossGamble(this.Context, this.GameConfiguration).Initialize();
          new InvasionMobsInitialization(this.Context, this.GameConfiguration).Initialize();
-@@ -91,6 +92,10 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
+         new GameMapsInitializer(this.Context, this.GameConfiguration).Initialize();
+         this.AssignCharacterClassHomeMaps();
+@@ -91,6 +96,10 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
          new ChaosCastleInitializer(this.Context, this.GameConfiguration).Initialize();
          new CastleSiegeInitializer(this.Context, this.GameConfiguration).Initialize();
          new KanturuInitializer(this.Context, this.GameConfiguration).Initialize();
@@ -7446,6 +7452,300 @@ index b0fc83a7..0e9391d8 100644
      }
  
      private void CreateLostMap()
+diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs
+new file mode 100644
+index 00000000..68dace0a
+--- /dev/null
++++ b/src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs
+@@ -0,0 +1,288 @@
++﻿// <copyright file="MossGamble.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
++
++using MUnique.OpenMU.DataModel.Configuration;
++using MUnique.OpenMU.DataModel.Configuration.Items;
++
++/// <summary>
++/// La apuesta de Moss el Mercader: cinco boletos que dan un arma al azar de su categoria.
++/// </summary>
++/// <remarks>
++/// <para>
++/// Todo sale del paquete Season 8: <c>Data/Event/MossMerchant.dat</c> (las 65 armas con su tasa),
++/// <c>Data/Shop/019 - Moss Merchant.txt</c> (los cinco boletos que vende, grupo 13 numeros 71 a 75)
++/// y <c>Data/ShopManager.txt</c>, que ata esa tienda al NPC 492.
++/// </para>
++/// <para>
++/// <b>La tasa del fichero no es rareza por arma, es rareza de UNA arma por boleto.</b> Dentro de
++/// cada boleto todas comparten peso menos la mejor, que va a 1000, y la cuenta da exactamente el
++/// <b>2%</b> en los cinco: 1000 / (30x1633 + 1000), 1000 / (12x4083 + 1000), 1000 / (8x6125 + 1000)
++/// y 1000 / (5x9800 + 1000). Que salgan los cuatro iguales es la prueba de que la lectura es buena.
++/// </para>
++/// <para>
++/// Se abre como cualquier caja de OpenMU: <b>se tira al suelo</b> y se convierte en el arma
++/// (<c>ItemBoxDroppedPlugIn</c>). Sin ventana nueva, sin protocolo nuevo y sin tocar el cliente;
++/// los cinco boletos tienen ficha en el <c>item_eng.bmd</c> y miden 2x3, comprobado.
++/// </para>
++/// <para>
++/// <b>Dos cosas que NO son como el original, a proposito:</b> Moss aparece solo a las 2, 8, 14 y 20
++/// segun <c>MossMerchant.dat</c>, y aqui esta fijo en Elvenland, que es donde OpenMU ya lo tenia
++/// puesto; para ocho amigos, un NPC que aparece a las 2 de la manana no sirve de nada. Y el arma
++/// sale a +0: las columnas <c>Option0</c> a <c>Option6</c> del fichero valen 9 en las 65 filas y no
++/// se pudo determinar que significan, asi que no se invento nada con ellas.
++/// </para>
++/// </remarks>
++internal class MossGamble : InitializerBase
++{
++    /// <summary>
++    /// El NPC de Moss el Mercader, que OpenMU ya tiene definido y puesto en Elvenland.
++    /// </summary>
++    private const short MossNumber = 492;
++
++    /// <summary>
++    /// El grupo de los boletos.
++    /// </summary>
++    private const byte TicketGroup = 13;
++
++    /// <summary>
++    /// Lo que cuesta un boleto. Es el unico numero de aqui que no sale del paquete: el fichero de
++    /// tienda no trae precio. Se cambia con una linea.
++    /// </summary>
++    private const int TicketPrice = 300_000;
++
++    /// <summary>
++    /// Lo que se lleva la mejor arma de cada boleto, sacado de las tasas del paquete.
++    /// </summary>
++    private const double RareChance = 0.02;
++
++    /// <summary>
++    /// Initializes a new instance of the <see cref="MossGamble"/> class.
++    /// </summary>
++    /// <param name="context">The context.</param>
++    /// <param name="gameConfiguration">The game configuration.</param>
++    public MossGamble(IContext context, GameConfiguration gameConfiguration)
++        : base(context, gameConfiguration)
++    {
++    }
++
++    /// <inheritdoc />
++    public override void Initialize()
++    {
++        this.CreateTicket(71, "Sword/Mace/Spear");
++        this.CreateTicket(72, "Staff");
++        this.CreateTicket(73, "Bow/Crossbow");
++        this.CreateTicket(74, "Scepter");
++        this.CreateTicket(75, "Stick");
++        this.GiveStoreToMoss();
++    }
++
++    /// <summary>
++    /// El boleto "Sword/Mace/Spear": espadas, hachas, mazas y lanzas. 31 armas, y la rara es Brova.
++    /// </summary>
++    private void CreateTicket71(ItemDefinition ticket)
++    {
++        var rare = this.CreateDropGroup(ticket, "Sword/Mace/Spear (rara)", RareChance);
++        this.AddDropItem(rare, 3, 11); // Brova
++
++        var common = this.CreateDropGroup(ticket, "Sword/Mace/Spear", 1.0);
++        this.AddDropItem(common, 0, 5); // Blade
++        this.AddDropItem(common, 0, 6); // Gladius
++        this.AddDropItem(common, 0, 7); // Falchion
++        this.AddDropItem(common, 0, 8); // Serpent Sword
++        this.AddDropItem(common, 0, 9); // Sword of Salamander
++        this.AddDropItem(common, 0, 10); // Light Saber
++        this.AddDropItem(common, 0, 11); // Legendary Sword
++        this.AddDropItem(common, 0, 12); // Heliacal Sword
++        this.AddDropItem(common, 0, 13); // Double Blade
++        this.AddDropItem(common, 0, 14); // Lighting Sword
++        this.AddDropItem(common, 0, 15); // Giant Sword
++        this.AddDropItem(common, 0, 16); // Sword of Destruction
++        this.AddDropItem(common, 0, 17); // Dark Breaker
++        this.AddDropItem(common, 0, 18); // Thunder Blade
++        this.AddDropItem(common, 0, 20); // Knight Blade
++        this.AddDropItem(common, 1, 5); // Battle Axe
++        this.AddDropItem(common, 1, 6); // Nikea Axe
++        this.AddDropItem(common, 1, 7); // Larkan Axe
++        this.AddDropItem(common, 1, 8); // Crescent Axe
++        this.AddDropItem(common, 2, 0); // Mace
++        this.AddDropItem(common, 2, 1); // Morning Star
++        this.AddDropItem(common, 2, 2); // Flail
++        this.AddDropItem(common, 2, 3); // Great Hammer
++        this.AddDropItem(common, 2, 4); // Crystal Morning Star
++        this.AddDropItem(common, 3, 5); // Double Poleaxe
++        this.AddDropItem(common, 3, 6); // Halberd
++        this.AddDropItem(common, 3, 7); // Berdysh
++        this.AddDropItem(common, 3, 8); // Great Scythe
++        this.AddDropItem(common, 3, 9); // Bill of Balrog
++        this.AddDropItem(common, 3, 10); // Dragon Spear
++    }
++
++    /// <summary>
++    /// El boleto "Staff": bastones de mago. 9 armas, y la rara es Chromatic Staff.
++    /// </summary>
++    private void CreateTicket72(ItemDefinition ticket)
++    {
++        var rare = this.CreateDropGroup(ticket, "Staff (rara)", RareChance);
++        this.AddDropItem(rare, 5, 33); // Chromatic Staff
++
++        var common = this.CreateDropGroup(ticket, "Staff", 1.0);
++        this.AddDropItem(common, 5, 2); // Serpent Staff
++        this.AddDropItem(common, 5, 3); // Thunder Staff
++        this.AddDropItem(common, 5, 4); // Gorgon Staff
++        this.AddDropItem(common, 5, 5); // Legendary Staff
++        this.AddDropItem(common, 5, 6); // Staff of Resurrection
++        this.AddDropItem(common, 5, 8); // Staff of Destruction
++        this.AddDropItem(common, 5, 9); // Dragon Soul Staff
++        this.AddDropItem(common, 5, 11); // Staff of Kundun
++    }
++
++    /// <summary>
++    /// El boleto "Bow/Crossbow": arcos y ballestas. 13 armas, y la rara es Aileen Bow.
++    /// </summary>
++    private void CreateTicket73(ItemDefinition ticket)
++    {
++        var rare = this.CreateDropGroup(ticket, "Bow/Crossbow (rara)", RareChance);
++        this.AddDropItem(rare, 4, 24); // Aileen Bow
++
++        var common = this.CreateDropGroup(ticket, "Bow/Crossbow", 1.0);
++        this.AddDropItem(common, 4, 5); // Silver Bow
++        this.AddDropItem(common, 4, 8); // Crossbow
++        this.AddDropItem(common, 4, 9); // Golden Crossbow
++        this.AddDropItem(common, 4, 10); // Arquebus
++        this.AddDropItem(common, 4, 11); // Light Crossbow
++        this.AddDropItem(common, 4, 12); // Serpent Crossbow
++        this.AddDropItem(common, 4, 13); // Bluewing Crossbow
++        this.AddDropItem(common, 4, 14); // Aquagold Crossbow
++        this.AddDropItem(common, 4, 16); // Saint Crossbow
++        this.AddDropItem(common, 4, 17); // Celestial Bow
++        this.AddDropItem(common, 4, 19); // Great Reign Crossbow
++        this.AddDropItem(common, 4, 20); // Arrow Viper Bow
++    }
++
++    /// <summary>
++    /// El boleto "Scepter": cetros de Dark Lord. 6 armas, y la rara es Striker Scepter.
++    /// </summary>
++    private void CreateTicket74(ItemDefinition ticket)
++    {
++        var rare = this.CreateDropGroup(ticket, "Scepter (rara)", RareChance);
++        this.AddDropItem(rare, 2, 18); // Striker Scepter
++
++        var common = this.CreateDropGroup(ticket, "Scepter", 1.0);
++        this.AddDropItem(common, 2, 8); // Battle Scepter
++        this.AddDropItem(common, 2, 9); // Master Scepter
++        this.AddDropItem(common, 2, 10); // Great Scepter
++        this.AddDropItem(common, 2, 11); // Lord Scepter
++        this.AddDropItem(common, 2, 12); // Great Lord Scepter
++    }
++
++    /// <summary>
++    /// El boleto "Stick": bastones de invocadora. 6 armas, y la rara es Raven Stick.
++    /// </summary>
++    private void CreateTicket75(ItemDefinition ticket)
++    {
++        var rare = this.CreateDropGroup(ticket, "Stick (rara)", RareChance);
++        this.AddDropItem(rare, 5, 34); // Raven Stick
++
++        var common = this.CreateDropGroup(ticket, "Stick", 1.0);
++        this.AddDropItem(common, 5, 14); // Mystery Stick
++        this.AddDropItem(common, 5, 15); // Violent Wind Stick
++        this.AddDropItem(common, 5, 16); // Red Wing Stick
++        this.AddDropItem(common, 5, 17); // Ancient Stick
++        this.AddDropItem(common, 5, 18); // Demonic Stick
++    }
++
++    private void CreateTicket(byte number, string name)
++    {
++        var ticket = this.Context.CreateNew<ItemDefinition>();
++        this.GameConfiguration.Items.Add(ticket);
++        ticket.Group = TicketGroup;
++        ticket.Number = number;
++        ticket.Name = name;
++
++        // 2x3, leido de la ficha del cliente (bytes 58 y 59 del registro de 104), con ocho
++        // controles que cuadran.
++        ticket.Width = 2;
++        ticket.Height = 3;
++        ticket.Durability = 1;
++        ticket.DropsFromMonsters = false;
++
++        // A cero para que ninguna joya de nivel lo toque: no es un arma, es un boleto.
++        ticket.MaximumItemLevel = 0;
++        ticket.Value = TicketPrice;
++        ticket.SetGuid(ticket.Group, ticket.Number);
++
++        switch (number)
++        {
++            case 71: this.CreateTicket71(ticket); break;
++            case 72: this.CreateTicket72(ticket); break;
++            case 73: this.CreateTicket73(ticket); break;
++            case 74: this.CreateTicket74(ticket); break;
++            default: this.CreateTicket75(ticket); break;
++        }
++    }
++
++    private ItemDropItemGroup CreateDropGroup(ItemDefinition ticket, string description, double chance)
++    {
++        var group = this.Context.CreateNew<ItemDropItemGroup>();
++        group.ItemType = SpecialItemType.RandomItem;
++
++        // El boleto vive siempre a nivel 0 y ItemBoxDroppedPlugIn solo mira los grupos cuyo
++        // SourceItemLevel coincide con el nivel del item que se tira.
++        group.SourceItemLevel = 0;
++        group.Chance = chance;
++        group.MinimumLevel = 0;
++        group.MaximumLevel = 0;
++        group.Description = description;
++        ticket.DropItems.Add(group);
++        return group;
++    }
++
++    private void AddDropItem(ItemDropItemGroup group, byte itemGroup, short itemNumber)
++    {
++        if (this.GameConfiguration.Items.FirstOrDefault(i => i.Group == itemGroup && i.Number == itemNumber) is { } item)
++        {
++            group.PossibleItems.Add(item);
++        }
++    }
++
++    /// <summary>
++    /// Le pone a Moss la tienda con los cinco boletos.
++    /// </summary>
++    /// <remarks>
++    /// Moss ya estaba definido con <see cref="NpcWindow.Merchant"/> y colocado en Elvenland, pero
++    /// sin tienda: era una estatua. La ventana es la de mercader de siempre, asi que el cliente no
++    /// necesita nada.
++    /// </remarks>
++    private void GiveStoreToMoss()
++    {
++        if (this.GameConfiguration.Monsters.FirstOrDefault(m => m.Number == MossNumber) is not { } moss
++            || moss.MerchantStore is not null)
++        {
++            return;
++        }
++
++        var storage = this.Context.CreateNew<ItemStorage>();
++        storage.SetGuid(MossNumber);
++        byte slot = 0;
++        foreach (var number in new byte[] { 71, 72, 73, 74, 75 })
++        {
++            if (this.GameConfiguration.Items.FirstOrDefault(i => i.Group == TicketGroup && i.Number == number) is not { } definition)
++            {
++                continue;
++            }
++
++            var item = this.Context.CreateNew<Item>();
++            item.Definition = definition;
++            item.Durability = 1;
++            item.ItemSlot = slot;
++            item.SetGuid(MossNumber, slot);
++            storage.Items.Add(item);
++            slot++;
++        }
++
++        moss.MerchantStore = storage;
++    }
++}
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs
 new file mode 100644
 index 00000000..c5779bee
