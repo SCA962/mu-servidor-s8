@@ -79,6 +79,20 @@ jobs:
           # el plugin de actualizacion para la base viva, sin chocar de version
           test -f src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs || { echo "falta el plugin de actualizacion de la mineria" >&2; exit 1; }
           grep -q "AddPandoraMiningSystem = 117" src/Persistence/Initialization/Updates/UpdateVersion.cs || { echo "la version del plugin de mineria choca" >&2; exit 1; }
+          # --- los cinco mapas que faltaban del S8 ---
+          for m in Acheron2 Debenter2 ChaosCastleFinal IllusionTempleFinal1 IllusionTempleFinal2; do
+            test -f "src/Persistence/Initialization/VersionSeasonSix/Maps/$m.cs" || { echo "falta el mapa $m" >&2; exit 1; }
+            grep -q "typeof($m)" src/Persistence/Initialization/VersionSeasonSix/GameMapsInitializer.cs || { echo "el mapa $m no esta registrado" >&2; exit 1; }
+          done
+          # el terreno es la trampa: GetTerrainFileName busca Terrain{N+1} y si no esta VA BAJANDO,
+          # asi que sin estos ficheros el 97 se queda sin terreno y el 98 y el 99 cargan el de Debenter
+          for t in 93 97 98 99 100; do
+            test -f "src/Persistence/Initialization/Resources/Terrain$t.att" || { echo "falta Resources/Terrain$t.att" >&2; exit 1; }
+            grep -q "EmbeddedResource Include=\"Resources\\\\Terrain$t.att\"" src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj || { echo "Terrain$t.att no esta declarado en el csproj" >&2; exit 1; }
+          done
+          # el bono de conjunto de las armaduras del S8: BuildSets tiene que ir DESPUES de crearlas
+          test "$(grep -n 'this.BuildSets();' src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs | cut -d: -f1)" -gt "$(grep -n 'Season 8: armaduras nuevas' src/Persistence/Initialization/VersionSeasonSix/Items/Armors.cs | cut -d: -f1)" \
+            || { echo "BuildSets sigue corriendo antes de las armaduras del S8" >&2; exit 1; }
 
       - name: Construir la imagen
         working-directory: OpenMU/src
