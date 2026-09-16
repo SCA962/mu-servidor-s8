@@ -124,6 +124,10 @@ jobs:
           done
           grep -q "ItemCraftings.Add(this.MountErrtelCrafting())" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "las mezclas de errtel no estan en la Maquina del Caos" >&2; exit 1; }
           grep -q "/pentagrama" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "falta el comando del pentagrama" >&2; exit 1; }
+          # sin AddsRandomly el generador de drops no le pone NADA al item: el pentagrama saldria sin
+          # elemento y el errtel sin opciones, los dos inutiles y sin avisar
+          test "$(grep -c "AddsRandomly = true" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "26" || { echo "faltan opciones que se repartan al caer (1 elemento + 25 rangos de errtel)" >&2; exit 1; }
+          grep -q "EnsureElement" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "un pentagrama creado por comando se quedaria sin elemento" >&2; exit 1; }
           # los drops
           grep -q "Pentagrams (elemental bosses)" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "faltan los drops de pentagrama" >&2; exit 1; }
           # y el plugin para la base que ya existe, sin chocar de version

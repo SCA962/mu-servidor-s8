@@ -1550,10 +1550,10 @@ index 00000000..8458e4d1
 +}
 diff --git a/src/GameLogic/PlayerActions/Craftings/ErrtelLevelUpCrafting.cs b/src/GameLogic/PlayerActions/Craftings/ErrtelLevelUpCrafting.cs
 new file mode 100644
-index 00000000..c527ca4c
+index 00000000..effa65af
 --- /dev/null
 +++ b/src/GameLogic/PlayerActions/Craftings/ErrtelLevelUpCrafting.cs
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,110 @@
 +﻿// <copyright file="ErrtelLevelUpCrafting.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1563,6 +1563,7 @@ index 00000000..c527ca4c
 +using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 +using MUnique.OpenMU.DataModel.Entities;
 +using MUnique.OpenMU.GameLogic.PlayerActions.Items;
++using MUnique.OpenMU.GameLogic.Views.NPC;
 +
 +/// <summary>
 +/// Sube un errtel un nivel, de 0 a 10, con una Jewel of Bless.
@@ -1665,10 +1666,10 @@ index 00000000..c527ca4c
 +}
 diff --git a/src/GameLogic/PlayerActions/Craftings/MountErrtelCrafting.cs b/src/GameLogic/PlayerActions/Craftings/MountErrtelCrafting.cs
 new file mode 100644
-index 00000000..73d0e6cb
+index 00000000..bb68de87
 --- /dev/null
 +++ b/src/GameLogic/PlayerActions/Craftings/MountErrtelCrafting.cs
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,100 @@
 +﻿// <copyright file="MountErrtelCrafting.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1678,6 +1679,7 @@ index 00000000..73d0e6cb
 +using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 +using MUnique.OpenMU.DataModel.Entities;
 +using MUnique.OpenMU.GameLogic.PlayerActions.Items;
++using MUnique.OpenMU.GameLogic.Views.NPC;
 +
 +/// <summary>
 +/// Monta un errtel en un pentagrama, en la Maquina del Caos.
@@ -1770,10 +1772,10 @@ index 00000000..73d0e6cb
 +}
 diff --git a/src/GameLogic/PlayerActions/Craftings/RemoveErrtelCrafting.cs b/src/GameLogic/PlayerActions/Craftings/RemoveErrtelCrafting.cs
 new file mode 100644
-index 00000000..9373996d
+index 00000000..6c7fc3c6
 --- /dev/null
 +++ b/src/GameLogic/PlayerActions/Craftings/RemoveErrtelCrafting.cs
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,117 @@
 +﻿// <copyright file="RemoveErrtelCrafting.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -1783,6 +1785,7 @@ index 00000000..9373996d
 +using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 +using MUnique.OpenMU.DataModel.Entities;
 +using MUnique.OpenMU.GameLogic.PlayerActions.Items;
++using MUnique.OpenMU.GameLogic.Views.NPC;
 +
 +/// <summary>
 +/// Saca del pentagrama todos los errtels que lleve. Cada uno se salva a cara o cruz.
@@ -2510,10 +2513,10 @@ index c89a8735..5b2de641 100644
          this.TemporaryStorage = new Storage(InventoryConstants.TemporaryStorageSize, new TemporaryItemStorage());
 diff --git a/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs
 new file mode 100644
-index 00000000..753557e1
+index 00000000..29046d63
 --- /dev/null
 +++ b/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs
-@@ -0,0 +1,156 @@
+@@ -0,0 +1,194 @@
 +﻿// <copyright file="PentagramChatCommandPlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -2594,6 +2597,8 @@ index 00000000..753557e1
 +            return;
 +        }
 +
++        EnsureElement(player, candidate);
++
 +        var previousSlot = candidate.ItemSlot;
 +        await inventory.RemoveItemAsync(candidate).ConfigureAwait(false);
 +        if (!await pentagramStorage.AddItemAsync(InventoryConstants.PentagramSlot, candidate).ConfigureAwait(false))
@@ -2606,6 +2611,42 @@ index 00000000..753557e1
 +
 +        await player.InvokeViewPlugInAsync<IItemRemovedPlugIn>(p => p.RemoveItemAsync(previousSlot)).ConfigureAwait(false);
 +        await ShowAsync(player, this.Describe(player, candidate, true)).ConfigureAwait(false);
++    }
++
++    /// <summary>
++    /// Si el pentagrama no trae elemento, se le echa uno a suertes y se le queda.
++    /// </summary>
++    /// <remarks>
++    /// El elemento se reparte al azar cuando el item CAE, en <c>DefaultDropGenerator</c>. Un
++    /// pentagrama creado por comando (<c>/item</c>) no pasa por ahi y saldria sin elemento, o sea
++    /// sin dano elemental y sin que nada avise. Como el unico camino para ponerselo es este
++    /// comando, se arregla aqui.
++    /// </remarks>
++    private static void EnsureElement(Player player, Item pentagram)
++    {
++        if (pentagram.Definition is not { } definition)
++        {
++            return;
++        }
++
++        if (pentagram.ItemOptions.Any(link => link.ItemOption?.OptionType == ItemOptionTypes.PentagramElement))
++        {
++            return;
++        }
++
++        var possible = definition.PossibleItemOptions
++            .SelectMany(o => o.PossibleOptions)
++            .Where(o => o.OptionType == ItemOptionTypes.PentagramElement)
++            .ToList();
++        if (possible.Count == 0)
++        {
++            return;
++        }
++
++        var link = player.PersistenceContext.CreateNew<ItemOptionLink>();
++        link.ItemOption = possible[Rand.NextInt(0, possible.Count)];
++        link.Level = 0;
++        pentagram.ItemOptions.Add(link);
 +    }
 +
 +    private static ValueTask ShowAsync(Player player, string message)
@@ -7493,10 +7534,10 @@ index b0fc83a7..0e9391d8 100644
      private void CreateLostMap()
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs
 new file mode 100644
-index 00000000..a51f4eb9
+index 00000000..c5779bee
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs
-@@ -0,0 +1,335 @@
+@@ -0,0 +1,549 @@
 +﻿// <copyright file="Pentagrams.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -7566,10 +7607,21 @@ index 00000000..a51f4eb9
 +
 +    private ItemLevelBonusTable CreateBonusPerLevelTable()
 +    {
-+        // De +1 a +9 suma 3 por nivel; de +10 a +15 suma 4, 5, 6, 7, 8 y 9. Es el unico dato de
-+        // aqui que viene de comunidad (un blog coreano) y no del paquete, asi que va marcado.
-+        var values = new float[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 31, 36, 42, 49, 57, 66 };
-+        return this.CreateItemBonusTable(values, "Pentagram Bonus per Level", "Lo que suma cada nivel de mejora del pentagrama, tanto al dano elemental como a la defensa elemental.");
++        // De +1 a +9 suma 3 por nivel; de +10 a +15 suma 4, 5, 6, 7, 8 y 9.
++        var values = new[] { 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 31, 36, 42, 49, 57, 66 };
++        var table = this.Context.CreateNew<ItemLevelBonusTable>();
++        table.SetGuid(ItemOptionDefinitionNumbers.Pentagram);
++        this.GameConfiguration.ItemLevelBonusTables.Add(table);
++        table.Name = "Pentagram Bonus per Level";
++        for (int level = 0; level < values.Length; level++)
++        {
++            var levelBonus = this.Context.CreateNew<LevelBonus>();
++            levelBonus.Level = level;
++            levelBonus.AdditionalValue = values[level];
++            table.BonusPerLevel.Add(levelBonus);
++        }
++
++        return table;
 +    }
 +
 +    private ItemOptionDefinition CreateElementOptions()
@@ -7604,124 +7656,324 @@ index 00000000..a51f4eb9
 +        return definition;
 +    }
 +
-+    private ItemOptionDefinition CreateErrtelAngerOptions()
++    private List<ItemOptionDefinition> CreateErrtelAngerOptions()
 +    {
-+        var definition = this.Context.CreateNew<ItemOptionDefinition>();
-+        definition.SetGuid(ItemOptionDefinitionNumbers.ErrtelAnger);
-+        this.GameConfiguration.ItemOptions.Add(definition);
-+        definition.Name = "Errtel of Anger Options";
-+        definition.MaximumOptionsPerItem = 5;
++        var definitions = new List<ItemOptionDefinition>();
 +
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 0, 1, 100, Stats.ElementalDamageBonus, 30f, 33f, 38f, 45f, 54f, 65f, 78f, 93f, 113f, 138f, 168f)); // Add Elemental Damage
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 10, 2, 20, Stats.ElementalDamageMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Fire
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 11, 2, 20, Stats.ElementalDamageMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Water
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 12, 2, 20, Stats.ElementalDamageMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Earth
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 13, 2, 20, Stats.ElementalDamageMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Wind
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 14, 2, 20, Stats.ElementalDamageMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Dark
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 20, 3, 50, Stats.ElementalDamageBonusPvp, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 21, 3, 50, Stats.ElementalDamageBonusPvm, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvM
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 30, 4, 50, Stats.ElementalDamageBonusRanged, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Range
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 31, 4, 50, Stats.ElementalDamageBonusMelee, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Melee
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 40, 5, 50, Stats.ElementalCriticalDamageChancePvp, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental C. D. Rate PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 41, 5, 50, Stats.ElementalCriticalDamageChancePvm, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental C. D. Rate PvM
++        var rank1 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank1.SetGuid(ItemOptionDefinitionNumbers.ErrtelAnger, 1);
++        this.GameConfiguration.ItemOptions.Add(rank1);
++        rank1.Name = "Errtel of Anger Options (rank 1)";
++        rank1.AddsRandomly = true;
++        rank1.AddChance = 1.0f;
++        rank1.MaximumOptionsPerItem = 1;
++        rank1.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 0, 1, 100, Stats.ElementalDamageBonus, 30f, 33f, 38f, 45f, 54f, 65f, 78f, 93f, 113f, 138f, 168f)); // Add Elemental Damage
++        definitions.Add(rank1);
 +
-+        return definition;
++        var rank2 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank2.SetGuid(ItemOptionDefinitionNumbers.ErrtelAnger, 2);
++        this.GameConfiguration.ItemOptions.Add(rank2);
++        rank2.Name = "Errtel of Anger Options (rank 2)";
++        rank2.AddsRandomly = true;
++        rank2.AddChance = 0.45f;
++        rank2.MaximumOptionsPerItem = 1;
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 10, 2, 20, Stats.ElementalDamageMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Fire
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 11, 2, 20, Stats.ElementalDamageMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Water
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 12, 2, 20, Stats.ElementalDamageMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Earth
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 13, 2, 20, Stats.ElementalDamageMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Wind
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 14, 2, 20, Stats.ElementalDamageMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Dark
++        definitions.Add(rank2);
++
++        var rank3 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank3.SetGuid(ItemOptionDefinitionNumbers.ErrtelAnger, 3);
++        this.GameConfiguration.ItemOptions.Add(rank3);
++        rank3.Name = "Errtel of Anger Options (rank 3)";
++        rank3.AddsRandomly = true;
++        rank3.AddChance = 0.25f;
++        rank3.MaximumOptionsPerItem = 1;
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 20, 3, 50, Stats.ElementalDamageBonusPvp, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 21, 3, 50, Stats.ElementalDamageBonusPvm, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvM
++        definitions.Add(rank3);
++
++        var rank4 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank4.SetGuid(ItemOptionDefinitionNumbers.ErrtelAnger, 4);
++        this.GameConfiguration.ItemOptions.Add(rank4);
++        rank4.Name = "Errtel of Anger Options (rank 4)";
++        rank4.AddsRandomly = true;
++        rank4.AddChance = 0.12f;
++        rank4.MaximumOptionsPerItem = 1;
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 30, 4, 50, Stats.ElementalDamageBonusRanged, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Range
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 31, 4, 50, Stats.ElementalDamageBonusMelee, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Melee
++        definitions.Add(rank4);
++
++        var rank5 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank5.SetGuid(ItemOptionDefinitionNumbers.ErrtelAnger, 5);
++        this.GameConfiguration.ItemOptions.Add(rank5);
++        rank5.Name = "Errtel of Anger Options (rank 5)";
++        rank5.AddsRandomly = true;
++        rank5.AddChance = 0.05f;
++        rank5.MaximumOptionsPerItem = 1;
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 40, 5, 50, Stats.ElementalCriticalDamageChancePvp, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental C. D. Rate PvP
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelAnger, 41, 5, 50, Stats.ElementalCriticalDamageChancePvm, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental C. D. Rate PvM
++        definitions.Add(rank5);
++
++        return definitions;
 +    }
 +
-+    private ItemOptionDefinition CreateErrtelBlessingOptions()
++    private List<ItemOptionDefinition> CreateErrtelBlessingOptions()
 +    {
-+        var definition = this.Context.CreateNew<ItemOptionDefinition>();
-+        definition.SetGuid(ItemOptionDefinitionNumbers.ErrtelBlessing);
-+        this.GameConfiguration.ItemOptions.Add(definition);
-+        definition.Name = "Errtel of Blessing Options";
-+        definition.MaximumOptionsPerItem = 5;
++        var definitions = new List<ItemOptionDefinition>();
 +
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 50, 1, 100, Stats.ElementalDefense, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 60, 2, 20, Stats.ElementalDefenseMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Fire
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 61, 2, 20, Stats.ElementalDefenseMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Water
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 62, 2, 20, Stats.ElementalDefenseMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Earth
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 63, 2, 20, Stats.ElementalDefenseMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Wind
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 64, 2, 20, Stats.ElementalDefenseMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Dark
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 70, 3, 50, Stats.ElementalDefenseBonusPvp, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 71, 3, 50, Stats.ElementalDefenseBonusPvm, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvM
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 80, 4, 50, Stats.ElementalDefenseBonusRanged, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Range
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 81, 4, 50, Stats.ElementalDefenseBonusMelee, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Melee
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 90, 5, 50, Stats.ElementalDamageMultiplierPvp, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 91, 5, 50, Stats.ElementalDamageMultiplierPvm, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage PvM
++        var rank1 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank1.SetGuid(ItemOptionDefinitionNumbers.ErrtelBlessing, 1);
++        this.GameConfiguration.ItemOptions.Add(rank1);
++        rank1.Name = "Errtel of Blessing Options (rank 1)";
++        rank1.AddsRandomly = true;
++        rank1.AddChance = 1.0f;
++        rank1.MaximumOptionsPerItem = 1;
++        rank1.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 50, 1, 100, Stats.ElementalDefense, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense
++        definitions.Add(rank1);
 +
-+        return definition;
++        var rank2 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank2.SetGuid(ItemOptionDefinitionNumbers.ErrtelBlessing, 2);
++        this.GameConfiguration.ItemOptions.Add(rank2);
++        rank2.Name = "Errtel of Blessing Options (rank 2)";
++        rank2.AddsRandomly = true;
++        rank2.AddChance = 0.45f;
++        rank2.MaximumOptionsPerItem = 1;
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 60, 2, 20, Stats.ElementalDefenseMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Fire
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 61, 2, 20, Stats.ElementalDefenseMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Water
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 62, 2, 20, Stats.ElementalDefenseMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Earth
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 63, 2, 20, Stats.ElementalDefenseMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Wind
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 64, 2, 20, Stats.ElementalDefenseMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Dark
++        definitions.Add(rank2);
++
++        var rank3 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank3.SetGuid(ItemOptionDefinitionNumbers.ErrtelBlessing, 3);
++        this.GameConfiguration.ItemOptions.Add(rank3);
++        rank3.Name = "Errtel of Blessing Options (rank 3)";
++        rank3.AddsRandomly = true;
++        rank3.AddChance = 0.25f;
++        rank3.MaximumOptionsPerItem = 1;
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 70, 3, 50, Stats.ElementalDefenseBonusPvp, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 71, 3, 50, Stats.ElementalDefenseBonusPvm, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvM
++        definitions.Add(rank3);
++
++        var rank4 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank4.SetGuid(ItemOptionDefinitionNumbers.ErrtelBlessing, 4);
++        this.GameConfiguration.ItemOptions.Add(rank4);
++        rank4.Name = "Errtel of Blessing Options (rank 4)";
++        rank4.AddsRandomly = true;
++        rank4.AddChance = 0.12f;
++        rank4.MaximumOptionsPerItem = 1;
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 80, 4, 50, Stats.ElementalDefenseBonusRanged, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Range
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 81, 4, 50, Stats.ElementalDefenseBonusMelee, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Melee
++        definitions.Add(rank4);
++
++        var rank5 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank5.SetGuid(ItemOptionDefinitionNumbers.ErrtelBlessing, 5);
++        this.GameConfiguration.ItemOptions.Add(rank5);
++        rank5.Name = "Errtel of Blessing Options (rank 5)";
++        rank5.AddsRandomly = true;
++        rank5.AddChance = 0.05f;
++        rank5.MaximumOptionsPerItem = 1;
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 90, 5, 50, Stats.ElementalDamageMultiplierPvp, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage PvP
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelBlessing, 91, 5, 50, Stats.ElementalDamageMultiplierPvm, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage PvM
++        definitions.Add(rank5);
++
++        return definitions;
 +    }
 +
-+    private ItemOptionDefinition CreateErrtelIntegrityOptions()
++    private List<ItemOptionDefinition> CreateErrtelIntegrityOptions()
 +    {
-+        var definition = this.Context.CreateNew<ItemOptionDefinition>();
-+        definition.SetGuid(ItemOptionDefinitionNumbers.ErrtelIntegrity);
-+        this.GameConfiguration.ItemOptions.Add(definition);
-+        definition.Name = "Errtel of Integrity Options";
-+        definition.MaximumOptionsPerItem = 5;
++        var definitions = new List<ItemOptionDefinition>();
 +
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 100, 1, 100, Stats.ElementalAttackSuccessRateMultiplier, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental A. S. Rate
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 110, 2, 20, Stats.ElementalDamageMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Fire
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 111, 2, 20, Stats.ElementalDamageMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Water
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 112, 2, 20, Stats.ElementalDamageMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Earth
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 113, 2, 20, Stats.ElementalDamageMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Wind
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 114, 2, 20, Stats.ElementalDamageMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Dark
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 120, 3, 50, Stats.ElementalDamageBonusPvp, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 121, 3, 50, Stats.ElementalDamageBonusPvm, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvM
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 130, 4, 50, Stats.ElementalDamageBonusRanged, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Range
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 131, 4, 50, Stats.ElementalDamageBonusMelee, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Melee
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 140, 5, 50, Stats.ElementalDamageMultiplierPvp, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Mul Elemental Damage PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 141, 5, 50, Stats.ElementalDamageMultiplierPvm, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Mul Elemental Damage PvM
++        var rank1 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank1.SetGuid(ItemOptionDefinitionNumbers.ErrtelIntegrity, 1);
++        this.GameConfiguration.ItemOptions.Add(rank1);
++        rank1.Name = "Errtel of Integrity Options (rank 1)";
++        rank1.AddsRandomly = true;
++        rank1.AddChance = 1.0f;
++        rank1.MaximumOptionsPerItem = 1;
++        rank1.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 100, 1, 100, Stats.ElementalAttackSuccessRateMultiplier, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental A. S. Rate
++        definitions.Add(rank1);
 +
-+        return definition;
++        var rank2 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank2.SetGuid(ItemOptionDefinitionNumbers.ErrtelIntegrity, 2);
++        this.GameConfiguration.ItemOptions.Add(rank2);
++        rank2.Name = "Errtel of Integrity Options (rank 2)";
++        rank2.AddsRandomly = true;
++        rank2.AddChance = 0.45f;
++        rank2.MaximumOptionsPerItem = 1;
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 110, 2, 20, Stats.ElementalDamageMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Fire
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 111, 2, 20, Stats.ElementalDamageMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Water
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 112, 2, 20, Stats.ElementalDamageMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Earth
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 113, 2, 20, Stats.ElementalDamageMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Wind
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 114, 2, 20, Stats.ElementalDamageMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Damage Vs Dark
++        definitions.Add(rank2);
++
++        var rank3 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank3.SetGuid(ItemOptionDefinitionNumbers.ErrtelIntegrity, 3);
++        this.GameConfiguration.ItemOptions.Add(rank3);
++        rank3.Name = "Errtel of Integrity Options (rank 3)";
++        rank3.AddsRandomly = true;
++        rank3.AddChance = 0.25f;
++        rank3.MaximumOptionsPerItem = 1;
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 120, 3, 50, Stats.ElementalDamageBonusPvp, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 121, 3, 50, Stats.ElementalDamageBonusPvm, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage PvM
++        definitions.Add(rank3);
++
++        var rank4 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank4.SetGuid(ItemOptionDefinitionNumbers.ErrtelIntegrity, 4);
++        this.GameConfiguration.ItemOptions.Add(rank4);
++        rank4.Name = "Errtel of Integrity Options (rank 4)";
++        rank4.AddsRandomly = true;
++        rank4.AddChance = 0.12f;
++        rank4.MaximumOptionsPerItem = 1;
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 130, 4, 50, Stats.ElementalDamageBonusRanged, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Range
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 131, 4, 50, Stats.ElementalDamageBonusMelee, 30f, 35f, 43f, 54f, 66f, 80f, 97f, 117f, 142f, 172f, 207f)); // Add Elemental Damage Melee
++        definitions.Add(rank4);
++
++        var rank5 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank5.SetGuid(ItemOptionDefinitionNumbers.ErrtelIntegrity, 5);
++        this.GameConfiguration.ItemOptions.Add(rank5);
++        rank5.Name = "Errtel of Integrity Options (rank 5)";
++        rank5.AddsRandomly = true;
++        rank5.AddChance = 0.05f;
++        rank5.MaximumOptionsPerItem = 1;
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 140, 5, 50, Stats.ElementalDamageMultiplierPvp, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Mul Elemental Damage PvP
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelIntegrity, 141, 5, 50, Stats.ElementalDamageMultiplierPvm, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Mul Elemental Damage PvM
++        definitions.Add(rank5);
++
++        return definitions;
 +    }
 +
-+    private ItemOptionDefinition CreateErrtelDivinityOptions()
++    private List<ItemOptionDefinition> CreateErrtelDivinityOptions()
 +    {
-+        var definition = this.Context.CreateNew<ItemOptionDefinition>();
-+        definition.SetGuid(ItemOptionDefinitionNumbers.ErrtelDivinity);
-+        this.GameConfiguration.ItemOptions.Add(definition);
-+        definition.Name = "Errtel of Divinity Options";
-+        definition.MaximumOptionsPerItem = 5;
++        var definitions = new List<ItemOptionDefinition>();
 +
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 150, 1, 100, Stats.ElementalDefenseSuccessRateMultiplier, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental D. S. Rate
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 160, 2, 20, Stats.ElementalDefenseMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Fire
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 161, 2, 20, Stats.ElementalDefenseMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Water
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 162, 2, 20, Stats.ElementalDefenseMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Earth
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 163, 2, 20, Stats.ElementalDefenseMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Wind
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 164, 2, 20, Stats.ElementalDefenseMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Dark
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 170, 3, 50, Stats.ElementalDefenseBonusPvp, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 171, 3, 50, Stats.ElementalDefenseBonusPvm, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvM
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 180, 4, 50, Stats.ElementalDefenseBonusRanged, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Range
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 181, 4, 50, Stats.ElementalDefenseBonusMelee, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Melee
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 190, 5, 50, Stats.ElementalDamageReductionPvp, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Add Elemental D. R. PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 191, 5, 50, Stats.ElementalDamageReductionPvm, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Add Elemental D. R. PvM
++        var rank1 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank1.SetGuid(ItemOptionDefinitionNumbers.ErrtelDivinity, 1);
++        this.GameConfiguration.ItemOptions.Add(rank1);
++        rank1.Name = "Errtel of Divinity Options (rank 1)";
++        rank1.AddsRandomly = true;
++        rank1.AddChance = 1.0f;
++        rank1.MaximumOptionsPerItem = 1;
++        rank1.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 150, 1, 100, Stats.ElementalDefenseSuccessRateMultiplier, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental D. S. Rate
++        definitions.Add(rank1);
 +
-+        return definition;
++        var rank2 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank2.SetGuid(ItemOptionDefinitionNumbers.ErrtelDivinity, 2);
++        this.GameConfiguration.ItemOptions.Add(rank2);
++        rank2.Name = "Errtel of Divinity Options (rank 2)";
++        rank2.AddsRandomly = true;
++        rank2.AddChance = 0.45f;
++        rank2.MaximumOptionsPerItem = 1;
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 160, 2, 20, Stats.ElementalDefenseMultiplierVsFire, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Fire
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 161, 2, 20, Stats.ElementalDefenseMultiplierVsWater, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Water
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 162, 2, 20, Stats.ElementalDefenseMultiplierVsEarth, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Earth
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 163, 2, 20, Stats.ElementalDefenseMultiplierVsWind, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Wind
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 164, 2, 20, Stats.ElementalDefenseMultiplierVsDark, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Mul Elemental Defense Vs Dark
++        definitions.Add(rank2);
++
++        var rank3 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank3.SetGuid(ItemOptionDefinitionNumbers.ErrtelDivinity, 3);
++        this.GameConfiguration.ItemOptions.Add(rank3);
++        rank3.Name = "Errtel of Divinity Options (rank 3)";
++        rank3.AddsRandomly = true;
++        rank3.AddChance = 0.25f;
++        rank3.MaximumOptionsPerItem = 1;
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 170, 3, 50, Stats.ElementalDefenseBonusPvp, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 171, 3, 50, Stats.ElementalDefenseBonusPvm, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense PvM
++        definitions.Add(rank3);
++
++        var rank4 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank4.SetGuid(ItemOptionDefinitionNumbers.ErrtelDivinity, 4);
++        this.GameConfiguration.ItemOptions.Add(rank4);
++        rank4.Name = "Errtel of Divinity Options (rank 4)";
++        rank4.AddsRandomly = true;
++        rank4.AddChance = 0.12f;
++        rank4.MaximumOptionsPerItem = 1;
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 180, 4, 50, Stats.ElementalDefenseBonusRanged, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Range
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 181, 4, 50, Stats.ElementalDefenseBonusMelee, 10f, 13f, 17f, 22f, 28f, 35f, 43f, 52f, 62f, 73f, 85f)); // Add Elemental Defense Melee
++        definitions.Add(rank4);
++
++        var rank5 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank5.SetGuid(ItemOptionDefinitionNumbers.ErrtelDivinity, 5);
++        this.GameConfiguration.ItemOptions.Add(rank5);
++        rank5.Name = "Errtel of Divinity Options (rank 5)";
++        rank5.AddsRandomly = true;
++        rank5.AddChance = 0.05f;
++        rank5.MaximumOptionsPerItem = 1;
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 190, 5, 50, Stats.ElementalDamageReductionPvp, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Add Elemental D. R. PvP
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelDivinity, 191, 5, 50, Stats.ElementalDamageReductionPvm, 0.05f, 0.07f, 0.09f, 0.11f, 0.13f, 0.15f, 0.18f, 0.21f, 0.24f, 0.27f, 0.3f)); // Add Elemental D. R. PvM
++        definitions.Add(rank5);
++
++        return definitions;
 +    }
 +
-+    private ItemOptionDefinition CreateErrtelGaleOptions()
++    private List<ItemOptionDefinition> CreateErrtelGaleOptions()
 +    {
-+        var definition = this.Context.CreateNew<ItemOptionDefinition>();
-+        definition.SetGuid(ItemOptionDefinitionNumbers.ErrtelGale);
-+        this.GameConfiguration.ItemOptions.Add(definition);
-+        definition.Name = "Errtel of Gale Options";
-+        definition.MaximumOptionsPerItem = 5;
++        var definitions = new List<ItemOptionDefinition>();
 +
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 200, 1, 100, Stats.ElementalSlowChance, 0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.07f, 0.08f, 0.1f, 0.12f, 0.15f)); // Add Elemental Slow Rate
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 210, 2, 25, Stats.TotalStrength, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Strength
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 211, 2, 25, Stats.TotalAgility, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Dexterity
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 212, 2, 25, Stats.TotalEnergy, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Energy
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 213, 2, 25, Stats.TotalVitality, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Vitality
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 220, 3, 25, Stats.MaximumHealth, 20f, 25f, 30f, 35f, 40f, 50f, 60f, 70f, 80f, 90f, 100f)); // Add Max HP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 221, 3, 25, Stats.MaximumMana, 20f, 25f, 30f, 35f, 40f, 50f, 60f, 70f, 80f, 90f, 100f)); // Add Max MP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 222, 3, 25, Stats.MaximumAbility, 20f, 25f, 30f, 35f, 40f, 50f, 60f, 70f, 80f, 90f, 100f)); // Add Max BP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 223, 3, 25, Stats.MaximumShield, 500f, 550f, 600f, 650f, 700f, 750f, 800f, 850f, 900f, 950f, 1000f)); // Add Max SD
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 230, 4, 50, Stats.ElementalExcellentDamageChancePvp, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental E. D. Rate PvP
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 231, 4, 50, Stats.ElementalExcellentDamageChancePvm, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental E. D. Rate PvM
-+        definition.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 240, 5, 100, Stats.ElementalDebuffChance, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f)); // Add Elemental Debuff Rate
++        var rank1 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank1.SetGuid(ItemOptionDefinitionNumbers.ErrtelGale, 1);
++        this.GameConfiguration.ItemOptions.Add(rank1);
++        rank1.Name = "Errtel of Gale Options (rank 1)";
++        rank1.AddsRandomly = true;
++        rank1.AddChance = 1.0f;
++        rank1.MaximumOptionsPerItem = 1;
++        rank1.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 200, 1, 100, Stats.ElementalSlowChance, 0.01f, 0.02f, 0.03f, 0.04f, 0.05f, 0.06f, 0.07f, 0.08f, 0.1f, 0.12f, 0.15f)); // Add Elemental Slow Rate
++        definitions.Add(rank1);
 +
-+        return definition;
++        var rank2 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank2.SetGuid(ItemOptionDefinitionNumbers.ErrtelGale, 2);
++        this.GameConfiguration.ItemOptions.Add(rank2);
++        rank2.Name = "Errtel of Gale Options (rank 2)";
++        rank2.AddsRandomly = true;
++        rank2.AddChance = 0.45f;
++        rank2.MaximumOptionsPerItem = 1;
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 210, 2, 25, Stats.TotalStrength, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Strength
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 211, 2, 25, Stats.TotalAgility, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Dexterity
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 212, 2, 25, Stats.TotalEnergy, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Energy
++        rank2.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 213, 2, 25, Stats.TotalVitality, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 55f, 60f)); // Add Vitality
++        definitions.Add(rank2);
++
++        var rank3 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank3.SetGuid(ItemOptionDefinitionNumbers.ErrtelGale, 3);
++        this.GameConfiguration.ItemOptions.Add(rank3);
++        rank3.Name = "Errtel of Gale Options (rank 3)";
++        rank3.AddsRandomly = true;
++        rank3.AddChance = 0.25f;
++        rank3.MaximumOptionsPerItem = 1;
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 220, 3, 25, Stats.MaximumHealth, 20f, 25f, 30f, 35f, 40f, 50f, 60f, 70f, 80f, 90f, 100f)); // Add Max HP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 221, 3, 25, Stats.MaximumMana, 20f, 25f, 30f, 35f, 40f, 50f, 60f, 70f, 80f, 90f, 100f)); // Add Max MP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 222, 3, 25, Stats.MaximumAbility, 20f, 25f, 30f, 35f, 40f, 50f, 60f, 70f, 80f, 90f, 100f)); // Add Max BP
++        rank3.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 223, 3, 25, Stats.MaximumShield, 500f, 550f, 600f, 650f, 700f, 750f, 800f, 850f, 900f, 950f, 1000f)); // Add Max SD
++        definitions.Add(rank3);
++
++        var rank4 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank4.SetGuid(ItemOptionDefinitionNumbers.ErrtelGale, 4);
++        this.GameConfiguration.ItemOptions.Add(rank4);
++        rank4.Name = "Errtel of Gale Options (rank 4)";
++        rank4.AddsRandomly = true;
++        rank4.AddChance = 0.12f;
++        rank4.MaximumOptionsPerItem = 1;
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 230, 4, 50, Stats.ElementalExcellentDamageChancePvp, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental E. D. Rate PvP
++        rank4.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 231, 4, 50, Stats.ElementalExcellentDamageChancePvm, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.1f, 0.12f, 0.14f, 0.16f, 0.18f, 0.2f)); // Add Elemental E. D. Rate PvM
++        definitions.Add(rank4);
++
++        var rank5 = this.Context.CreateNew<ItemOptionDefinition>();
++        rank5.SetGuid(ItemOptionDefinitionNumbers.ErrtelGale, 5);
++        this.GameConfiguration.ItemOptions.Add(rank5);
++        rank5.Name = "Errtel of Gale Options (rank 5)";
++        rank5.AddsRandomly = true;
++        rank5.AddChance = 0.05f;
++        rank5.MaximumOptionsPerItem = 1;
++        rank5.PossibleOptions.Add(this.CreateErrtelOption(ItemOptionDefinitionNumbers.ErrtelGale, 240, 5, 100, Stats.ElementalDebuffChance, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f)); // Add Elemental Debuff Rate
++        definitions.Add(rank5);
++
++        return definitions;
 +    }
 +
 +    private IncreasableItemOption CreateErrtelOption(short definitionNumber, short number, int rank, byte weight, AttributeDefinition targetAttribute, params float[] values)
@@ -7815,7 +8067,7 @@ index 00000000..a51f4eb9
 +        }
 +    }
 +
-+    private void CreateErrtel(short number, string name, byte width, byte height, byte dropLevel, ItemOptionDefinition options)
++    private void CreateErrtel(short number, string name, byte width, byte height, byte dropLevel, List<ItemOptionDefinition> options)
 +    {
 +        var errtel = this.Context.CreateNew<ItemDefinition>();
 +        this.GameConfiguration.Items.Add(errtel);
@@ -7829,7 +8081,10 @@ index 00000000..a51f4eb9
 +        errtel.DropsFromMonsters = false;
 +        errtel.Durability = 1;
 +        errtel.SetGuid(errtel.Group, errtel.Number);
-+        errtel.PossibleItemOptions.Add(options);
++        foreach (var option in options)
++        {
++            errtel.PossibleItemOptions.Add(option);
++        }
 +    }
 +}
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/Potions.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/Potions.cs
