@@ -49,6 +49,9 @@ jobs:
           test -f src/Persistence/Initialization/Updates/AddSeasonEightItemsAndDropsUpdatePlugIn.cs || { echo "falta el plugin de items y drops" >&2; exit 1; }
           test "$(grep -c "AddMasterSkillDefinition" src/Persistence/Initialization/VersionSeasonSix/SkillsInitializer.cs)" -ge 103 || { echo "no estan las 103 skills maestras" >&2; exit 1; }
           grep -q "AddSeasonEightItemsAndDrops = 116" src/Persistence/Initialization/Updates/UpdateVersion.cs || { echo "los dos plugins de actualizacion chocan de version" >&2; exit 1; }
+          # sin esto el terreno no se carga y todo lo que este en y >= 128 queda bloqueado
+          grep -q "EmbeddedResource Include=\"Resources\\\\Terrain92.att\"" src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj || { echo "el terreno de Acheron no esta declarado como recurso" >&2; exit 1; }
+          grep -q "EmbeddedResource Include=\"Resources\\\\Terrain96.att\"" src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj || { echo "el terreno de Debenter no esta declarado como recurso" >&2; exit 1; }
 
       - name: Construir la imagen
         working-directory: OpenMU/src

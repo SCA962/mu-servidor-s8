@@ -258,6 +258,28 @@ index b2d78ef9..ba3c42bd 100644
          this.GameConfiguration.InfoRange = 12;
          this.GameConfiguration.AreaSkillHitsPlayer = false;
          this.GameConfiguration.MaximumInventoryMoney = int.MaxValue;
+diff --git a/src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj b/src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj
+index c3b9e4ac..e534c3c9 100644
+--- a/src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj
++++ b/src/Persistence/Initialization/MUnique.OpenMU.Persistence.Initialization.csproj
+@@ -89,6 +89,8 @@
+     <None Remove="Resources\Terrain78.att" />
+     <None Remove="Resources\Terrain79.att" />
+     <None Remove="Resources\Terrain8.att" />
++    <None Remove="Resources\Terrain92.att" />
++    <None Remove="Resources\Terrain96.att" />
+     <None Remove="Resources\Terrain80.att" />
+     <None Remove="Resources\Terrain81.att" />
+     <None Remove="Resources\Terrain82.att" />
+@@ -172,6 +174,8 @@
+     <EmbeddedResource Include="Resources\Terrain81.att" />
+     <EmbeddedResource Include="Resources\Terrain82.att" />
+     <EmbeddedResource Include="Resources\Terrain9.att" />
++    <EmbeddedResource Include="Resources\Terrain92.att" />
++    <EmbeddedResource Include="Resources\Terrain96.att" />
+   </ItemGroup>
+ 
+   <ItemGroup>
 diff --git a/src/Persistence/Initialization/Resources/Terrain92.att b/src/Persistence/Initialization/Resources/Terrain92.att
 new file mode 100644
 index 0000000000000000000000000000000000000000..d8764e2ebf38c79eb256a67c2981375e5566c4e2
