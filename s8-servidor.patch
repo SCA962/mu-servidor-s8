@@ -2192,6 +2192,118 @@ index c89a8735..5b2de641 100644
          this.Inventory = new InventoryStorage(this._player, this._player.GameContext);
          this.ShopStorage = new ShopStorage(character);
          this.TemporaryStorage = new Storage(InventoryConstants.TemporaryStorageSize, new TemporaryItemStorage());
+diff --git a/src/GameLogic/PlugIns/ChatCommands/ElementalInfoChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/ElementalInfoChatCommandPlugIn.cs
+new file mode 100644
+index 00000000..ade5cb57
+--- /dev/null
++++ b/src/GameLogic/PlugIns/ChatCommands/ElementalInfoChatCommandPlugIn.cs
+@@ -0,0 +1,106 @@
++﻿// <copyright file="ElementalInfoChatCommandPlugIn.cs" company="MUnique">
++// Licensed under the MIT License. See LICENSE file in the project root for full license information.
++// </copyright>
++
++namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
++
++using System.Runtime.InteropServices;
++using System.Text;
++using MUnique.OpenMU.GameLogic.Attributes;
++using MUnique.OpenMU.GameLogic.NPC;
++using MUnique.OpenMU.GameLogic.Views;
++using MUnique.OpenMU.Interfaces;
++using MUnique.OpenMU.PlugIns;
++
++/// <summary>
++/// Dice, en numeros, que esta pasando con el dano elemental contra el bicho mas cercano.
++/// </summary>
++/// <remarks>
++/// Esto existe porque mirar los numeros que pinta el cliente no alcanza para saber que pasa: no se
++/// distingue el dano propio del de la mascota, ni el fisico del elemental, ni un fallo elemental de
++/// un fallo fisico. Con esto se lee directamente lo que el servidor tiene en la mano.
++/// </remarks>
++[Guid("A31F5C08-7B4E-4D62-9A17-E06C82D4B593")]
++[PlugIn]
++[Display(Name = PlugInName, Description = PlugInDescription)]
++[ChatCommandHelp(Command, typeof(Arguments), MinimumStatus)]
++public class ElementalInfoChatCommandPlugIn : ChatCommandPlugInBase<ElementalInfoChatCommandPlugIn.Arguments>
++{
++    /// <summary>
++    /// The plug-in name.
++    /// </summary>
++    internal const string PlugInName = "Elemental info chat command";
++
++    /// <summary>
++    /// The plug-in description.
++    /// </summary>
++    internal const string PlugInDescription = "Prints the elemental numbers of the player and of the closest monster, to diagnose the elemental damage channel.";
++
++    private const string Command = "/elemental";
++    private const CharacterStatus MinimumStatus = CharacterStatus.GameMaster;
++
++    private static readonly string[] Elements = { "ninguno", "fuego", "agua", "tierra", "viento", "oscuridad" };
++
++    /// <inheritdoc />
++    public override string Key => Command;
++
++    /// <inheritdoc />
++    public override CharacterStatus MinCharacterStatusRequirement => MinimumStatus;
++
++    /// <inheritdoc />
++    protected override async ValueTask DoHandleCommandAsync(Player player, Arguments arguments)
++    {
++        if (player.Attributes is null || player.CurrentMap is null)
++        {
++            return;
++        }
++
++        await ShowAsync(player, $"TU: elemento {Name((int)player.Attributes[Stats.Element])}, dano {(int)player.Attributes[Stats.ElementalDamageMin]}~{(int)player.Attributes[Stats.ElementalDamageMax]}, defensa {(int)player.Attributes[Stats.ElementalDefense]}, acierto {(int)player.Attributes[Stats.ElementalAttackSuccessRate]}, esquiva {(int)player.Attributes[Stats.ElementalDefenseSuccessRate]}").ConfigureAwait(false);
++
++        var target = player.CurrentMap.GetAttackablesInRange(player.Position, 10)
++            .OfType<Monster>()
++            .FirstOrDefault(m => m.IsAlive);
++        if (target is null)
++        {
++            await ShowAsync(player, "No hay ningun bicho cerca.").ConfigureAwait(false);
++            return;
++        }
++
++        var attributes = target.Attributes;
++        var pattern = (int)attributes[Stats.ElementalPattern];
++        await ShowAsync(player, $"{target.Definition.Designation}: elemento {Name((int)attributes[Stats.Element])}, patron {pattern}{(pattern >= 2 ? " (SOLO dano elemental)" : string.Empty)}, defensa elemental {(int)attributes[Stats.ElementalDefense]}, dano {(int)attributes[Stats.ElementalDamageMin]}~{(int)attributes[Stats.ElementalDamageMax]}, esquiva {(int)attributes[Stats.ElementalDefenseSuccessRate]}").ConfigureAwait(false);
++
++        // Diez tiradas para ver la forma de la cosa: cuantas fallan y cuanto pega cuando entra.
++        var hits = 0;
++        var total = 0;
++        var best = 0;
++        for (var i = 0; i < 10; i++)
++        {
++            var damage = ElementalCombat.CalculateDamage(player, target, false, false);
++            if (damage > 0)
++            {
++                hits++;
++                total += damage;
++                best = Math.Max(best, damage);
++            }
++        }
++
++        var average = hits > 0 ? total / hits : 0;
++        await ShowAsync(player, $"10 tiradas elementales: {hits} entran, media {average}, mejor {best}. Fisico anulado: {(ElementalCombat.IsImmuneToPhysicalDamage(target) ? "SI" : "NO")}").ConfigureAwait(false);
++    }
++
++    private static string Name(int element)
++    {
++        return Elements[Math.Clamp(element, 0, Elements.Length - 1)];
++    }
++
++    private static ValueTask ShowAsync(Player player, string message)
++    {
++        return player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(message, MessageType.BlueNormal));
++    }
++
++    /// <summary>
++    /// Sin argumentos.
++    /// </summary>
++    public class Arguments : ArgumentsBase;
++}
 diff --git a/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
 new file mode 100644
 index 00000000..9f47b16c
