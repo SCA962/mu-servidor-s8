@@ -137,8 +137,13 @@ jobs:
           test "$(grep -c "AddsRandomly = true" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "26" || { echo "faltan opciones que se repartan al caer (1 elemento + 25 rangos de errtel)" >&2; exit 1; }
           grep -q "EnsureElement" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "un pentagrama creado por comando se quedaria sin elemento" >&2; exit 1; }
           grep -q "EnsureOptions" src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs || { echo "un errtel creado por comando se quedaria sin opciones" >&2; exit 1; }
-          # /setlevel y /setmoney vienen apagados de fabrica y el panel no esta publicado en el lab
-          test "$(grep -c IDisabledByDefault src/GameLogic/PlugIns/ChatCommands/SetLevelChatCommandPlugIn.cs src/GameLogic/PlugIns/ChatCommands/SetMoneyChatCommandPlugIn.cs | grep -c ':0')" = "2" || { echo "setlevel o setmoney siguen apagados" >&2; exit 1; }
+          # /setlevel y /setmoney vienen apagados de fabrica y el panel no esta publicado en el lab.
+          # Se mira la declaracion de la clase, no el fichero: el comentario que explica el arreglo
+          # nombra IDisabledByDefault y hacia fallar la comprobacion.
+          for c in SetLevel SetMoney; do
+            grep -q "ChatCommandPlugInBase<${c}ChatCommandPlugIn.Arguments>, IDisabledByDefault" "src/GameLogic/PlugIns/ChatCommands/${c}ChatCommandPlugIn.cs" && { echo "$c sigue apagado" >&2; exit 1; }
+            grep -q "class ${c}ChatCommandPlugIn : ChatCommandPlugInBase<${c}ChatCommandPlugIn.Arguments>$" "src/GameLogic/PlugIns/ChatCommands/${c}ChatCommandPlugIn.cs" || { echo "no reconozco la declaracion de $c" >&2; exit 1; }
+          done
           # los drops
           grep -q "Pentagrams (elemental bosses)" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "faltan los drops de pentagrama" >&2; exit 1; }
           # --- la apuesta de Moss el Mercader ---
