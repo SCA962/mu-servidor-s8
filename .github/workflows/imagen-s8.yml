@@ -153,6 +153,9 @@ jobs:
           # las 65 armas del paquete, repartidas en los cinco boletos, y una rara por boleto
           test "$(grep -c "this.AddDropItem(" src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs)" = "65" || { echo "no son 65 armas en la apuesta de Moss" >&2; exit 1; }
           test "$(grep -c "RareChance)" src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs)" = "5" || { echo "no hay una rara por boleto" >&2; exit 1; }
+          # Value NO es el precio: ItemPriceCalculator hace Value*Value*10/12 para el grupo 13.
+          # Con 300.000 el boleto costaba 75.000 millones y no se podia comprar.
+          grep -q "TicketPrice = 1_550;" src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs || { echo "el precio del boleto de Moss no es el corregido" >&2; exit 1; }
           # y el plugin para la base que ya existe, sin chocar de version
           test -f src/Persistence/Initialization/Updates/AddElementalSystemUpdatePlugIn.cs || { echo "falta el plugin de actualizacion del sistema elemental" >&2; exit 1; }
           grep -q "AddElementalSystem = 118" src/Persistence/Initialization/Updates/UpdateVersion.cs || { echo "la version del plugin elemental choca" >&2; exit 1; }

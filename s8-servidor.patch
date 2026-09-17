@@ -7733,10 +7733,10 @@ index b0fc83a7..0e9391d8 100644
      private void CreateLostMap()
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs b/src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs
 new file mode 100644
-index 00000000..68dace0a
+index 00000000..ede9089f
 --- /dev/null
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Items/MossGamble.cs
-@@ -0,0 +1,288 @@
+@@ -0,0 +1,298 @@
 +﻿// <copyright file="MossGamble.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -7787,10 +7787,20 @@ index 00000000..68dace0a
 +    private const byte TicketGroup = 13;
 +
 +    /// <summary>
-+    /// Lo que cuesta un boleto. Es el unico numero de aqui que no sale del paquete: el fichero de
-+    /// tienda no trae precio. Se cambia con una linea.
++    /// De aqui sale el precio del boleto, y OJO: <b>no es el precio</b>.
 +    /// </summary>
-+    private const int TicketPrice = 300_000;
++    /// <remarks>
++    /// <see cref="ItemDefinition.Value"/> es una base que <c>ItemPriceCalculator</c> ELEVA AL
++    /// CUADRADO: el precio de compra es <c>Value * Value * 10 / 12</c>. El atajo que devuelve
++    /// <c>Value</c> tal cual solo vale para los grupos 12 y 15, y el boleto es del 13.
++    /// <para>
++    /// La primera version puso 300.000 creyendo que era el precio, y eso daba <b>75.000 millones</b>:
++    /// Stefano tenia 2.000 millones en la mano y el servidor le decia «You don't have enough Money»
++    /// mientras el cliente le pintaba «2.000.000» en el cartel, porque el cliente calcula el precio
++    /// con SU tabla. 1.550 al cuadrado por 10/12 da 2.002.083, o sea lo que el cliente ensena.
++    /// </para>
++    /// </remarks>
++    private const int TicketPrice = 1_550;
 +
 +    /// <summary>
 +    /// Lo que se lleva la mejor arma de cada boleto, sacado de las tasas del paquete.
