@@ -2779,6 +2779,48 @@ index 00000000..2458736a
 +    /// </summary>
 +    public class Arguments : ArgumentsBase;
 +}
+diff --git a/src/GameLogic/PlugIns/ChatCommands/SetLevelChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/SetLevelChatCommandPlugIn.cs
+index e1cf34e9..d0756d88 100644
+--- a/src/GameLogic/PlugIns/ChatCommands/SetLevelChatCommandPlugIn.cs
++++ b/src/GameLogic/PlugIns/ChatCommands/SetLevelChatCommandPlugIn.cs
+@@ -12,11 +12,15 @@ using MUnique.OpenMU.PlugIns;
+ /// <summary>
+ /// A chat command plugin which sets a character's level.
+ /// </summary>
++// En OpenMU este comando viene apagado de fabrica (IDisabledByDefault) y solo se puede
++// encender desde el panel de administracion, que en el laboratorio no esta publicado.
++// Aqui se deja encendido: sigue siendo solo para GM y sin el no se puede ni probar nada
++// que pida nivel o dinero.
+ [Guid("4BE779C9-E6B6-47F2-BC23-2E71D82A6C1D")]
+ [PlugIn]
+ [Display(Name = nameof(PlugInResources.SetLevelChatCommandPlugIn_Name), Description = nameof(PlugInResources.SetLevelChatCommandPlugIn_Description), ResourceType = typeof(PlugInResources))]
+ [ChatCommandHelp(Command, typeof(Arguments), MinimumStatus)]
+-public class SetLevelChatCommandPlugIn : ChatCommandPlugInBase<SetLevelChatCommandPlugIn.Arguments>, IDisabledByDefault
++public class SetLevelChatCommandPlugIn : ChatCommandPlugInBase<SetLevelChatCommandPlugIn.Arguments>
+ {
+     private const string Command = "/setlevel";
+     private const CharacterStatus MinimumStatus = CharacterStatus.GameMaster;
+diff --git a/src/GameLogic/PlugIns/ChatCommands/SetMoneyChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/SetMoneyChatCommandPlugIn.cs
+index 38ec0a26..f96fa99f 100644
+--- a/src/GameLogic/PlugIns/ChatCommands/SetMoneyChatCommandPlugIn.cs
++++ b/src/GameLogic/PlugIns/ChatCommands/SetMoneyChatCommandPlugIn.cs
+@@ -10,11 +10,15 @@ using MUnique.OpenMU.PlugIns;
+ /// <summary>
+ /// A chat command plugin which sets a character's money.
+ /// </summary>
++// En OpenMU este comando viene apagado de fabrica (IDisabledByDefault) y solo se puede
++// encender desde el panel de administracion, que en el laboratorio no esta publicado.
++// Aqui se deja encendido: sigue siendo solo para GM y sin el no se puede ni probar nada
++// que pida nivel o dinero.
+ [Guid("00AA4F0E-911D-49FE-8D88-114C7496D383")]
+ [PlugIn]
+ [Display(Name = nameof(PlugInResources.SetMoneyChatCommandPlugIn_Name), Description = nameof(PlugInResources.SetMoneyChatCommandPlugIn_Description), ResourceType = typeof(PlugInResources))]
+ [ChatCommandHelp(Command, typeof(Arguments), MinimumStatus)]
+-public class SetMoneyChatCommandPlugIn : ChatCommandPlugInBase<SetMoneyChatCommandPlugIn.Arguments>, IDisabledByDefault
++public class SetMoneyChatCommandPlugIn : ChatCommandPlugInBase<SetMoneyChatCommandPlugIn.Arguments>
+ {
+     private const string Command = "/setmoney";
+     private const CharacterStatus MinimumStatus = CharacterStatus.GameMaster;
 diff --git a/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs b/src/GameLogic/Views/Mining/IMiningViewPlugIn.cs
 new file mode 100644
 index 00000000..e5f0e1ad

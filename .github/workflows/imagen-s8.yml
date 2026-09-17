@@ -137,6 +137,8 @@ jobs:
           test "$(grep -c "AddsRandomly = true" src/Persistence/Initialization/VersionSeasonSix/Items/Pentagrams.cs)" = "26" || { echo "faltan opciones que se repartan al caer (1 elemento + 25 rangos de errtel)" >&2; exit 1; }
           grep -q "EnsureElement" src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs || { echo "un pentagrama creado por comando se quedaria sin elemento" >&2; exit 1; }
           grep -q "EnsureOptions" src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs || { echo "un errtel creado por comando se quedaria sin opciones" >&2; exit 1; }
+          # /setlevel y /setmoney vienen apagados de fabrica y el panel no esta publicado en el lab
+          test "$(grep -c IDisabledByDefault src/GameLogic/PlugIns/ChatCommands/SetLevelChatCommandPlugIn.cs src/GameLogic/PlugIns/ChatCommands/SetMoneyChatCommandPlugIn.cs | grep -c ':0')" = "2" || { echo "setlevel o setmoney siguen apagados" >&2; exit 1; }
           # los drops
           grep -q "Pentagrams (elemental bosses)" src/Persistence/Initialization/VersionSeasonSix/ElementalSystem.cs || { echo "faltan los drops de pentagrama" >&2; exit 1; }
           # --- la apuesta de Moss el Mercader ---
