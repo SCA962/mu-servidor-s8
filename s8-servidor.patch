@@ -362,10 +362,10 @@ index 7f0fa702..974ce79d 100644
  }
 diff --git a/src/GameLogic/ElementalCombat.cs b/src/GameLogic/ElementalCombat.cs
 new file mode 100644
-index 00000000..9b9a3e77
+index 00000000..4fb4ec2c
 --- /dev/null
 +++ b/src/GameLogic/ElementalCombat.cs
-@@ -0,0 +1,242 @@
+@@ -0,0 +1,284 @@
 +﻿// <copyright file="ElementalCombat.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -544,6 +544,48 @@ index 00000000..9b9a3e77
 +        damage *= hitFactor;
 +
 +        return damage > 0 ? (int)damage : 0;
++    }
++
++    /// <summary>
++    /// Desglosa el calculo en texto, para diagnosticar.
++    /// </summary>
++    /// <param name="attacker">The attacker.</param>
++    /// <param name="defender">The defender.</param>
++    /// <returns>Una linea con cada paso del calculo.</returns>
++    /// <remarks>
++    /// Existe porque <see cref="CalculateDamage"/> devuelve 0 tanto cuando el golpe falla como
++    /// cuando la defensa se come el dano, y desde fuera no se distingue. Esa ambiguedad ya costo
++    /// dos rondas de suposiciones.
++    /// </remarks>
++    public static string Explain(IAttacker attacker, IAttackable defender)
++    {
++        var attackerElement = GetElement(attacker.Attributes, attacker.Id);
++        if (attackerElement == 0)
++        {
++            return "sin elemento: no hay dano elemental";
++        }
++
++        var defenderElement = GetElement(defender.Attributes, defender.Id);
++        var minimum = attacker.Attributes[Stats.ElementalDamageMin];
++        var maximum = attacker.Attributes[Stats.ElementalDamageMax];
++        var bonus = attacker.Attributes[Stats.ElementalDamageBonus]
++            + attacker.Attributes[Stats.ElementalDamageBonusPvm]
++            + attacker.Attributes[Stats.ElementalDamageBonusMelee];
++        var damageRelation = DamageRelation[attackerElement, defenderElement];
++        var defenseRelation = DefenseRelation[defenderElement, attackerElement];
++        var defense = defender.Attributes[Stats.ElementalDefense] + defender.Attributes[Stats.ElementalDefenseBonusPvm];
++        var effectiveDefense = defense * defenseRelation / 100f;
++        var effectiveMax = (maximum + bonus) * damageRelation / 100f;
++
++        var attackRate = attacker.Attributes[Stats.ElementalAttackSuccessRate] * (1f + attacker.Attributes[Stats.ElementalAttackSuccessRateMultiplier]);
++        var defenseRate = defender.Attributes[Stats.ElementalDefenseSuccessRate] * (1f + defender.Attributes[Stats.ElementalDefenseSuccessRateMultiplier]);
++        var missChance = attackRate <= 0 ? 100f : (attackRate < defenseRate ? 95f : Math.Min(100f, defenseRate / attackRate * 100f));
++
++        return $"dano {(int)minimum}~{(int)maximum} + errtels {(int)bonus} = {(int)(minimum + bonus)}~{(int)(maximum + bonus)}"
++            + $" | x{damageRelation}% = hasta {(int)effectiveMax}"
++            + $" | defensa {(int)defense} x{defenseRelation}% = {(int)effectiveDefense}"
++            + $" | NETO hasta {(int)Math.Max(0, effectiveMax - effectiveDefense)}"
++            + $" | fallo {missChance:0.#}%";
 +    }
 +
 +    /// <summary>
@@ -2194,10 +2236,10 @@ index c89a8735..5b2de641 100644
          this.TemporaryStorage = new Storage(InventoryConstants.TemporaryStorageSize, new TemporaryItemStorage());
 diff --git a/src/GameLogic/PlugIns/ChatCommands/ElementalInfoChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/ElementalInfoChatCommandPlugIn.cs
 new file mode 100644
-index 00000000..ade5cb57
+index 00000000..45440f62
 --- /dev/null
 +++ b/src/GameLogic/PlugIns/ChatCommands/ElementalInfoChatCommandPlugIn.cs
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,107 @@
 +﻿// <copyright file="ElementalInfoChatCommandPlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -2286,7 +2328,8 @@ index 00000000..ade5cb57
 +        }
 +
 +        var average = hits > 0 ? total / hits : 0;
-+        await ShowAsync(player, $"10 tiradas elementales: {hits} entran, media {average}, mejor {best}. Fisico anulado: {(ElementalCombat.IsImmuneToPhysicalDamage(target) ? "SI" : "NO")}").ConfigureAwait(false);
++        await ShowAsync(player, $"10 tiradas: {hits} entran, media {average}, mejor {best}. Fisico anulado: {(ElementalCombat.IsImmuneToPhysicalDamage(target) ? "SI" : "NO")}").ConfigureAwait(false);
++        await ShowAsync(player, ElementalCombat.Explain(player, target)).ConfigureAwait(false);
 +    }
 +
 +    private static string Name(int element)
@@ -2306,10 +2349,10 @@ index 00000000..ade5cb57
 +}
 diff --git a/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
 new file mode 100644
-index 00000000..9f47b16c
+index 00000000..494b759f
 --- /dev/null
 +++ b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
-@@ -0,0 +1,372 @@
+@@ -0,0 +1,406 @@
 +﻿// <copyright file="ErrtelChatCommandPlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -2399,7 +2442,7 @@ index 00000000..9f47b16c
 +                await this.RemoveAsync(player, inventory, pentagramStorage).ConfigureAwait(false);
 +                break;
 +            case "subir":
-+                await this.LevelUpAsync(player, inventory).ConfigureAwait(false);
++                await this.LevelUpAsync(player, inventory, pentagramStorage).ConfigureAwait(false);
 +                break;
 +            default:
 +                await this.MountAsync(player, inventory, pentagramStorage).ConfigureAwait(false);
@@ -2623,17 +2666,39 @@ index 00000000..9f47b16c
 +        }
 +    }
 +
-+    private async ValueTask LevelUpAsync(Player player, IStorage inventory)
++    private async ValueTask LevelUpAsync(Player player, IStorage inventory, PentagramStorage pentagramStorage)
 +    {
++        // Primero el que este suelto; si no hay, el que este montado, siempre que sea uno solo.
++        // Obligar a sacarlo antes seria cobrarle el 50% de romperlo solo por subirlo de nivel.
 +        var errtel = inventory.Items.FirstOrDefault(i => ErrtelHelper.IsErrtel(i.Definition));
-+        if (errtel is null)
++        var mountedSocket = -1;
++        if (errtel is null && pentagramStorage.EquippedPentagram is { } pentagram)
 +        {
-+            await ShowAsync(player, "No tienes ningun errtel en el inventario.").ConfigureAwait(false);
++            var mounted = Enumerable.Range(0, ErrtelHelper.ErrtelCount)
++                .Where(i => ErrtelHelper.GetErrtelOptions(pentagram, i).Count > 0)
++                .ToList();
++            if (mounted.Count > 1)
++            {
++                await ShowAsync(player, "Llevas varios errtels montados y no hay forma de elegir cual: sacalos con /errtel sacar.").ConfigureAwait(false);
++                return;
++            }
++
++            if (mounted.Count == 1)
++            {
++                mountedSocket = mounted[0];
++            }
++        }
++
++        if (errtel is null && mountedSocket < 0)
++        {
++            await ShowAsync(player, "No tienes ningun errtel, ni suelto ni montado.").ConfigureAwait(false);
 +            return;
 +        }
 +
-+        var socketIndex = ErrtelHelper.GetSocketIndex(errtel.Definition);
-+        var level = GetErrtelLevel(errtel);
++        var socketIndex = errtel is not null ? ErrtelHelper.GetSocketIndex(errtel.Definition) : mountedSocket;
++        var level = errtel is not null
++            ? GetErrtelLevel(errtel)
++            : (byte)Math.Clamp(ErrtelHelper.GetErrtelOptions(pentagramStorage.EquippedPentagram!, mountedSocket)[0].Level, 0, 10);
 +        if (level >= 10)
 +        {
 +            await ShowAsync(player, $"El Errtel of {ErrtelNames[socketIndex]} ya esta a +10.").ConfigureAwait(false);
@@ -2660,13 +2725,25 @@ index 00000000..9f47b16c
 +        }
 +
 +        var newLevel = (byte)(level + 1);
-+        errtel.Level = newLevel;
-+        foreach (var link in GetErrtelOptions(errtel))
++        if (errtel is not null)
 +        {
-+            link.Level = newLevel;
-+        }
++            errtel.Level = newLevel;
++            foreach (var link in GetErrtelOptions(errtel))
++            {
++                link.Level = newLevel;
++            }
 +
-+        await player.InvokeViewPlugInAsync<IItemUpgradedPlugIn>(p => p.ItemUpgradedAsync(errtel)).ConfigureAwait(false);
++            await player.InvokeViewPlugInAsync<IItemUpgradedPlugIn>(p => p.ItemUpgradedAsync(errtel)).ConfigureAwait(false);
++        }
++        else
++        {
++            foreach (var link in ErrtelHelper.GetErrtelOptions(pentagramStorage.EquippedPentagram!, mountedSocket))
++            {
++                link.Level = newLevel;
++            }
++
++            await pentagramStorage.RefreshAsync().ConfigureAwait(false);
++        }
 +        await ShowAsync(player, $"Errtel of {ErrtelNames[socketIndex]} a +{newLevel} ({rate}% de exito).").ConfigureAwait(false);
 +    }
 +
@@ -2684,10 +2761,10 @@ index 00000000..9f47b16c
 +}
 diff --git a/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs
 new file mode 100644
-index 00000000..2458736a
+index 00000000..a3d8b89e
 --- /dev/null
 +++ b/src/GameLogic/PlugIns/ChatCommands/PentagramChatCommandPlugIn.cs
-@@ -0,0 +1,203 @@
+@@ -0,0 +1,217 @@
 +﻿// <copyright file="PentagramChatCommandPlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -2880,7 +2957,21 @@ index 00000000..2458736a
 +            }
 +
 +            builder.Append(mounted.Count > 0 ? ". Errtels: " + string.Join(", ", mounted) : ". Sin errtels.");
-+            builder.Append($" Dano elemental {(int)player.Attributes[Stats.ElementalDamageMin]}~{(int)player.Attributes[Stats.ElementalDamageMax]}, defensa {(int)player.Attributes[Stats.ElementalDefense]}.");
++            // Los errtels NO suben el minimo y el maximo: suman aparte, en ElementalDamageBonus y
++            // sus hermanos. Si solo se pintara el min~max, un errtel montado no se notaria en
++            // ninguna parte y pareceria que no hace nada.
++            var bonus = (int)(player.Attributes[Stats.ElementalDamageBonus]
++                + player.Attributes[Stats.ElementalDamageBonusPvm]
++                + player.Attributes[Stats.ElementalDamageBonusMelee]);
++            var min = (int)player.Attributes[Stats.ElementalDamageMin];
++            var max = (int)player.Attributes[Stats.ElementalDamageMax];
++            builder.Append($" Dano elemental {min + bonus}~{max + bonus}");
++            if (bonus > 0)
++            {
++                builder.Append($" (base {min}~{max} + {bonus} de errtels)");
++            }
++
++            builder.Append($", defensa {(int)player.Attributes[Stats.ElementalDefense]}.");
 +        }
 +
 +        return builder.ToString();
