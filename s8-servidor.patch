@@ -3258,6 +3258,27 @@ index 00000000..83d5c81b
 +        await this._action.DecideAsync(player, request.ZoneId, request.ZoneClass, request.Stage, request.CashOut).ConfigureAwait(false);
 +    }
 +}
+diff --git a/src/GameServer/RemoteView/ItemSerializerHelper.cs b/src/GameServer/RemoteView/ItemSerializerHelper.cs
+index bcdea322..eb9b3618 100644
+--- a/src/GameServer/RemoteView/ItemSerializerHelper.cs
++++ b/src/GameServer/RemoteView/ItemSerializerHelper.cs
+@@ -138,7 +138,15 @@ public static class ItemSerializerHelper
+                 return EmptySocket;
+             }
+ 
+-            var sphereLevel = optionLink.Level - 1;
++            // OJO: para las opciones de zocalo, `optionLink.Level` NO guarda el nivel de la esfera,
++            // guarda EL NUMERO DE LA OPCION, y empieza en 0 (MountSeedSphereCrafting.cs hace
++            // `sphereOption.Level = seedSphere.Level` justo despues de buscar la opcion por
++            // `o.Number == seedSphere.Level`). Al restar 1 sin mas, la opcion numero 0 daba -1 y el
++            // byte se iba a 235: el cliente leia una opcion que no existe en su tabla y pintaba
++            // «Zocalo 2: ( +0)», ademas de arriesgar un `iSeedSum[-1]` en CheckSocketSetOption.
++            // Se acota a [0,4], que es lo que cabe en el byte (4*50 + 41 = 241) y en el array
++            // `m_iOptionValue[5]` del cliente. Reportado por Stefano el 17-09-2026 con captura.
++            var sphereLevel = Math.Clamp(optionLink.Level - 1, 0, 4);
+             var elementType = optionLink.ItemOption!.SubOptionType;
+             var elementOption = optionLink.ItemOption.Number;
+             var optionIndex = SocketOptionIndexOffsets[elementType] + elementOption;
 diff --git a/src/GameServer/RemoteView/MasterSkillExtensions.cs b/src/GameServer/RemoteView/MasterSkillExtensions.cs
 index c6e115f1..8c04f26d 100644
 --- a/src/GameServer/RemoteView/MasterSkillExtensions.cs
@@ -6236,7 +6257,7 @@ index 00000000..8dde6eed
 +}
 diff --git a/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
 new file mode 100644
-index 00000000..7a8441e1
+index 00000000..1e638ff2
 --- /dev/null
 +++ b/src/Persistence/Initialization/Updates/AddPandoraMiningSystemUpdatePlugIn.cs
 @@ -0,0 +1,269 @@
@@ -6315,7 +6336,7 @@ index 00000000..7a8441e1
 +        (4, 2002, 605, 211, 80),
 +        (4, 2003, 606, 212, 76),
 +        (4, 2004, 606, 208, 72),
-+        (4, 2005, 607, 207, 76),
++        (4, 2005, 607, 208, 78),   // era 207,76: encima de Potion Girl Amy, la tienda no se podia abrir
 +        (8, 2000, 605, 188, 54),
 +        (8, 2001, 605, 198, 64),
 +        (8, 2002, 605, 206, 72),
@@ -6332,7 +6353,7 @@ index 00000000..7a8441e1
 +        (33, 2001, 605, 76, 9),
 +        (33, 2002, 605, 88, 7),
 +        (33, 2003, 606, 91, 12),
-+        (33, 2004, 606, 83, 12),
++        (33, 2004, 606, 85, 11),   // era 83,12: a una casilla de Elphis, estorbaba al hacer clic
 +        (33, 2005, 607, 79, 10),
 +        (56, 2000, 605, 139, 113),
 +        (56, 2001, 605, 145, 109),
@@ -9624,7 +9645,7 @@ index 00000000..91a796f1
 +    }
 +}
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs
-index 8b83dc24..cef924e4 100644
+index 8b83dc24..6f50328b 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/Aida.cs
 @@ -44,6 +44,14 @@ internal class Aida : BaseMapInitializer
@@ -9637,7 +9658,7 @@ index 8b83dc24..cef924e4 100644
 +        yield return this.CreateMonsterSpawn(2001, this.NpcDictionary[605], 076, 009, Direction.SouthEast); // Mining Area (Small)
 +        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 088, 007, Direction.SouthEast); // Mining Area (Small)
 +        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[606], 091, 012, Direction.SouthEast); // Mining Area (Medium)
-+        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[606], 083, 012, Direction.SouthEast); // Mining Area (Medium)
++        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[606], 085, 011, Direction.SouthEast); // Mining Area (Medium) - era 083,012: pegada a Elphis
 +        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[607], 079, 010, Direction.SouthEast); // Mining Area (Large)
      }
  
@@ -10321,7 +10342,7 @@ index a2b49869..62e7ebfb 100644
  }
 \ No newline at end of file
 diff --git a/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs b/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs
-index 28dde161..2c422e61 100644
+index 28dde161..d0edcb00 100644
 --- a/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs
 +++ b/src/Persistence/Initialization/VersionSeasonSix/Maps/LostTower.cs
 @@ -23,4 +23,26 @@ internal class LostTower : Version075.Maps.LostTower
@@ -10348,7 +10369,7 @@ index 28dde161..2c422e61 100644
 +        yield return this.CreateMonsterSpawn(2002, this.NpcDictionary[605], 211, 080, Direction.SouthEast); // Mining Area (Small)
 +        yield return this.CreateMonsterSpawn(2003, this.NpcDictionary[606], 212, 076, Direction.SouthEast); // Mining Area (Medium)
 +        yield return this.CreateMonsterSpawn(2004, this.NpcDictionary[606], 208, 072, Direction.SouthEast); // Mining Area (Medium)
-+        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[607], 207, 076, Direction.SouthEast); // Mining Area (Large)
++        yield return this.CreateMonsterSpawn(2005, this.NpcDictionary[607], 208, 078, Direction.SouthEast); // Mining Area (Large) - era 207,076: encima de Potion Girl Amy
 +    }
  }
 \ No newline at end of file
