@@ -2194,10 +2194,10 @@ index c89a8735..5b2de641 100644
          this.TemporaryStorage = new Storage(InventoryConstants.TemporaryStorageSize, new TemporaryItemStorage());
 diff --git a/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
 new file mode 100644
-index 00000000..1729861b
+index 00000000..9f47b16c
 --- /dev/null
 +++ b/src/GameLogic/PlugIns/ChatCommands/ErrtelChatCommandPlugIn.cs
-@@ -0,0 +1,338 @@
+@@ -0,0 +1,372 @@
 +﻿// <copyright file="ErrtelChatCommandPlugIn.cs" company="MUnique">
 +// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 +// </copyright>
@@ -2323,6 +2323,39 @@ index 00000000..1729861b
 +        return (byte)Math.Clamp(level, 0, 10);
 +    }
 +
++    /// <summary>
++    /// Si el errtel no trae opciones, se le echan a suertes y se le quedan.
++    /// </summary>
++    /// <remarks>
++    /// Las opciones se reparten cuando el item CAE, en <c>DefaultDropGenerator</c>: una por rango,
++    /// segun la probabilidad de ese rango. Un errtel creado por comando (<c>/item 12 221</c>) no
++    /// pasa por ahi y saldria pelado, o sea inservible. Es el mismo caso que el elemento del
++    /// pentagrama y se arregla en el mismo sitio: el unico camino por el que el item se usa.
++    /// </remarks>
++    private static void EnsureOptions(Player player, Item errtel)
++    {
++        if (errtel.Definition is not { } definition || GetErrtelOptions(errtel).Count > 0)
++        {
++            return;
++        }
++
++        foreach (var optionDefinition in definition.PossibleItemOptions)
++        {
++            var possible = optionDefinition.PossibleOptions
++                .Where(o => o.OptionType == ItemOptionTypes.Errtel)
++                .ToList();
++            if (possible.Count == 0 || !Rand.NextRandomBool(optionDefinition.AddChance))
++            {
++                continue;
++            }
++
++            var link = player.PersistenceContext.CreateNew<ItemOptionLink>();
++            link.ItemOption = possible[Rand.NextInt(0, possible.Count)];
++            link.Level = errtel.Level;
++            errtel.ItemOptions.Add(link);
++        }
++    }
++
 +    private static List<ItemOptionLink> GetErrtelOptions(Item errtel)
 +    {
 +        return errtel.ItemOptions.Where(link => link.ItemOption?.OptionType == ItemOptionTypes.Errtel).ToList();
@@ -2350,12 +2383,13 @@ index 00000000..1729861b
 +            return;
 +        }
 +
++        EnsureOptions(player, errtel);
 +        var options = GetErrtelOptions(errtel);
 +        if (options.Count == 0)
 +        {
-+            // Sin esta comprobacion el errtel se consumiria sin montar nada y el hueco seguiria
-+            // viendose libre. Pasa con los errtels creados por comando, que no pasan por el
-+            // generador de drops y salen sin opciones.
++            // Si ni siquiera despues de echarlas a suertes tiene opciones, es que su definicion no
++            // trae ninguna. Sin esta comprobacion el errtel se consumiria sin montar nada y el
++            // hueco seguiria viendose libre, o sea que se podria repetir sin fin.
 +            await ShowAsync(player, "Ese errtel no trae ninguna opcion; no sirve para montar.").ConfigureAwait(false);
 +            return;
 +        }
